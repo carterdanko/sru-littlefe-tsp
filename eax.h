@@ -12,8 +12,8 @@
 /**
  * a node in a graph
  */
-typedef struct {
-	node_t* edge[MAX_EDGES]; // neighbor nodes of this node
+typedef struct node_struct {
+	struct node_struct* edge[MAX_EDGES]; // neighbor nodes of this node
 	int size; // number of edges in this node
 } node_t;
 
