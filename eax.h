@@ -15,6 +15,7 @@
 typedef struct node_struct {
 	struct node_struct* edge[MAX_EDGES]; // neighbor nodes of this node
 	int size; // number of edges in this node
+	int id; // the id of this node in the graph (same as the city it represents)
 } node_t;
 
 /**

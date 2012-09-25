@@ -15,6 +15,7 @@
  */
 typedef struct {
 	int x,y; // x and y position of the city
+	int id; // a unique number for each city in the map. It should be equal to the city's index in the cities array.
 } city_t;
 
 /**
@@ -24,5 +25,8 @@ typedef struct {
 	city_t* city[MAX_TOUR]; // a pointer to each city in the tour
 	int size; // size of the tour
 } tour_t;
+
+tour_t* loadCities(const char* const fileName); // loads cities from file
+void freeCities(tour_t* cities); // frees the memory used by the structure
 
 #endif // header guard
