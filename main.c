@@ -66,12 +66,56 @@ int main(int argc, char** argv)
 	}
 	printf("done! (loaded %i cities from the file)\n", Cities->size);
 	
+	///////////////////////////////////////////////////////////////////////////
 	// process the cities
 	
+	// output the city information to the console
+	printf("\nNum Cities: %04i\n", Cities->size);
+	printf("---------------------------\n");
+	for (i=0; i < Cities->size; i++)
+	{
+		printf("City[%04i] at %04i, %04i   [id: %04i]\n", i, Cities->city[i]->x, Cities->city[i]->y, Cities->city[i]->id);
+	}
+	
+	// create two new tours by some arbitrary but reproducible means
+	tour_t tourA, tourB;
+	tourA.size = tourB.size = Cities->size;
+	int N = Cities->size;
+	for (i=0; i < N; i++)
+	{
+		tourA.city[i] = Cities->city[(i*2)%N];
+		tourB.city[i] = Cities->city[Cities->size-i-1];
+	}
+	
+	// output the two tours
+	printf("TourA: [%i]", tourA.city[0]->id);
+	for (i=1; i < N; i++)
+		printf(", [%i]", tourA.city[i]->id);
+	printf("\nTourB: [%i]", tourB.city[0]->id);
+	for (i=1; i < N; i++)
+		printf(", [%i]", tourB.city[i]->id);
+	printf("\n");
+	
+	// merge the two tours
+	printf("\nMerging A with B...");
+	graph_t* R = mergeTours(&tourA, &tourB);
+	printf("done!\n");
+	
+	// output the merged graph
+	printf("\nGraph R contains: \n");
+	for (i=0; i < N; i++)
+	{
+		printf("%04i [id:%04i] -> edges: ", i, R->node[i]->id);
+		int e;
+		for (e=0; e < R->node[i]->size; e++)
+			printf((e>0) ? ", [%04i]" : "[%04i]", R->node[i]->edge[e]->id);
+		printf("\n");
+	}
 	
 	// clean up
-	printf("Clean up...");
-	freeCities(Cities);
+	printf("\nClean up...");
+	freeGraph(R);
+	freeCities(Cities); //TODO: ERROR: this routine causes the code to hang, need to fix
 	printf("done!\n");
 	
 	// done (just used to make sure that the program ran to completion)

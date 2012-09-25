@@ -23,18 +23,19 @@
 	}
 	
 	// get number of cities from first line
-	fscanf(in, "%i\n", &numCities); 
+	fscanf(in, "%i", &numCities); 
 	
 	// create the tour
-	tour_t* cities = (tour_t*)malloc(sizeof(cities)); //TODO: FREE_MEM: remember to free this memory when finished  (memTourMaster)
+	tour_t* cities = (tour_t*)malloc(sizeof(tour_t)); //TODO: FREE_MEM: remember to free this memory when finished  (memTourMaster)
 	cities->size = numCities;
 	
 	// load information about each city
 	int i;
 	for (i=0; i < numCities; i++)
 	{
-		cities->city[i] = (city_t*)malloc(sizeof(cities->city[i])); // TODO: FREE_MEM: remember to free this memory when finished  (memTourMasterCity)
-		fscanf(in, "%i %i\n", &cities->city[i]->x, &cities->city[i]->y);
+		cities->city[i] = (city_t*)malloc(sizeof(city_t)); // TODO: FREE_MEM: remember to free this memory when finished  (memTourMasterCity)
+		fscanf(in, "%i %i", &cities->city[i]->x, &cities->city[i]->y);
+		cities->city[i]->id = i;
 	}
 	
 	// all of the city information has been loaded, return the result

@@ -36,4 +36,7 @@ typedef struct {
 	int size; // number of sub tours currently in the intermediate
 } intermediate_t;
 
+graph_t* mergeTours(const tour_t* const tA, const tour_t* const tB); // creates a graph that consists of all of the edges in tour A and all of the edges in tour B
+void freeGraph(graph_t* R); // frees all of the memory used by graph R
+
 #endif // header guard
