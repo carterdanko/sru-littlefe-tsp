@@ -100,14 +100,62 @@ void freeGraph(graph_t* R)
  * The process of generating A-B cycles is described in depth by the original
  * EAX paper, but I will summarize briefly: start on a node, then generate a
  * subcycle by alternating from edges on TourA and TourB.
- * R : the graph object that all these edges belong to
+ * R : the graph object that all these edges belong to. R will be modified in the 
+ *     process. (should be empty basically if all went well)
  * cycles : (pass by reference) an array of already allocated cycle structures for
- *          us to use.
+ *          us to use. Makes no assumptions about the data already in the array,
+ *          other than that every index points to an allocated object so that it
+ *          can overwrite that object.
+ * side-effects : modifies given graph object
  * side-effects : modifies cycle array
  * returns : (int) number of A-B cycles taht were generated
  */
-int generateABCycles(const graph_t* const R, tour_t** cycles /*byref*/)
+int generateABCycles(graph_t* R /*byref*/, tour_t** cycles /*byref*/)
 {
-	// TODO: stub
-	return 0;
+	// local declarations
+	int visited[MAX_CITIES];
+	int size = 0; // size of the cycles array, number of AB cycles
+	int v0, v1, v2; // vertex one and two of the current edge, v0 is the first v1
+	//note: if v1==v2 at start of iteration, choose an edge incident to v1
+	int edges = R->size*MAX_EDGES; // R should have MAX_EDGES/2 edges for every vertex, we half it because it's an undirected graph and don't want duplicates. (NOTE: could still have duplicates if both tours share an edge, this is ok).
+	tour_t* curCyle = 0; // current AB cycle we're working on
+
+	// initializations
+	v1 = -1;
+	v2 = -2; // just so they're not equal
+
+	// generate AB cycles
+	while (edges>0)
+	{
+		// pick starting edge
+		if (v1==v2)
+		{
+			//TODO: choose an edge incident to v1
+		}
+		else
+		{
+			//TODO: choose a random edge
+		}
+
+		// set up current cycle
+		curCycle = cycles[size++];
+		memset(&visited, 0, sizeof(visited)); // reset visited nodes for this cycle
+		visited[v1] = true;
+		v0 = v1;
+		while (!visited[v2]) // keep alternating until we've made a loop
+		{
+			//TODO: visit v2, alternate pick an edge from the other tour
+
+		} // while creating a cycle
+
+		// check to see if we've made a cycle with a tail
+		if (v2 != v0)
+		{
+			v1 = v2;
+			//TODO: remove the edges from the cycle that are on the tail
+		}
+
+	}// while R has edges left
+
+	return size;
 }
