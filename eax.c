@@ -38,11 +38,13 @@ graph_t* mergeTours(const tour_t* const tA, const tour_t* const tB)
 	{
 		// tourA's cities
 		curNode = R->node[tA->city[i]->id]; // grab the node representing tour A's city[i]
+		curNode->tour[curNode->size] = curNode->tour[curNode->size+1] = 0; // these edges belong to A
 		curNode->edge[curNode->size++] = R->node[tA->city[i-1]->id]; // previous node in tourA
 		curNode->edge[curNode->size++] = R->node[tA->city[i+1]->id]; // next node in tourA
 		
 		// tourB's cities
 		curNode = R->node[tB->city[i]->id]; // grab the node representing tour B's city[i]
+		curNode->tour[curNode->size] = curNode->tour[curNode->size+1] = 1; // these edges belong to B
 		curNode->edge[curNode->size++] = R->node[tB->city[(i-1+tourSize)%tourSize]->id]; // previous node in tourB
 		curNode->edge[curNode->size++] = R->node[tB->city[(i+1)%tourSize]->id]; // next node in tourB
 	}
@@ -50,19 +52,23 @@ graph_t* mergeTours(const tour_t* const tA, const tour_t* const tB)
 	// now handle the special case of the first and last nodes in the tour, which link back around (each tour is a cycle)
 	// first city in each tour
 	curNode = R->node[tA->city[0]->id]; // grab the node representing tour A's city[0]
+	curNode->tour[curNode->size] = curNode->tour[curNode->size+1] = 0; // these edges belong to A
 	curNode->edge[curNode->size++] = R->node[tA->city[tourSize-1]->id]; // previous node in tourA
 	curNode->edge[curNode->size++] = R->node[tA->city[1]->id]; // next node in tourA
 	// tourB's cities
 	curNode = R->node[tB->city[0]->id]; // grab the node representing tour B's city[0]
+	curNode->tour[curNode->size] = curNode->tour[curNode->size+1] = 1; // these edges belong to B
 	curNode->edge[curNode->size++] = R->node[tB->city[tourSize-1]->id]; // previous node in tourB
 	curNode->edge[curNode->size++] = R->node[tB->city[1]->id]; // next node in tourB
 	
 	// last city in each tour
 	curNode = R->node[tA->city[tourSize-1]->id]; // grab the node representing tour A's last city
+	curNode->tour[curNode->size] = curNode->tour[curNode->size+1] = 0; // these edges belong to A
 	curNode->edge[curNode->size++] = R->node[tA->city[tourSize-2]->id]; // previous node in tourA
 	curNode->edge[curNode->size++] = R->node[tA->city[0]->id]; // next node in tourA
 	// tourB's cities
 	curNode = R->node[tB->city[tourSize-1]->id]; // grab the node representing tour B's last city
+	curNode->tour[curNode->size] = curNode->tour[curNode->size+1] = 1; // these edges belong to B
 	curNode->edge[curNode->size++] = R->node[tB->city[tourSize-2]->id]; // previous node in tourB
 	curNode->edge[curNode->size++] = R->node[tB->city[0]->id]; // next node in tourB
 	printf("done!\n"); //TODO debug remove
@@ -115,26 +121,44 @@ int generateABCycles(graph_t* R /*byref*/, tour_t** cycles /*byref*/)
 	// local declarations
 	int visited[MAX_CITIES];
 	int size = 0; // size of the cycles array, number of AB cycles
-	int v0, v1, v2; // vertex one and two of the current edge, v0 is the first v1
+	node_t *v0, *v1, *v2; // vertex one and two of the current edge, v0 is the first v1
 	//note: if v1==v2 at start of iteration, choose an edge incident to v1
 	int edges = R->size*MAX_EDGES; // R should have MAX_EDGES/2 edges for every vertex, we half it because it's an undirected graph and don't want duplicates. (NOTE: could still have duplicates if both tours share an edge, this is ok).
-	tour_t* curCyle = 0; // current AB cycle we're working on
+	tour_t* curCycle = 0; // current AB cycle we're working on
 
 	// initializations
-	v1 = -1;
-	v2 = -2; // just so they're not equal
+	v0 = v1 = v2 = 0;
 
 	// generate AB cycles
 	while (edges>0)
 	{
 		// pick starting edge
-		if (v1==v2)
+		if (v1==v2 && v1 && v2)
 		{
-			//TODO: choose an edge incident to v1
+			// choose an edge incident to v1
+			// we can choose any edge from v1, because the edges
+			// contained in the ab cycle should've already been removed.
+			if (v1->size < 1)
+			{
+				printf("generateABCycles() :: ERROR : v1 has no more edges. (edge: %i -> %i)\n", v1->id, v2->id);
+				printf("halting...\n");
+				exit(31);
+			}
+			v2 = v1->edge[rand() % v1->size];
 		}
 		else
 		{
-			//TODO: choose a random edge
+			// choose a vertex with at least 2 edges (to create a loop)
+			v1 = R->node[rand() % MAX_CITIES];
+			int panic = 0;
+			for (;v1->size > 1 && panic<PANIC_EXIT;panic++)
+				v1 = R->node[rand() % MAX_CITIES];
+			if (panic >= PANIC_EXIT)
+			{
+				printf("generateABCycles() :: ERROR : panic_exit : too many iterations when trying to pick a vertex that has remaining edges. halting...\n");
+				exit(32);
+			}
+			v2 = v1->edge[rand() % v1->size];
 		}
 
 		// set up current cycle
@@ -145,6 +169,7 @@ int generateABCycles(graph_t* R /*byref*/, tour_t** cycles /*byref*/)
 		while (!visited[v2]) // keep alternating until we've made a loop
 		{
 			//TODO: visit v2, alternate pick an edge from the other tour
+
 
 		} // while creating a cycle
 
@@ -159,3 +184,4 @@ int generateABCycles(graph_t* R /*byref*/, tour_t** cycles /*byref*/)
 
 	return size;
 }
+

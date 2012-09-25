@@ -5,6 +5,7 @@
 #define TSP_H
 
 #include <stdlib.h>
+#include <time.h>
 #include <stdio.h>
  
 #define MAX_CITIES 100

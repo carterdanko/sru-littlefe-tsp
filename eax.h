@@ -8,12 +8,14 @@
 
 #define MAX_SUB_TOURS 10  // maximum number of sub-tours in an intermediate tour
 #define MAX_EDGES 4       // there can only be 4 maximum edges, two from each parent tour
+#define PANIC_EXIT 100  // some choosing algorithms are implemented by randomly choosing items that haven't been chosen yet, choosing again when encountering one that was already chosen. If this many iterations of that occur, we exit the loop to prevent hanging, print an error message, and halt execution
 
 /**
  * a node in a graph
  */
 typedef struct node_struct {
 	struct node_struct* edge[MAX_EDGES]; // neighbor nodes of this node
+	int tour[MAX_EDGES]; // which tour each edge belongs to. 0 for A, 1 for B, etc.
 	int size; // number of edges in this node
 	int id; // the id of this node in the graph (same as the city it represents)
 } node_t;
@@ -41,7 +43,7 @@ graph_t* mergeTours(const tour_t* const tA, const tour_t* const tB); // creates 
 void freeGraph(graph_t* R); // frees all of the memory used by graph R
 
 // A-B cycles
-int generateABCycles(const graph_t* const R, tour_t** cycles /*by-ref*/); // generates A-B cycles and stores them in cycles, returns size of the array of sub-tours
+int generateABCycles(graph_t* R /*byref*/, tour_t** cycles /*byref*/); // generates A-B cycles and stores them in cycles, returns size of the array of sub-tours
 
 // E-sets
 
