@@ -11,4 +11,4 @@ eax.o: eax.c
 	cc -c eax.c
 
 clean: 
-	rm tsp main.o eax.o
+	rm tsp main.o eax.o tsp.o
