@@ -111,6 +111,14 @@ int main(int argc, char** argv)
 			printf((e>0) ? ", [%04i]" : "[%04i]", R->node[i]->edge[e]->id);
 		printf("\n");
 	}
+
+	// create A-B cycles on R
+
+	// create E-sets from the cycles
+
+	// apply E-sets to generate intermediates
+
+	// turn intermediates into valid tours
 	
 	// clean up
 	printf("\nClean up...");

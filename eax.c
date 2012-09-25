@@ -91,3 +91,23 @@ void freeGraph(graph_t* R)
 	// free the graph
 	free(R);
 }
+
+/**
+ * Generates A-B cycles from R and stores them as an array of pointers to
+ * tour objects in cycles. Cycles is expected to already be populated by
+ * allocated memory (that is, this function will not allocated or deallocate
+ * any memory by itself. Consider this a type of memory pooling).
+ * The process of generating A-B cycles is described in depth by the original
+ * EAX paper, but I will summarize briefly: start on a node, then generate a
+ * subcycle by alternating from edges on TourA and TourB.
+ * R : the graph object that all these edges belong to
+ * cycles : (pass by reference) an array of already allocated cycle structures for
+ *          us to use.
+ * side-effects : modifies cycle array
+ * returns : (int) number of A-B cycles taht were generated
+ */
+int generateABCycles(const graph_t* const R, tour_t** cycles /*byref*/)
+{
+	// TODO: stub
+	return 0;
+}
