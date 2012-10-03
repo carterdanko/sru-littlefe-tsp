@@ -3,7 +3,7 @@
  */
  
 #include "tsp.h"
-#include "eax.h"
+#include "eax.h" //TODO: im pretty sure you want this to be #include "eax.c" [Mike]
 
 // "global" variables. I try to start these with capital letters
 tour_t* Cities; // the "tour" that contains every city in their provided order. Not really a tour, just used as the master array of cities

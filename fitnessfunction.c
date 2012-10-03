@@ -64,31 +64,3 @@ float get_fitness_route(int *arr) {
 	return fitness;
 }
 
-int main() {
-	int my_route[MAX_CITIES];
-	if (DEBUG) {
-		/*
-		location[0][0] = 0;
-		location[0][1] = 0;
-		location[1][0] = 1;
-		location[1][1] = 1;
-		location[2][0] = 1;
-		location[2][1] = 0;
-		location[3][0] = 0;
-		location[3][1] = 1;
-
-		//int i;
-		//for (i=0;i<MAX_CITIES;i++) {
-		//	my_route[i]=i;
-		//}
-		my_route[0]=0;
-		my_route[1]=3;
-		my_route[2]=1;
-		my_route[3]=2;
-		*/
-	}
-	construct_distTable();
-	if (DEBUG) {
-		printf("fitness of simple route is: %f\n",get_fitness_route(my_route));
-	}
-}
