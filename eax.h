@@ -6,9 +6,21 @@
 
 #include "tsp.h"
 
+// inlines
+#define REMOVE_EDGE(V,E) do { \
+                         	V->edge[E] = V->edge[V->size]; V->tour[E] = V->tour[V->size--]; \
+			 } while(0) // removes edge E from vertex V 
+#define RESTORE_EDGE(V,E) do { \
+			  	node_t* _tv; int _tt; _tv=V->edge[V->size]; _tt=V->tour[V->size]; \
+                          	V->edge[V->size] = V->edge[E]; V->tour[V->size++] = V->tour[E]; \
+			  	V->edge[E] = _tv; V->tour[E] = _tt; \
+                          } while(0) // restore a previously removed edge back to vertex V
+
+// constants
 #define MAX_SUB_TOURS 10  // maximum number of sub-tours in an intermediate tour
 #define MAX_EDGES 4       // there can only be 4 maximum edges, two from each parent tour
 #define PANIC_EXIT 100  // some choosing algorithms are implemented by randomly choosing items that haven't been chosen yet, choosing again when encountering one that was already chosen. If this many iterations of that occur, we exit the loop to prevent hanging, print an error message, and halt execution
+#define MAX_ABCYCLES 100 // only for allocation purposes, no boundary checking assurances
 
 /**
  * a node in a graph
@@ -43,7 +55,7 @@ graph_t* mergeTours(const tour_t* const tA, const tour_t* const tB); // creates 
 void freeGraph(graph_t* R); // frees all of the memory used by graph R
 
 // A-B cycles
-int generateABCycles(graph_t* R /*byref*/, tour_t** cycles /*byref*/); // generates A-B cycles and stores them in cycles, returns size of the array of sub-tours
+int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** cycles /*byref*/); // generates A-B cycles and stores them in cycles, returns size of the array of sub-tours
 
 // E-sets
 

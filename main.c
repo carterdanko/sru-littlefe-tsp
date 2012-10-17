@@ -108,22 +108,48 @@ int main(int argc, char** argv)
 		printf("%04i [id:%04i] -> edges: ", i, R->node[i]->id);
 		int e;
 		for (e=0; e < R->node[i]->size; e++)
-			printf((e>0) ? ", [%04i]" : "[%04i]", R->node[i]->edge[e]->id);
+			printf((e>0) ? ", [%04i:t%01i]" : "[%04i:t%01i]", R->node[i]->edge[e]->id, R->node[i]->tour[e]);
 		printf("\n");
 	}
 
 	// create A-B cycles on R
+	/*printf("Allocating cycles...");
+	tour_t** cycles;
+	cycles = (tour_t**)malloc(sizeof(tour_t *) * MAX_ABCYCLES);
+	cycles[0] = malloc(MAX_ABCYCLES * sizeof(tour_t));
+	printf("done!\n");
+	int nCycles;
+	printf("Generating AB Cycles....");
+	// REMEMBER! R gets defiled by this call, and the contents of cycles isn't important, it all gets overwritten
+	nCycles = generateABCycles(Cities, R, cycles);
+	printf("done!\n");
+
+	// output the cycles
+	for (i=0; i < nCycles; i++)
+	{
+		printf("Printing all %i cycles...\n", nCycles);
+		printf("Cycle[%i]: [%i]", i, cycles[i]->city[0]->id);
+		int a;
+		for (a=0; a < cycles[i]->size; a++)
+			printf(", [%i]", cycles[i]->city[a]->id);
+		printf("\n");
+	}
 
 	// create E-sets from the cycles
 
 	// apply E-sets to generate intermediates
 
 	// turn intermediates into valid tours
-	
+	*/
 	// clean up
 	printf("\nClean up...");
 	freeGraph(R);
-	freeCities(Cities); //TODO: ERROR: this routine causes the code to hang, need to fix
+	printf("graph gone...");
+	freeCities(Cities);
+	printf("main cities gone...");
+	//for (i=0; i < MAX_ABCYCLES; i++)
+	//	freeCities(cycles[i]);
+	printf("AB cycles structure gone...");
 	printf("done!\n");
 	
 	// done (just used to make sure that the program ran to completion)
