@@ -64,3 +64,6 @@ float get_fitness_route(int *arr) {
 	return fitness;
 }
 
+int main() {
+
+}
