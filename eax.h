@@ -8,13 +8,21 @@
 
 // inlines
 #define REMOVE_EDGE(V,E) do { \
-                         	V->edge[E] = V->edge[V->size]; V->tour[E] = V->tour[V->size--]; \
-			 } while(0) // removes edge E from vertex V 
-#define RESTORE_EDGE(V,E) do { \
-			  	node_t* _tv; int _tt; _tv=V->edge[V->size]; _tt=V->tour[V->size]; \
-                          	V->edge[V->size] = V->edge[E]; V->tour[V->size++] = V->tour[E]; \
+				printf("removing edge(v[%i]->v[%i] from graph...\n", \
+				(V?V->id:-1), \
+				(V && V->edge[E]?V->edge[E]->id:-1)); \
+                node_t* _tv; int _tt; _tv=V->edge[--V->size]; _tt=V->tour[V->size]; \
+                V->edge[V->size] = V->edge[E]; V->tour[V->size] = V->tour[E]; \
 			  	V->edge[E] = _tv; V->tour[E] = _tt; \
-                          } while(0) // restore a previously removed edge back to vertex V
+			} while(0) // removes edge E from vertex V 
+#define RESTORE_EDGE(V,E) do { \
+				printf("restoring edge(v[%i]->v[%i] to graph...\n", \
+				(V?V->id:-1), \
+				(V && V->edge[E]?V->edge[E]->id:-1)); \
+			  	node_t* _tv; int _tt; _tv=V->edge[V->size]; _tt=V->tour[V->size]; \
+                V->edge[V->size] = V->edge[E]; V->tour[V->size++] = V->tour[E]; \
+			  	V->edge[E] = _tv; V->tour[E] = _tt; \
+            } while(0) // restore a previously removed edge back to vertex V
 
 // constants
 #define MAX_SUB_TOURS 10  // maximum number of sub-tours in an intermediate tour
