@@ -1,5 +1,5 @@
-tsp: main.o eax.o tsp.o
-	cc -o tsp main.o eax.o tsp.o
+tsp: main.o eax.o tsp.o fitnessfunction.o parentselection.o util.o
+	cc -lm -o tsp main.o eax.o tsp.o fitnessfunction.o parentselection.o util.o
 	  
 main.o: main.c eax.h tsp.h
 	cc -c main.c
@@ -10,8 +10,14 @@ tsp.o: tsp.c
 eax.o: eax.c
 	cc -c eax.c
 
+util.o: util.c
+	cc -c util.c
+
 fitnessfunction.o: fitnessfunction.c
-	cc -c -lm fitnessfunction.c
+	cc -c fitnessfunction.c
+
+parentselection.o: parentselection.c
+	cc -c parentselection.c
 
 clean: 
-	rm tsp main.o eax.o tsp.o
+	rm tsp *.o 

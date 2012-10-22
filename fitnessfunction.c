@@ -67,7 +67,3 @@ float get_fitness_route(int *arr) {
 	// do we count arr[n] --> arr[0] ?
 	return fitness;
 }
-
-int main() {
-
-}

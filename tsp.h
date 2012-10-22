@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
-#include "fitnessfunction.h"
  
 #define MAX_CITIES 100
 #define MAX_TOUR 100     // this should basically be the same as MAX_CITIES
@@ -28,6 +27,8 @@ typedef struct {
 typedef struct {
 	city_t* city[MAX_TOUR]; // a pointer to each city in the tour
 	int size; // size of the tour
+	// ~~!
+	float fitness; // the fitness of the entire tour.
 } tour_t;
 
 /** Data structure containing the coordinates of every city. */
@@ -38,5 +39,10 @@ tour_t tours[MAX_POPULATION];
 
 tour_t* loadCities(const char* const fileName); // loads cities from file
 void freeCities(tour_t* cities); // frees the memory used by the structure
+
+/**
+ * Returns a random float between 0.0 and 1.0.
+ */
+float frand();
 
 #endif // header guard
