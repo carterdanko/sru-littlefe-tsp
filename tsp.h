@@ -11,6 +11,7 @@
  
 #define MAX_CITIES 100
 #define MAX_TOUR 100     // this should basically be the same as MAX_CITIES
+#define MAX_POPULATION 200
 #define TABLE_SIZE (MAX_CITIES*(MAX_CITIES-1))/2 // size based on a counting argument
 
 /**
@@ -31,7 +32,8 @@ typedef struct {
 
 /** Data structure containing the coordinates of every city. */
 city_t cities[MAX_CITIES];
-
+/** Data structure that holds all of the tours in the population. */
+tour_t tours[MAX_POPULATION];
 
 
 tour_t* loadCities(const char* const fileName); // loads cities from file
