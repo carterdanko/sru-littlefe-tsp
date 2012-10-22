@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
+#include "fitnessfunction.h"
  
 #define MAX_CITIES 100
 #define MAX_TOUR 100     // this should basically be the same as MAX_CITIES
@@ -30,8 +31,6 @@ typedef struct {
 
 /** Data structure containing the coordinates of every city. */
 city_t cities[MAX_CITIES];
-/** Stores distances from every point to another. */
-float distTable[TABLE_SIZE];
 
 
 
