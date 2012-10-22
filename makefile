@@ -10,5 +10,8 @@ tsp.o: tsp.c
 eax.o: eax.c
 	cc -c eax.c
 
+fitnessfunction.o: fitnessfunction.c
+	cc -c -lm fitnessfunction.c
+
 clean: 
 	rm tsp main.o eax.o tsp.o

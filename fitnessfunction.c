@@ -6,9 +6,13 @@
  */
 #include <stdio.h>
 #include <math.h>
+#include "fitnessfunction.h"
 #include "tsp.h"
 
 #define DEBUG 1
+
+/** Stores distances from every point to another. */
+float distTable[TABLE_SIZE];
 
 /**
  * Using The Pythagorean's Theorem, calculate the distance from p1 to p2.
