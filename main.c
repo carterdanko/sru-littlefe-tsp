@@ -3,7 +3,7 @@
  */
  
 #include "tsp.h"
-#include "eax.h" //TODO: im pretty sure you want this to be #include "eax.c" [Mike]
+#include "eax.h"
 
 // "global" variables. I try to start these with capital letters
 tour_t* Cities; // the "tour" that contains every city in their provided order. Not really a tour, just used as the master array of cities
@@ -87,7 +87,7 @@ int main(int argc, char** argv)
 	{
 		tourA.city[i] = Cities->city[(i*2)%N];
 	}
-	tstar = create_tour_nn((city_t*)Cities->city[0], Cities->size, Cities);
+	tstar = create_tour_nn(Cities->city[0], Cities->size, Cities);
 	tourB = *tstar;
 
 	// now, find fitness of the tours.
@@ -105,19 +105,18 @@ int main(int argc, char** argv)
 	printf("\n");
 
 	// now, testing print tour function for A and B.
-	print_tour(&tourA,N);
-	print_tour(&tourB,N);
+	print_tour(&tourA);
+	print_tour(&tourB);
 
 	// now, testing roulette wheel 5 times.
 	srand(0);
-	tours[0] = &tourA;
-	tours[1] = &tourB;
+	tours[0] = tourA;
+	tours[1] = tourB;
 	tour_t* tempt;
-	tempt = malloc( sizeof(tour_t) );
 	printf(" ~~~ ROULETTE WHEEL ~~\n");
 	for (i=0;i<5;i++) {
-		//tempt = roulette_select(tours, 2);
-		//print_tour(tempt, N);
+		tempt = roulette_select(&tours, 2);
+		print_tour(tempt);
 	}
 	printf(" ~~~  END ROULETTE  ~~\n");
 	

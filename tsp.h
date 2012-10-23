@@ -41,8 +41,7 @@ typedef struct {
 /** Data structure containing the coordinates of every city. */
 city_t cities[MAX_CITIES];
 /** Data structure that holds all of the tours in the population. */
-tour_t* tours[MAX_POPULATION];
-
+tour_t tours[MAX_POPULATION];
 
 tour_t* loadCities(const char* const fileName); // loads cities from file
 void freeCities(tour_t* cities); // frees the memory used by the structure
@@ -52,6 +51,6 @@ void freeCities(tour_t* cities); // frees the memory used by the structure
  */
 float frand();
 
-void print_tour(tour_t* tour, int num_cities);
+void print_tour(tour_t* tour);
 
 #endif // header guard

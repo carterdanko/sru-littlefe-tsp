@@ -10,14 +10,14 @@
 #include <math.h>
 #include "tsp.h"
 
-tour_t* roulette_select(tour_t* tours[], int num_tours) {
+tour_t* roulette_select(tour_t tours[], int num_tours) {
 	int i;
 	float rand,rand_fit,sum_fitness,temp;
 	sum_fitness=0.0;
 
 	// sum up the inverted total fitnesses
 	for (i=0;i<num_tours;i++) {
-		temp = ((tour_t*)tours[i])->fitness;
+		temp = tours[i].fitness;
 		temp = 1.0 / temp;
 		sum_fitness+= temp;
 	}
@@ -29,10 +29,10 @@ tour_t* roulette_select(tour_t* tours[], int num_tours) {
 	rand_fit = sum_fitness * rand;
 
 	for (i=0;i<num_tours;i++) {
-		temp = 1.0 / ((tour_t*)tours[i])->fitness;
+		temp = 1.0 / tours[i].fitness;
 		if (rand_fit < temp) {
 			// If your fitness is in this tour, return it.
-			return tours[i];
+			return &tours[i];
 		} else {
 			// Otherwise, subtract this tour's fitness from sum_fitness and try again.
 			rand_fit-=temp;

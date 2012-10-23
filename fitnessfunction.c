@@ -95,6 +95,9 @@ tour_t* create_tour_nn(city_t* city, int num_cities, tour_t* cities) {
 		tour->city[i]=next_city;
 		cities_visited[ next_city->id ]=1;
 	}
+
+	// Before returning, set the tour's size.
+	tour->size=num_cities;
 	return tour;
 }
 
