@@ -67,3 +67,50 @@ float get_fitness_route(int *arr) {
 	// do we count arr[n] --> arr[0] ?
 	return fitness;
 }
+
+tour_t* create_tour_nn(city_t* city, int num_cities, tour_t* cities) {
+	// Set up the cities_visited array; 0 for not visited, 1 for visited.
+	char *cities_visited;
+	cities_visited = (char *)malloc( num_cities * sizeof(char) );
+	memset((void*)cities_visited, 0, sizeof(cities_visited));
+	// The tour to be returned.
+	tour_t* tour;
+	tour = malloc( sizeof(tour_t) );
+	// The next city to place in the tour.
+	city_t* next_city;
+	// Init to be the city passed into the function
+	next_city = city;
+	// The first city is city passed.
+	tour->city[0] = city;
+	cities_visited[ city->id ]=1;
+	
+	int i;
+
+	// Iterate through the cities, adding new ones and marking them off.
+	for (i=1;i<num_cities;i++) {
+		next_city = find_nearest_neighbor(next_city,num_cities,cities,cities_visited);
+		tour->city[i]=next_city;
+		cities_visited[ next_city->id ]=1;
+	}
+}
+
+city_t* find_nearest_neighbor(city_t* city, int num_cities, tour_t* cities, char* cities_visited) {
+	city_t* short_city;
+	float temp_dist,short_dist;
+	temp_dist=short_dist=0.0;
+	int i;
+	
+	for (i=0;i<num_cities;i++) {
+		temp_dist = get_distance_between(cities->city[i]->id,city->id);
+		if (  temp_dist < short_dist && cities_visited[i]==0) {
+			// If your distance was shorter than the shortest, use this instead.
+			short_city = cities->city[i];
+			short_dist = temp_dist;
+		} else if (short_city==0 && cities_visited[i]==0) {
+			// Otherwise, if not already set, get the first distance as your shortest.
+			short_city = cities->city[i];
+			short_dist = temp_dist;
+		}
+	}
+	return short_city;
+}
