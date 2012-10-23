@@ -68,7 +68,9 @@ int main(int argc, char** argv)
 	
 	///////////////////////////////////////////////////////////////////////////
 	// process the cities
-	
+	int N = Cities->size;
+	construct_distTable(Cities,N);// compute distances as soon as we can (now)
+
 	// output the city information to the console
 	printf("\nNum Cities: %04i\n", Cities->size);
 	printf("---------------------------\n");
@@ -78,22 +80,17 @@ int main(int argc, char** argv)
 	}
 	
 	// create two new tours by some arbitrary but reproducible means
-	//~~! removed the old methods for creating tours to replace with the new method.
 	tour_t tourA, tourB;
 	tour_t* tstar;
-//	tourA.size = tourB.size = Cities->size;
 	tourA.size = Cities->size;
-	int N = Cities->size;
 	for (i=0; i < N; i++)
 	{
 		tourA.city[i] = Cities->city[(i*2)%N];
-//		tourB.city[i] = Cities->city[Cities->size-i-1];
 	}
 	tstar = create_tour_nn((city_t*)Cities->city[0], Cities->size, Cities);
 	tourB = *tstar;
 
 	// now, find fitness of the tours.
-	construct_distTable(Cities,N);
 	set_tour_fitness(&tourA,N);
 	set_tour_fitness(&tourB,N);
 	
