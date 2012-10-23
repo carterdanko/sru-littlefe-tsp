@@ -1,5 +1,5 @@
-tsp: main.o eax.o tsp.o fitnessfunction.o parentselection.o util.o
-	cc -lm -o tsp main.o eax.o tsp.o fitnessfunction.o parentselection.o util.o
+tsp: main.o eax.o tsp.o util.o fitnessfunction.o parentselection.o
+	cc -lm -o tsp main.o eax.o tsp.o util.o fitnessfunction.o parentselection.o
 	  
 main.o: main.c eax.h tsp.h
 	cc -c main.c

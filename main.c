@@ -78,15 +78,26 @@ int main(int argc, char** argv)
 	}
 	
 	// create two new tours by some arbitrary but reproducible means
+	//~~! removed the old methods for creating tours to replace with the new method.
 	tour_t tourA, tourB;
-	tourA.size = tourB.size = Cities->size;
+	tour_t* tstar;
+//	tourA.size = tourB.size = Cities->size;
+	tourA.size = Cities->size;
 	int N = Cities->size;
 	for (i=0; i < N; i++)
 	{
 		tourA.city[i] = Cities->city[(i*2)%N];
-		tourB.city[i] = Cities->city[Cities->size-i-1];
+//		tourB.city[i] = Cities->city[Cities->size-i-1];
 	}
+	tstar = create_tour_nn((city_t*)Cities->city[0], Cities->size, Cities);
+	tourB = *tstar;
+
+	// now, find fitness of the tours.
+	construct_distTable(Cities,N);
+	set_tour_fitness(&tourA,N);
+	set_tour_fitness(&tourB,N);
 	
+	printf("fitness of A,B is %f,%f.\n", tourA.fitness,tourB.fitness);
 	// output the two tours
 	printf("TourA: [%i]", tourA.city[0]->id);
 	for (i=1; i < N; i++)
@@ -95,6 +106,23 @@ int main(int argc, char** argv)
 	for (i=1; i < N; i++)
 		printf(", [%i]", tourB.city[i]->id);
 	printf("\n");
+
+	// now, testing print tour function for A and B.
+	print_tour(&tourA,N);
+	print_tour(&tourB,N);
+
+	// now, testing roulette wheel 5 times.
+	srand(0);
+	tours[0] = &tourA;
+	tours[1] = &tourB;
+	tour_t* tempt;
+	tempt = malloc( sizeof(tour_t) );
+	printf(" ~~~ ROULETTE WHEEL ~~\n");
+	for (i=0;i<5;i++) {
+		tempt = roulette_select(tours, 2);
+		print_tour(tempt, N);
+	}
+	printf(" ~~~  END ROULETTE  ~~\n");
 	
 	// merge the two tours
 	printf("\nMerging A with B...");

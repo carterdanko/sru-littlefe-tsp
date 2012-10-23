@@ -17,22 +17,22 @@ float distTable[TABLE_SIZE];
 /**
  * Using The Pythagorean's Theorem, calculate the distance from p1 to p2.
  */
-float get_distance_between(int p1, int p2) {
+float get_distance_between(int p1, int p2, tour_t* cities) {
 	float x,y;
-	x = cities[p1].x - cities[p2].x;
-	y = cities[p1].y - cities[p2].y;
+	x = cities->city[p1]->x - cities->city[p2]->x;
+	y = cities->city[p1]->y - cities->city[p2]->y;
 	return sqrtf(x*x+y*y);
 }
 
 /**
  *  Constructs the distTable.
  */
-void construct_distTable() {
+void construct_distTable(tour_t* cities, int num_cities) {
 	int i,j,index;
 	index=0;
-	for (i=0;i<MAX_CITIES;i++) {
-		for (j=i+1;j<MAX_CITIES;j++) {
-			distTable[index] = get_distance_between(i,j);
+	for (i=0;i<num_cities;i++) {
+		for (j=i+1;j<num_cities;j++) {
+			distTable[index] = get_distance_between(i,j,cities);
 			index++;
 		}
 	}
@@ -54,20 +54,23 @@ float lookup_distance(int p1, int p2) {
 }
 
 /**
- * Given a route *arr, determine its fitness by computing the distance
- * required to traverse the route.
- *   -Assumes that the length of arr = MAX_CITIES
+ * Given a tour and the number of cities, determine its fitness by
+ * computing the distance required to traverse the route.
  */
-float get_fitness_route(int *arr) {
+void set_tour_fitness(tour_t* tour, int num_cities) {
 	int i;
-	float fitness=0;
-	for (i=0;i<MAX_CITIES-1;i++) {
-		fitness+=lookup_distance(arr[i],arr[i+1]);
+	float fitness=0.0;
+	for (i=0;i<num_cities-1;i++) {
+		fitness+=lookup_distance(tour->city[i]->id,tour->city[i+1]->id);
 	}
 	// do we count arr[n] --> arr[0] ?
-	return fitness;
+	tour->fitness=fitness;
+//	return fitness;
 }
 
+/**
+ * Generates the nearest neighbor tour based on a random city.
+ */
 tour_t* create_tour_nn(city_t* city, int num_cities, tour_t* cities) {
 	// Set up the cities_visited array; 0 for not visited, 1 for visited.
 	char *cities_visited;
@@ -83,7 +86,7 @@ tour_t* create_tour_nn(city_t* city, int num_cities, tour_t* cities) {
 	// The first city is city passed.
 	tour->city[0] = city;
 	cities_visited[ city->id ]=1;
-	
+
 	int i;
 
 	// Iterate through the cities, adding new ones and marking them off.
@@ -92,21 +95,29 @@ tour_t* create_tour_nn(city_t* city, int num_cities, tour_t* cities) {
 		tour->city[i]=next_city;
 		cities_visited[ next_city->id ]=1;
 	}
+	return tour;
 }
 
+/**
+ * Given a city, find its nearest neighbor.
+ */
 city_t* find_nearest_neighbor(city_t* city, int num_cities, tour_t* cities, char* cities_visited) {
 	city_t* short_city;
+	short_city=malloc( sizeof(city_t) );
 	float temp_dist,short_dist;
 	temp_dist=short_dist=0.0;
 	int i;
-	
+
 	for (i=0;i<num_cities;i++) {
-		temp_dist = get_distance_between(cities->city[i]->id,city->id);
+		if (cities->city[i]->id == city->id) {
+			continue;
+		}
+		temp_dist = get_distance_between(cities->city[i]->id,city->id,cities);
 		if (  temp_dist < short_dist && cities_visited[i]==0) {
 			// If your distance was shorter than the shortest, use this instead.
 			short_city = cities->city[i];
 			short_dist = temp_dist;
-		} else if (short_city==0 && cities_visited[i]==0) {
+		} else if (short_dist==0 && cities_visited[i]==0) {
 			// Otherwise, if not already set, get the first distance as your shortest.
 			short_city = cities->city[i];
 			short_dist = temp_dist;
