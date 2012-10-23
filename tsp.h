@@ -12,6 +12,12 @@
 #define MAX_CITIES 100
 #define MAX_TOUR 100     // this should basically be the same as MAX_CITIES
 #define TABLE_SIZE (MAX_CITIES*(MAX_CITIES-1))/2 // size based on a counting argument
+#define COLOR_TEXT 1 // set to false to disable coloring the console output
+
+#define NORMAL_TEXT printf(COLOR_TEXT?"\033[0m":"")
+#define ERROR_TEXT printf(COLOR_TEXT?"\033[31m":"")
+#define OOPS_TEXT printf(COLOR_TEXT?"\033[33m":"")
+#define STRONG_TEXT printf(COLOR_TEXT?"\033[32m":"")
 
 /**
  * represents a city that must be visited to create a complete tour
@@ -31,8 +37,6 @@ typedef struct {
 
 /** Data structure containing the coordinates of every city. */
 city_t cities[MAX_CITIES];
-
-
 
 tour_t* loadCities(const char* const fileName); // loads cities from file
 void freeCities(tour_t* cities); // frees the memory used by the structure

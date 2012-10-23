@@ -120,13 +120,25 @@ void freeGraph(graph_t* R)
 int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** cycles /*byref*/)
 {
 	// local declarations
-	int visited[MAX_CITIES];
+	int visited[MAX_CITIES]; // tracks which cities were visited inside inner AB cycle loop
+	int iteration[MAX_CITIES]; // keeps track of which iteration of the inner AB cycle loop that each index was encountered FOR THE FIRST TIME see NOTE
+	int currentIteration; // How many iterations have occurred in this AB cycle generation
+	// NOTE: it is possible for a vertex to be visited more than once per AB cycle, this would occur if the first time that vertex was encountered
+	//       there was an odd number of cities in the current AB cycle, therefore the algorithm had to continue until the cycle was extended to the 
+	//       where there is an even number of cities in the cycle. In this case, the second time that city was encountered, we DO NOT update the value
+	//       stored in iteration, because we're more interested in the first time that city was encountered. This allows us to calculate the length of
+	//       the fixed AB cycle in an O(1) operation. (simple subtraction)
 	int size = 0; // size of the cycles array, number of AB cycles
+	int panic; // used to exit out of randomly picking a node if there's an infinite loop
+	int c[2]; // choice array, used when choosing one of two possible edges on a vertex
+	int i,e; // loop counter
+	int n; // used for tracking the size of things
+	int a,b; // used as temporaries during swapping and other operations
+	
 	node_t *v0, *v1, *v2; // vertex one and two of the current edge, v0 is the first v1
 	//note: if v1==v2 at start of iteration, choose an edge incident to v1
 	int edges = R->size*MAX_EDGES/2; // R should have MAX_EDGES/2 edges for every vertex, we half it because it's an undirected graph and don't want duplicates. (NOTE: could still have duplicates if both tours share an edge, this is ok).
 	tour_t* curCycle = 0; // current AB cycle we're working on
-	int nextTour = 0; // alternate between tours when picking edges
 	int v2i = -1; // stores the index of the edge of v1 that connects to v2. So, v1->edge[v2i] == v2
 
 	// initializations
@@ -135,40 +147,20 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 	// generate AB cycles
 	while (edges > 0)
 	{
-		printf("Generating AB Cycle, edges left: %i...\n", edges);
+		printf("Generating AB Cycle, edges left: \033[032m%i[\033[0m...\n", edges);
 		// pick starting edge
-		if (v1==v2 && v1 && v2)
-		{
-			printf("Picking a vertex incident to %i...\n", v1->id);
-			// choose an edge incident to v1
-			// we can choose any edge from v1, because the edges
-			// contained in the ab cycle should've already been removed.
-			if (v1->size < 1)
-			{
-				printf("generateABCycles() :: ERROR : v1 has no more edges. (edge: %i -> %i)\n", v1->id, v2->id);
-				printf("halting...\n");
-				exit(31);
-			}
-
-			// pick incident vertex (this happens below)
-			// v1 and v2 are already set from previous iteration
-			// we need to make sure that nextTour is set appropriately, however
-			nextTour = v1->tour[0];
-		}
-		else
-		{
-			printf("Choosing a random vertex...\n");//TODO: debug remove
-			// choose a vertex with at least 2 edges (to create a loop)
+		printf("Choosing a random vertex...\n");//TODO: debug remove
+		// choose a vertex with at least 2 edges (to create a loop)
+		v2 = R->node[rand() % R->size];
+		panic = 0;
+		printf("first pick: [%i]->s:%i\n", v2->id, v2->size);
+		for (;v2->size == 0 && panic<PANIC_EXIT; panic++)
 			v2 = R->node[rand() % R->size];
-			int panic = 0;
-			printf("first pick: [%i]->s:%i\n", v2->id, v2->size);
-			for (;v2->size == 0 && panic<PANIC_EXIT; panic++)
-				v2 = R->node[rand() % R->size];
-			if (panic >= PANIC_EXIT)
-			{
-				printf("generateABCycles() :: ERROR : panic_exit : too many iterations (%i >= %i) when trying to pick a vertex that has remaining edges. halting...\n", panic, PANIC_EXIT);
-				exit(32);
-			}
+		if (panic >= PANIC_EXIT)
+		{
+			ERROR_TEXT;
+			printf("generateABCycles() :: ERROR : panic_exit : too many iterations (%i >= %i) when trying to pick a vertex that has remaining edges. halting...\n", panic, PANIC_EXIT);
+			exit(32);
 		}
 		printf("v2:%i...\n", v2->id);//TODO: debug remove
 
@@ -178,6 +170,8 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 		curCycle->size = 0;
 		printf("Initializing cycle...\n");
 		memset((void*)visited, 0, sizeof(visited)); // reset visited nodes for this cycle
+		memset((void*)iteration, 0, sizeof(iteration)); // reset the iteration tracking array for this cycle
+		currentIteration = 0;
 		v0 = v2; // save the starting vertex
 		printf("entering cycle loop...\n"); //TODO: debug remove
 		do  // keep alternating until we've made a cycle
@@ -185,53 +179,57 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			// first, add this edge to the current cycle
 			//printf("initial increment...\n");
 			curCycle->city[curCycle->size++] = Cities->city[v2->id];
-			visited[v2->id] = 1;
+			if (!visited[v2->id]++) iteration[v2->id] = currentIteration;
+			++currentIteration;
 			printf("Adding edge to cycle...\n");//TODO: debug remove
 			//printf("Alternating tour picking new edge...\n");//TODO: debug remove
 			v1 = v2; // we need to pick a new v2
-			int c[2]; // choice1 and an optional choice 2
+			c[2]; // choice1 and an optional choice 2
 			c[0] = c[1] = 0; // NOTE: these are off by one indices to speed up boolean checks!
 			switch(v1->size) // TODO: this could be moved into the other switch
 			{
 			case 1: // this should be the case only if we just created a closed loop
-				c[0] = (v1->tour[0] == nextTour) ? 1 : 0; // only one edge to pick
+				c[0] = (v1->tour[0] == TOUR_A) ? 1 : 0; // only one edge to pick
 				break;
 			case 2: // this would be the case when there is only one path left on these verts
-				c[0] = (v1->tour[0] == nextTour) ? 1 : 0;
+				c[0] = (v1->tour[0] == TOUR_A) ? 1 : 0;
 				// use boolean indices to decide if it's an optional choice or the only choice
-				c[(c[0] == 1)?1:0] = (v1->tour[1] == nextTour) ? 2 : 0;
+				c[(c[0] == 1)?1:0] = (v1->tour[1] == TOUR_A) ? 2 : 0;
 				break;
 			case 3: // this would be the case when creating a closed loop, but also another loop
 			        // could be on that vertex in another AB cycle
-				c[0] = (v1->tour[0] == nextTour) ? 1 : 0;
+				c[0] = (v1->tour[0] == TOUR_A) ? 1 : 0;
 				// use boolean indices to decide if it's an optional choice or the only choice
-				c[(c[0] == 1)?1:0] = (v1->tour[1] == nextTour) ? 2 : 0;
-				c[(c[0] == 1)?1:0] = (v1->tour[2] == nextTour) ? 3 : 0;
+				c[(c[0] == 1)?1:0] = (v1->tour[1] == TOUR_A) ? 2 : 0;
+				c[(c[0] == 1)?1:0] = (v1->tour[2] == TOUR_A) ? 3 : 0;
 				break;
 			case 4: // this would be the case when two AB cycles can be generated from that vertex
-				c[0] = (v1->tour[0] == nextTour) ? 1 : 0;
+				c[0] = (v1->tour[0] == TOUR_A) ? 1 : 0;
 				// use boolean indices to decide if it's an optional choice or the only choice
-				c[(c[0] == 1)?1:0] = (v1->tour[1] == nextTour) ? 2 : 0;
-				c[(c[0] == 1)?1:0] = (v1->tour[2] == nextTour) ? 3 : 0;
-				c[(c[0] == 1)?1:0] = (v1->tour[3] == nextTour) ? 4 : 0;
+				c[(c[0] == 1)?1:0] = (v1->tour[1] == TOUR_A) ? 2 : 0;
+				c[(c[0] == 1)?1:0] = (v1->tour[2] == TOUR_A) ? 3 : 0;
+				c[(c[0] == 1)?1:0] = (v1->tour[3] == TOUR_A) ? 4 : 0;
 				break;
 			default:
+				ERROR_TEXT;
 				printf("ERROR44: invalid # of edges on vertex[%i] (%i) halting...\n", v1->id, v1->size);
 				exit(44);
 				break;
 			}// calculating choices for the next edge
 			if (!c[0])
 			{
+				ERROR_TEXT;
 				printf("ERROR45: no choices for next vertex found v[%i] (%i) HALT\n", v1->id, v1->size);
 				exit(45);
 			}
 			// pick one of the choices if there are more than one, otherwise the only choice
 			v2i = c[1] ? c[rand() % 2]-1 : c[0]-1; // subtract one, since they're OBO, see above
 			// Special case, no valid cycles, check
-			if (v1->edge[v2i]->size == 2 && v1->edge[v2i]->tour[0] == nextTour && v1->edge[v2i]->tour[1] == nextTour)
+			if (v1->edge[v2i]->size == 2 && v1->edge[v2i]->tour[0] == TOUR_A && v1->edge[v2i]->tour[1] == TOUR_A)
 			{
-				printf("OOPS01 : picked an edge that can't generate a tour, picking the other edge.\n");
-				v2i = (v2i+1 == c[0] ? c[1]-1 : c[0]-1);
+				ERROR_TEXT;
+				printf("ERROR103 : picked an edge that can't generate a tour, halting TOUR_A.\n");
+				exit(103);
 			}
 			printf("v2i: %i, c[0]: %i, c[1]: %i\n",v2i, c[0]-1, c[1]-1);
 			printf("v1e0: %i, v1e1: %i, v1e2: %i, v1e3: %i\n", 
@@ -242,11 +240,9 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			v2 = v1->edge[v2i];
 			// END PICKING V2
 			//printf("next!\n");
+			STRONG_TEXT;
 			printf("next iteration...v1:%i, v2:%i\n", v1->id, v2->id);//TODO: debug remove
-
-			// alternate to the next tour
-			nextTour=(nextTour+1)%2;
-			//printf("Next tour: %i\n", nextTour);
+			NORMAL_TEXT;
 
 			// remove the edge from the graph
 			// undirected graph, so first remove the edge from v1
@@ -287,24 +283,147 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 					REMOVE_EDGE(v2, 3);
 				break;
 			default:
+				ERROR_TEXT;
 				printf("ERROR43: invalid # of edges on vertex[%i] (%i) halting...\n", v2->id, v2->size);
 				exit(43);
 				break;
 			}// removing the edge from v2
-		} while (visited[v2->id]==0 && edges > 0); // while creating a cycle
+			
+			/////////////////////////////////////////////////////////////////////////////////////////////
+			// LOOP UNROLLING : iterate again, but use an edge from TOUR_B
+			/////////////////////////////////////////////////////////////////////////////////////////////
+			// first, add this edge to the current cycle
+			//printf("initial increment...\n");
+			curCycle->city[curCycle->size++] = Cities->city[v2->id];
+			if (!visited[v2->id]++) iteration[v2->id] = currentIteration;
+			++currentIteration;
+			printf("Adding edge to cycle...\n");//TODO: debug remove
+			//printf("Alternating tour picking new edge...\n");//TODO: debug remove
+			v1 = v2; // we need to pick a new v2
+			c[0] = c[1] = 0; // NOTE: these are off by one indices to speed up boolean checks!
+			switch(v1->size) // TODO: this could be moved into the other switch
+			{
+			case 1: // this should be the case only if we just created a closed loop
+				c[0] = (v1->tour[0] == TOUR_B) ? 1 : 0; // only one edge to pick
+				break;
+			case 2: // this would be the case when there is only one path left on these verts
+				c[0] = (v1->tour[0] == TOUR_B) ? 1 : 0;
+				// use boolean indices to decide if it's an optional choice or the only choice
+				c[(c[0] == 1)?1:0] = (v1->tour[1] == TOUR_B) ? 2 : 0;
+				break;
+			case 3: // this would be the case when creating a closed loop, but also another loop
+			        // could be on that vertex in another AB cycle
+				c[0] = (v1->tour[0] == TOUR_B) ? 1 : 0;
+				// use boolean indices to decide if it's an optional choice or the only choice
+				c[(c[0] == 1)?1:0] = (v1->tour[1] == TOUR_B) ? 2 : 0;
+				c[(c[0] == 1)?1:0] = (v1->tour[2] == TOUR_B) ? 3 : 0;
+				break;
+			case 4: // this would be the case when two AB cycles can be generated from that vertex
+				c[0] = (v1->tour[0] == TOUR_B) ? 1 : 0;
+				// use boolean indices to decide if it's an optional choice or the only choice
+				c[(c[0] == 1)?1:0] = (v1->tour[1] == TOUR_B) ? 2 : 0;
+				c[(c[0] == 1)?1:0] = (v1->tour[2] == TOUR_B) ? 3 : 0;
+				c[(c[0] == 1)?1:0] = (v1->tour[3] == TOUR_B) ? 4 : 0;
+				break;
+			default:
+				ERROR_TEXT;
+				printf("ERROR44: invalid # of edges on vertex[%i] (%i) halting...\n", v1->id, v1->size);
+				exit(44);
+				break;
+			}// calculating choices for the next edge
+			if (!c[0])
+			{
+				ERROR_TEXT;
+				printf("ERROR45: no choices for next vertex found v[%i] (%i) HALT\n", v1->id, v1->size);
+				exit(45);
+			}
+			// pick one of the choices if there are more than one, otherwise the only choice
+			v2i = c[1] ? c[rand() % 2]-1 : c[0]-1; // subtract one, since they're OBO, see above
+			// Special case, no valid cycles, check
+			if (v1->edge[v2i]->size == 2 && v1->edge[v2i]->tour[0] == TOUR_B && v1->edge[v2i]->tour[1] == TOUR_B)
+			{
+				ERROR_TEXT;
+				printf("ERROR103 : picked an edge that can't generate a tour, halting TOUR_B.\n");
+				exit(104);
+			}
+			printf("v2i: %i, c[0]: %i, c[1]: %i\n",v2i, c[0]-1, c[1]-1);
+			printf("v1e0: %i, v1e1: %i, v1e2: %i, v1e3: %i\n", 
+				(v1->edge[0]?v1->edge[0]->id:-1), 
+				(v1->edge[1]?v1->edge[1]->id:-1), 
+				(v1->edge[2]?v1->edge[2]->id:-1), 
+				(v1->edge[3]?v1->edge[3]->id:-1));
+			v2 = v1->edge[v2i];
+			// END PICKING V2
+			//printf("next!\n");
+			STRONG_TEXT;
+			printf("next iteration...v1:%i, v2:%i\n", v1->id, v2->id);//TODO: debug remove
+			NORMAL_TEXT;
+
+			// remove the edge from the graph
+			// undirected graph, so first remove the edge from v1
+			--edges;
+
+			// turns out, v2i is always preserved as the edge we last choice from v1
+			// so we can just re-use it here!
+			REMOVE_EDGE(v1, v2i); // boo-yah for O(1) operations
+			// undirected graph, so now we must remove the edge from v2
+			//TODO: it may be possible to speed this up by caching the edge index
+			switch(v2->size) // using a switch here to avoid iteration
+			{
+			case 1: // NOTE: this should only be the case if this is the last vertex on the cycle
+				REMOVE_EDGE(v2, 0);
+				break;
+			case 2:
+				if (v2->edge[0] == v1) // one of two possible edges
+					REMOVE_EDGE(v2, 0);
+				else
+					REMOVE_EDGE(v2, 1);
+				break;
+			case 3:
+				if (v2->edge[0] == v1) // three possible edges to check
+					REMOVE_EDGE(v2, 0);
+				else if (v2->edge[1] == v1)
+					REMOVE_EDGE(v2, 1);
+				else
+					REMOVE_EDGE(v2, 2);
+				break;
+			case 4:
+				if (v2->edge[0] == v1) // four possible edges to check
+					REMOVE_EDGE(v2, 0);
+				else if (v2->edge[1] == v1)
+					REMOVE_EDGE(v2, 1);
+				else if (v2->edge[2] == v1)
+					REMOVE_EDGE(v2, 2);
+				else
+					REMOVE_EDGE(v2, 3);
+				break;
+			default:
+				ERROR_TEXT;
+				printf("ERROR43: invalid # of edges on vertex[%i] (%i) halting...\n", v2->id, v2->size);
+				exit(43);
+				break;
+			}// removing the edge from v2
+		} while ((visited[v2->id]==0 || ((currentIteration-iteration[v2->id])%2==1)) && edges > 0); // while creating a cycle
+		//TODO: REMOVE, print iteration array
+		printf("ITERATIONS : ");
+		for (i=0; i < Cities->size; i++)
+			printf("%i, ", iteration[i]);
+		printf("\n");
 		printf("Ab cycle generated: ");
-		int n;
+		STRONG_TEXT;
 		for (n=0; n < curCycle->size; n++)
 			printf("->[%i]", curCycle->city[n]->id);
+		NORMAL_TEXT;
 		printf("\n");
 
 		// check to see if we've made a cycle with a tail
 		if (v2 != v0)
 		{
+			OOPS_TEXT;
 			printf("Cycle with tail generated, removing tail...\n");
+			NORMAL_TEXT;
 
 			// flip the entire current cycle, this makes it easier to remove cities from it
-			int a,b;
 			a = 0;
 			b = curCycle->size;
 			city_t* t;
@@ -316,10 +435,11 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			}
 			// Print out the reversed cycle for verification
 			printf("Ab cycle reversed: ");
-			int n;
+			STRONG_TEXT;
 			for (n=0; n < curCycle->size; n++)
 				printf("->[%i]", curCycle->city[n]->id);
 			printf("\n");
+			NORMAL_TEXT;
 
 			// now keep removing the last city in the cycle and adding that edge back to R
 			// until v2 represents the last city in the cycle
@@ -366,6 +486,7 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 					RESTORE_EDGE(v1, 3);
 					break;
 				default:
+					ERROR_TEXT;
 					printf("ERROR53: invalid # of edges on vertex[%i] (%i) halting...\n", v1->id, v1->size);
 					exit(53);
 					break;
@@ -399,13 +520,11 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 						RESTORE_EDGE(v2, 3);
 					break;
 				default:
+					ERROR_TEXT;
 					printf("ERROR54: invalid # of edges on vertex[%i] (%i) halting...\n", v2->id, v2->size);
 					exit(54);
 					break;
 				}// restoring edge to v2
-				
-				// alternate back to the next tour
-				nextTour=(nextTour+1)%2;
 
 				// we're done restoring the edge
 				++edges;
@@ -414,9 +533,11 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 
 			printf("Ab cycle as fixed: ");
 			//int n;
+			STRONG_TEXT;
 			for (n=0; n < curCycle->size; n++)
 				printf("->[%i]", curCycle->city[n]->id);
 			printf("\n");
+			NORMAL_TEXT;
 			// tell the next iteration to start on the problematic vertex
 			v1 = v2;
 		}// (end) if we needed to fix the cycle
@@ -428,13 +549,11 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 
 		printf("next AB Cycle (back to top of outer while)\n"); //TODO: debug remove
 		printf("\nGraph R contains %i nodes: \n", R->size);
-		int i;
 		for (i=0; i < R->size; i++)
 		{
-			printf("%04i [id:%04i] -> %i edges: ", i, R->node[i]->id, R->node[i]->size);
-			int e;
+			printf("%04i [id:\033[32m%04i\033[0m] -> %i edges: ", i, R->node[i]->id, R->node[i]->size);
 			for (e=0; e < R->node[i]->size; e++)
-				printf((e>0) ? ", [%04i:t%01i]" : "[%04i:t%01i]", R->node[i]->edge[e]->id, R->node[i]->tour[e]);
+				printf((e>0) ? ", [\033[32m%04i\033[0m:t%01i]" : "[%04i:t%01i]", R->node[i]->edge[e]->id, R->node[i]->tour[e]);
 			printf("\n");
 		}
 	}// while R has edges left
