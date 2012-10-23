@@ -119,8 +119,8 @@ int main(int argc, char** argv)
 	tempt = malloc( sizeof(tour_t) );
 	printf(" ~~~ ROULETTE WHEEL ~~\n");
 	for (i=0;i<5;i++) {
-		tempt = roulette_select(tours, 2);
-		print_tour(tempt, N);
+		//tempt = roulette_select(tours, 2);
+		//print_tour(tempt, N);
 	}
 	printf(" ~~~  END ROULETTE  ~~\n");
 	
@@ -141,10 +141,13 @@ int main(int argc, char** argv)
 	}
 
 	// create A-B cycles on R
-	/*printf("Allocating cycles...");
+	printf("Allocating cycles...");
 	tour_t** cycles;
 	cycles = (tour_t**)malloc(sizeof(tour_t *) * MAX_ABCYCLES);
-	cycles[0] = malloc(MAX_ABCYCLES * sizeof(tour_t));
+	for (i=0; i < MAX_ABCYCLES; i++)
+	{
+		cycles[i] = (tour_t*)malloc(sizeof(tour_t));
+	}
 	printf("done!\n");
 	int nCycles;
 	printf("Generating AB Cycles....");
@@ -153,22 +156,22 @@ int main(int argc, char** argv)
 	printf("done!\n");
 
 	// output the cycles
+	printf("Printing all %i cycles...\n", nCycles);
 	for (i=0; i < nCycles; i++)
 	{
-		printf("Printing all %i cycles...\n", nCycles);
 		printf("Cycle[%i]: [%i]", i, cycles[i]->city[0]->id);
 		int a;
-		for (a=0; a < cycles[i]->size; a++)
+		for (a=1; a < cycles[i]->size; a++)
 			printf(", [%i]", cycles[i]->city[a]->id);
 		printf("\n");
 	}
 
-	// create E-sets from the cycles
+	//TODO: create E-sets from the cycles
 
-	// apply E-sets to generate intermediates
+	//TODO: apply E-sets to generate intermediates
 
-	// turn intermediates into valid tours
-	*/
+	//TODO: turn intermediates into valid tours
+	
 	// clean up
 	printf("\nClean up...");
 	freeGraph(R);

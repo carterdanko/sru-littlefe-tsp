@@ -57,5 +57,3 @@
 		
 	free(cities);
  }
-
-

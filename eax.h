@@ -8,19 +8,31 @@
 
 // inlines
 #define REMOVE_EDGE(V,E) do { \
-                         	V->edge[E] = V->edge[V->size]; V->tour[E] = V->tour[V->size--]; \
-			 } while(0) // removes edge E from vertex V 
-#define RESTORE_EDGE(V,E) do { \
-			  	node_t* _tv; int _tt; _tv=V->edge[V->size]; _tt=V->tour[V->size]; \
-                          	V->edge[V->size] = V->edge[E]; V->tour[V->size++] = V->tour[E]; \
+				printf("\033[33mremoving\033[0m edge(v[%i]->v[%i]t%i from graph...\n", \
+				(V?V->id:-1), \
+				(V && V->edge[E]?V->edge[E]->id:-1), \
+				(V?V->tour[E]:-1)); \
+                node_t* _tv; int _tt; _tv=V->edge[--V->size]; _tt=V->tour[V->size]; \
+                V->edge[V->size] = V->edge[E]; V->tour[V->size] = V->tour[E]; \
 			  	V->edge[E] = _tv; V->tour[E] = _tt; \
-                          } while(0) // restore a previously removed edge back to vertex V
+			} while(0) // removes edge E from vertex V 
+#define RESTORE_EDGE(V,E) do { \
+				printf("\033[32mrestoring\033[0m edge(v[%i]->v[%i]t%i to graph...\n", \
+				(V?V->id:-1), \
+				(V && V->edge[E]?V->edge[E]->id:-1), \
+				(V?V->tour[E]:-1)); \
+			  	node_t* _tv; int _tt; _tv=V->edge[V->size]; _tt=V->tour[V->size]; \
+                V->edge[V->size] = V->edge[E]; V->tour[V->size++] = V->tour[E]; \
+			  	V->edge[E] = _tv; V->tour[E] = _tt; \
+            } while(0) // restore a previously removed edge back to vertex V
 
 // constants
 #define MAX_SUB_TOURS 10  // maximum number of sub-tours in an intermediate tour
 #define MAX_EDGES 4       // there can only be 4 maximum edges, two from each parent tour
 #define PANIC_EXIT 100  // some choosing algorithms are implemented by randomly choosing items that haven't been chosen yet, choosing again when encountering one that was already chosen. If this many iterations of that occur, we exit the loop to prevent hanging, print an error message, and halt execution
 #define MAX_ABCYCLES 100 // only for allocation purposes, no boundary checking assurances
+#define TOUR_A 0
+#define TOUR_B 1 // this is for code clarity
 
 /**
  * a node in a graph
