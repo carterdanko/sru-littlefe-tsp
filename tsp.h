@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
+#include <string.h>
+#include <unistd.h>
  
 #define MAX_CITIES 100
 #define MAX_TOUR 100     // this should basically be the same as MAX_CITIES
@@ -46,11 +48,10 @@ tour_t tours[MAX_POPULATION];
 tour_t* loadCities(const char* const fileName); // loads cities from file
 void freeCities(tour_t* cities); // frees the memory used by the structure
 
-/**
- * Returns a random float between 0.0 and 1.0.
- */
-float frand();
+float frand(); // Returns a random float between 0.0 and 1.0.
 
-void print_tour(tour_t* tour);
+void print_tour(tour_t* tour); // Simple print procedure for a tour.
+
+tour_t* roulette_select(tour_t tours[], int num_tours); // selects a random tour weighted by its fitness.
 
 #endif // header guard

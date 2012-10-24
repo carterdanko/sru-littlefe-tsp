@@ -4,6 +4,7 @@
  
 #include "tsp.h"
 #include "eax.h"
+#include "fitness.h"
 
 // "global" variables. I try to start these with capital letters
 tour_t* Cities; // the "tour" that contains every city in their provided order. Not really a tour, just used as the master array of cities
@@ -115,7 +116,7 @@ int main(int argc, char** argv)
 	tour_t* tempt;
 	printf(" ~~~ ROULETTE WHEEL ~~\n");
 	for (i=0;i<5;i++) {
-		tempt = roulette_select(&tours, 2);
+		tempt = roulette_select(tours, 2);
 		print_tour(tempt);
 	}
 	printf(" ~~~  END ROULETTE  ~~\n");
