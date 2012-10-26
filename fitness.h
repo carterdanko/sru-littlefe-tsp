@@ -6,36 +6,16 @@
 /** Stores distances from every point to another. */
 float distTable[TABLE_SIZE];
 
-/**
- * Using The Pythagorean's Theorem, calculate the distance from p1 to p2.
- */
-float get_distance_between(int p1, int p2, tour_t* cities);
+float get_distance_between(int p1, int p2, tour_t* cities); // calculate distance between 2 cities.
 
-/**
- *  Constructs the distTable.
- */
-void construct_distTable(tour_t* cities, int num_cities);
+void construct_distTable(tour_t* cities, int num_cities); // constructs distTable variable.
 
-/**
- * Returns the distance traveled from a point p1 to another point p2.
- *   This is retrieved from the distTable hashtable.
- */
-float lookup_distance(int p1, int p2);
+float lookup_distance(int p1, int p2); // distance between two points; retrieved in constant time.
 
-/**
- * Given a tour and the number of cities, determine its fitness by
- * computing the distance required to traverse the route.
- */
-void set_tour_fitness(tour_t* tour, int num_cities);
+void set_tour_fitness(tour_t* tour, int num_cities); // compute and set a tour's fitness.
 
-/**
- * Generates the nearest neighbor tour based on a random city.
- */
-tour_t* create_tour_nn(city_t* city, int num_cities, tour_t* cities);
+tour_t* create_tour_nn(city_t* city, int num_cities, tour_t* cities); // create nearest neighbor tour based on an initial city.
 
-/**
- * Given a city, find its nearest neighbor.
- */
-city_t* find_nearest_neighbor(city_t* city, int num_cities, tour_t* cities, char* cities_visited);
+city_t* find_nearest_neighbor(city_t* city, int num_cities, tour_t* cities, char* cities_visited); // find nearest neighbor of a given city.
 
 #endif // header guard
