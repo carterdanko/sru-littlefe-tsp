@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 	set_tour_fitness(&tourA,N);
 	set_tour_fitness(&tourB,N);
 	
-	printf("fitness of A,B is %f,%f.\n", tourA.fitness,tourB.fitness);
+	DPRINTF("fitness of A,B is %f,%f.\n", tourA.fitness,tourB.fitness);
 	// output the two tours
 	printf("TourA: [%i]", tourA.city[0]->id);
 	for (i=1; i < N; i++)
@@ -114,12 +114,12 @@ int main(int argc, char** argv)
 	tours[0] = tourA;
 	tours[1] = tourB;
 	tour_t* tempt;
-	printf(" ~~~ ROULETTE WHEEL ~~\n");
+	DPRINTF(" ~~~ ROULETTE WHEEL ~~\n");
 	for (i=0;i<5;i++) {
 		tempt = roulette_select(tours, 2);
-		print_tour(tempt);
+		dprint_tour(tempt);
 	}
-	printf(" ~~~  END ROULETTE  ~~\n");
+	DPRINTF(" ~~~  END ROULETTE  ~~\n");
 	
 	// merge the two tours
 	printf("\nMerging A with B...");
@@ -163,7 +163,18 @@ int main(int argc, char** argv)
 		printf("\n");
 	}
 
-	//TODO: create E-sets from the cycles
+	// create E-sets from the cycles
+	nCycles = generateESetRAND(Cities, cycles, nCycles);
+	// output the E-set
+	printf("Printing all %i cycles in the \033[32mE-set\033[0m...\n", nCycles);
+	for (i=0; i < nCycles; i++)
+	{
+		printf("Cycle[%i]: [%i]", i, cycles[i]->city[0]->id);
+		int a;
+		for (a=1; a < cycles[i]->size; a++)
+			printf(", [%i]", cycles[i]->city[a]->id);
+		printf("\n");
+	}
 
 	//TODO: apply E-sets to generate intermediates
 

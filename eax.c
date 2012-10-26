@@ -19,7 +19,7 @@ graph_t* mergeTours(const tour_t* const tA, const tour_t* const tB)
 	tourSize = tA->size; // size of the tour
 	
 	// create an empty graph
-	printf("\ncreating empty graph (of size %i)...", tourSize); //TODO debug remove
+	DPRINTF("\ncreating empty graph (of size %i)...", tourSize);
 	R = (graph_t*)malloc(sizeof(graph_t)); // TODO: FREE_MEM: don't forget to free(R) when you're done using it
 	R->size = tourSize;
 	for (i=0; i < tourSize; i++)
@@ -29,11 +29,11 @@ graph_t* mergeTours(const tour_t* const tA, const tour_t* const tB)
 		
 		R->node[i]->id = i; // Each node in the graph is numbered the same as the master city list
 	}
-	printf("done!\n"); //TODO debug remove
+	DPRINTF("done!\n");
 	
 	// visit each city in both tours, adding the edges to R
 	// node[i] is the same city as tA->city[i], but feel free to look at the id's to be sure
-	printf("populating the graph (merging the edges)..."); //TODO debug remove
+	DPRINTF("populating the graph (merging the edges)...");
 	for (i=1; i < tourSize-1; i++)
 	{
 		// tourA's cities
@@ -48,7 +48,7 @@ graph_t* mergeTours(const tour_t* const tA, const tour_t* const tB)
 		curNode->edge[curNode->size++] = R->node[tB->city[(i-1+tourSize)%tourSize]->id]; // previous node in tourB
 		curNode->edge[curNode->size++] = R->node[tB->city[(i+1)%tourSize]->id]; // next node in tourB
 	}
-	printf("Special cases..."); //TODO debug remove
+	DPRINTF("Special cases..."); //TODO debug remove
 	// now handle the special case of the first and last nodes in the tour, which link back around (each tour is a cycle)
 	// first city in each tour
 	curNode = R->node[tA->city[0]->id]; // grab the node representing tour A's city[0]
@@ -71,7 +71,7 @@ graph_t* mergeTours(const tour_t* const tA, const tour_t* const tB)
 	curNode->tour[curNode->size] = curNode->tour[curNode->size+1] = 1; // these edges belong to B
 	curNode->edge[curNode->size++] = R->node[tB->city[tourSize-2]->id]; // previous node in tourB
 	curNode->edge[curNode->size++] = R->node[tB->city[0]->id]; // next node in tourB
-	printf("done!\n"); //TODO debug remove
+	DPRINTF("done!\n"); //TODO debug remove
 	
 	// at this point R should be fully populated with all of the edges in tA and tB, so we can return what we calculated
 	return R;
@@ -147,13 +147,13 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 	// generate AB cycles
 	while (edges > 0)
 	{
-		printf("Generating AB Cycle, edges left: \033[032m%i[\033[0m...\n", edges);
+		DPRINTF("Generating AB Cycle, edges left: \033[032m%i[\033[0m...\n", edges);
 		// pick starting edge
-		printf("Choosing a random vertex...\n");//TODO: debug remove
+		DPRINTF("Choosing a random vertex...\n");//TODO: debug remove
 		// choose a vertex with at least 2 edges (to create a loop)
 		v2 = R->node[rand() % R->size];
 		panic = 0;
-		printf("first pick: [%i]->s:%i\n", v2->id, v2->size);
+		DPRINTF("first pick: [%i]->s:%i\n", v2->id, v2->size);
 		for (;v2->size == 0 && panic<PANIC_EXIT; panic++)
 			v2 = R->node[rand() % R->size];
 		if (panic >= PANIC_EXIT)
@@ -162,27 +162,27 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			printf("generateABCycles() :: ERROR : panic_exit : too many iterations (%i >= %i) when trying to pick a vertex that has remaining edges. halting...\n", panic, PANIC_EXIT);
 			exit(32);
 		}
-		printf("v2:%i...\n", v2->id);//TODO: debug remove
+		DPRINTF("v2:%i...\n", v2->id);//TODO: debug remove
 
 		// set up current cycle
-		printf("next cycle #%i...\n", size);
+		DPRINTF("next cycle #%i...\n", size);
 		curCycle = cycles[size++];
 		curCycle->size = 0;
-		printf("Initializing cycle...\n");
+		DPRINTF("Initializing cycle...\n");
 		memset((void*)visited, 0, sizeof(visited)); // reset visited nodes for this cycle
 		memset((void*)iteration, 0, sizeof(iteration)); // reset the iteration tracking array for this cycle
 		currentIteration = 0;
 		v0 = v2; // save the starting vertex
-		printf("entering cycle loop...\n"); //TODO: debug remove
+		DPRINTF("entering cycle loop...\n"); //TODO: debug remove
 		do  // keep alternating until we've made a cycle
 		{
 			// first, add this edge to the current cycle
-			//printf("initial increment...\n");
+			//DPRINTF("initial increment...\n");
 			curCycle->city[curCycle->size++] = Cities->city[v2->id];
 			if (!visited[v2->id]++) iteration[v2->id] = currentIteration;
 			++currentIteration;
-			printf("Adding edge to cycle...\n");//TODO: debug remove
-			//printf("Alternating tour picking new edge...\n");//TODO: debug remove
+			DPRINTF("Adding edge to cycle...\n");//TODO: debug remove
+			//DPRINTF("Alternating tour picking new edge...\n");//TODO: debug remove
 			v1 = v2; // we need to pick a new v2
 			c[2]; // choice1 and an optional choice 2
 			c[0] = c[1] = 0; // NOTE: these are off by one indices to speed up boolean checks!
@@ -224,17 +224,17 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			}
 			// pick one of the choices if there are more than one, otherwise the only choice
 			v2i = c[1] ? c[rand() % 2]-1 : c[0]-1; // subtract one, since they're OBO, see above
-			printf("v2i: %i, c[0]: %i, c[1]: %i\n",v2i, c[0]-1, c[1]-1);
-			printf("v1e0: %i, v1e1: %i, v1e2: %i, v1e3: %i\n", 
+			DPRINTF("v2i: %i, c[0]: %i, c[1]: %i\n",v2i, c[0]-1, c[1]-1);
+			DPRINTF("v1e0: %i, v1e1: %i, v1e2: %i, v1e3: %i\n", 
 				(v1->edge[0]?v1->edge[0]->id:-1), 
 				(v1->edge[1]?v1->edge[1]->id:-1), 
 				(v1->edge[2]?v1->edge[2]->id:-1), 
 				(v1->edge[3]?v1->edge[3]->id:-1));
 			v2 = v1->edge[v2i];
 			// END PICKING V2
-			//printf("next!\n");
+			//DPRINTF("next!\n");
 			STRONG_TEXT;
-			printf("next iteration...v1:%i, v2:%i\n", v1->id, v2->id);//TODO: debug remove
+			DPRINTF("next iteration...v1:%i, v2:%i\n", v1->id, v2->id);//TODO: debug remove
 			NORMAL_TEXT;
 
 			// remove the edge from the graph
@@ -286,12 +286,12 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			// LOOP UNROLLING : iterate again, but use an edge from TOUR_B
 			/////////////////////////////////////////////////////////////////////////////////////////////
 			// first, add this edge to the current cycle
-			//printf("initial increment...\n");
+			//DPRINTF("initial increment...\n");
 			curCycle->city[curCycle->size++] = Cities->city[v2->id];
 			if (!visited[v2->id]++) iteration[v2->id] = currentIteration;
 			++currentIteration;
-			printf("Adding edge to cycle...\n");//TODO: debug remove
-			//printf("Alternating tour picking new edge...\n");//TODO: debug remove
+			DPRINTF("Adding edge to cycle...\n");//TODO: debug remove
+			//DPRINTF("Alternating tour picking new edge...\n");//TODO: debug remove
 			v1 = v2; // we need to pick a new v2
 			c[0] = c[1] = 0; // NOTE: these are off by one indices to speed up boolean checks!
 			switch(v1->size) // TODO: this could be moved into the other switch
@@ -332,17 +332,17 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			}
 			// pick one of the choices if there are more than one, otherwise the only choice
 			v2i = c[1] ? c[rand() % 2]-1 : c[0]-1; // subtract one, since they're OBO, see above
-			printf("v2i: %i, c[0]: %i, c[1]: %i\n",v2i, c[0]-1, c[1]-1);
-			printf("v1e0: %i, v1e1: %i, v1e2: %i, v1e3: %i\n", 
+			DPRINTF("v2i: %i, c[0]: %i, c[1]: %i\n",v2i, c[0]-1, c[1]-1);
+			DPRINTF("v1e0: %i, v1e1: %i, v1e2: %i, v1e3: %i\n", 
 				(v1->edge[0]?v1->edge[0]->id:-1), 
 				(v1->edge[1]?v1->edge[1]->id:-1), 
 				(v1->edge[2]?v1->edge[2]->id:-1), 
 				(v1->edge[3]?v1->edge[3]->id:-1));
 			v2 = v1->edge[v2i];
 			// END PICKING V2
-			//printf("next!\n");
+			//DPRINTF("next!\n");
 			STRONG_TEXT;
-			printf("next iteration...v1:%i, v2:%i\n", v1->id, v2->id);//TODO: debug remove
+			DPRINTF("next iteration...v1:%i, v2:%i\n", v1->id, v2->id);//TODO: debug remove
 			NORMAL_TEXT;
 
 			// remove the edge from the graph
@@ -391,22 +391,22 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			}// removing the edge from v2
 		} while ((visited[v2->id]==0 || ((currentIteration-iteration[v2->id])%2==1)) && edges > 0); // while creating a cycle
 		//TODO: REMOVE, print iteration array
-		printf("ITERATIONS : ");
+		DPRINTF("ITERATIONS : ");
 		for (i=0; i < Cities->size; i++)
-			printf("%i, ", iteration[i]);
-		printf("\n");
-		printf("Ab cycle generated: ");
+			DPRINTF("%i, ", iteration[i]);
+		DPRINTF("\n");
+		DPRINTF("Ab cycle generated: ");
 		STRONG_TEXT;
 		for (n=0; n < curCycle->size; n++)
-			printf("->[%i]", curCycle->city[n]->id);
+			DPRINTF("->[%i]", curCycle->city[n]->id);
 		NORMAL_TEXT;
-		printf("\n");
+		DPRINTF("\n");
 
 		// check to see if we've made a cycle with a tail
 		if (v2 != v0)
 		{
 			OOPS_TEXT;
-			printf("Cycle with tail generated, removing tail...\n");
+			DPRINTF("Cycle with tail generated, removing tail...\n");
 			NORMAL_TEXT;
 
 			// flip the entire current cycle, this makes it easier to remove cities from it
@@ -420,11 +420,11 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 				curCycle->city[b] = t;
 			}
 			// Print out the reversed cycle for verification
-			printf("Ab cycle reversed: ");
+			DPRINTF("Ab cycle reversed: ");
 			STRONG_TEXT;
 			for (n=0; n < curCycle->size; n++)
-				printf("->[%i]", curCycle->city[n]->id);
-			printf("\n");
+				DPRINTF("->[%i]", curCycle->city[n]->id);
+			DPRINTF("\n");
 			NORMAL_TEXT;
 
 			// now keep removing the last city in the cycle and adding that edge back to R
@@ -432,17 +432,17 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			//v1 = v0; // move back to the original vertex
 			v0 = v2; // the "new" original vertex is the actual end of the cycle
 			v2 = R->node[curCycle->city[curCycle->size-1]->id];
-			printf("v0,v1,v2: %i,%i,%i\n", v0->id, v1->id, v2->id);
+			DPRINTF("v0,v1,v2: %i,%i,%i\n", v0->id, v1->id, v2->id);
 			int curTour; // the current tour of the edge we're trying to restore. alternates
 			curTour = TOUR_A; // every path starts with tourA, then we flipped it,
 			                  // meaning that the tail edge of curCycle must be from tourA
 			while (v0->id != curCycle->city[--curCycle->size]->id)
 			{
-				printf("curCycle->city[%i]->id = %i\n", curCycle->size, curCycle->city[curCycle->size]->id);
+				DPRINTF("curCycle->city[%i]->id = %i\n", curCycle->size, curCycle->city[curCycle->size]->id);
 				// grab the new tip of the tail, and restore the edge
 				v1 = v2;
 				v2 = R->node[curCycle->city[curCycle->size-1]->id];
-				printf("Restoring edge: %i->%i\n", v1->id, v2->id);
+				DPRINTF("Restoring edge: %i->%i\n", v1->id, v2->id);
 				// we need to add that edge back to the graph, but the edge
 				// actualy still exists in the graph, we just 'removed' it by modifying its
 				// position in the arrays and changing the size of the arrays.
@@ -523,12 +523,12 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			}// while fixing the cycle
 			++curCycle->size; // have to restore the last node onto the list
 
-			printf("Ab cycle as fixed: ");
+			DPRINTF("Ab cycle as fixed: ");
 			//int n;
 			STRONG_TEXT;
 			for (n=0; n < curCycle->size; n++)
-				printf("->[%i]", curCycle->city[n]->id);
-			printf("\n");
+				DPRINTF("->[%i]", curCycle->city[n]->id);
+			DPRINTF("\n");
 			NORMAL_TEXT;
 			// tell the next iteration to start on the problematic vertex
 			v1 = v2;
@@ -536,20 +536,70 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 		else // closed loop created normally
 		{
 			//v1 = v2 = 0; //TODO: i don't think this is actually necessary.
-			printf("No fixing necessary (no 'tail' on cycle)\n.");
+			DPRINTF("No fixing necessary (no 'tail' on cycle)\n.");
 		}
 
-		printf("next AB Cycle (back to top of outer while)\n"); //TODO: debug remove
-		printf("\nGraph R contains %i nodes: \n", R->size);
+		DPRINTF("next AB Cycle (back to top of outer while)\n"); //TODO: debug remove
+		DPRINTF("\nGraph R contains %i nodes: \n", R->size);
 		for (i=0; i < R->size; i++)
 		{
-			printf("%04i [id:\033[32m%04i\033[0m] -> %i edges: ", i, R->node[i]->id, R->node[i]->size);
+			DPRINTF("%04i [id:\033[32m%04i\033[0m] -> %i edges: ", i, R->node[i]->id, R->node[i]->size);
 			for (e=0; e < R->node[i]->size; e++)
-				printf((e>0) ? ", [\033[32m%04i\033[0m:t%01i]" : "[%04i:t%01i]", R->node[i]->edge[e]->id, R->node[i]->tour[e]);
-			printf("\n");
+				DPRINTF((e>0) ? ", [\033[32m%04i\033[0m:t%01i]" : "[%04i:t%01i]", R->node[i]->edge[e]->id, R->node[i]->tour[e]);
+			DPRINTF("\n");
 		}
 	}// while R has edges left
 
 	return size;
 }
 
+/**
+ * generates an e-set from the given AB-cycles by choosing an AB cycle for inclusion
+ * in the E-set if the AB-cycle is at least 4 cities in length with a .5 probability.
+ * Cities : master array of all cities
+ * cycles : (pass by reference) an array of ABcycles, this array is modified into an E-set
+ * nCycles : (int) number of cycles in the ABcycles array
+ * returns : the number of ABcycles in the E-set
+ */
+int generateESetRAND(const tour_t* const Cities, tour_t** cycles /*byref*/, int nCycles)
+{
+	int size = nCycles; // contains the number of AB cycles in the E-set
+	int curCycle = 0; // current ABcycle
+	float r; // random number. if >=0.5 then the cycle is included in the E-set
+	
+	// iterate until every ABcycle has been examined
+	while (curCycle < size)
+	{
+		// only roll the dice if we care about this ABcycle
+		r = 0;
+		if (cycles[curCycle]->size > 2)
+			r = frand();
+			
+		// either remove the ABcycle from the E-set, or move on to examine the next ABcycle
+		if (r < 0.5) // remove cycle from E-set
+		{
+			//TODO: DEBUG REMOVE outputting tour that was removed
+			DPRINTF("(r:%f)removing Cycle[%i]: [%i]", r, curCycle, cycles[curCycle]->city[0]->id);
+			int a;
+			for (a=1; a < cycles[curCycle]->size; a++)
+				DPRINTF(", [%i]", cycles[curCycle]->city[a]->id);
+			DPRINTF("\n");
+			// remove the cycle
+			cycles[curCycle] = cycles[--size];
+		}// if remove the cycle
+		else
+		{
+			//TODO: DEBUG REMOVE outputting tour that was removed
+			DPRINTF("(r:%f)allowing Cycle[%i]: [%i]", r, curCycle, cycles[curCycle]->city[0]->id);
+			int a;
+			for (a=1; a < cycles[curCycle]->size; a++)
+				DPRINTF(", [%i]", cycles[curCycle]->city[a]->id);
+			DPRINTF("\n");
+			// allow this cycle, examin the next one
+			++curCycle;
+		}// else allow the cycle
+	}// while examining every cycle
+	
+	// return the number of AB cycles in the E-set
+	return size;
+}// generateESetRAND()

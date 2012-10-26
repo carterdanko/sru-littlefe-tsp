@@ -10,13 +10,16 @@
 #include <string.h>
 #include <unistd.h>
  
+#define DEBUG 1     // set to zero to remove a lot of debugging output and speed up the code 
+#define DPRINTF if (DEBUG) printf
+ 
 #define MAX_CITIES 100
 #define MAX_TOUR 100     // this should basically be the same as MAX_CITIES
 #define MAX_POPULATION 200
 #define TABLE_SIZE (MAX_CITIES*(MAX_CITIES-1))/2 // size based on a counting argument
 
+///////////// color stuff
 #define COLOR_TEXT 1 // set to false to disable coloring the console output
-
 #define NORMAL_TEXT printf(COLOR_TEXT?"\033[0m":"")
 #define ERROR_TEXT printf(COLOR_TEXT?"\033[31m":"")
 #define OOPS_TEXT printf(COLOR_TEXT?"\033[33m":"")
