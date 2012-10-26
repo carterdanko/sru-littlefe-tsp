@@ -176,13 +176,37 @@ int main(int argc, char** argv)
 		printf("\n");
 	}
 
-	//TODO: apply E-sets to generate intermediates
-
+	// apply E-sets to generate intermediates
+	graph_t* T = createGraph(&tourA);
+	// output the created graph from tourA
+	printf("\nGraph T contains: \n");
+	for (i=0; i < N; i++)
+	{
+		printf("%04i [id:%04i] -> edges: ", i, T->node[i]->id);
+		int e;
+		for (e=0; e < T->node[i]->size; e++)
+			printf((e>0) ? ", [%04i:t%01i]" : "[%04i:t%01i]", T->node[i]->edge[e]->id, T->node[i]->tour[e]);
+		printf("\n");
+	}
+	// apply the eset to the graph
+	applyESet(T, cycles, nCycles);
+	// output the intermediate
+	printf("\nGraph T contains: \n");
+	for (i=0; i < N; i++)
+	{
+		printf("%04i [id:%04i] -> edges: ", i, T->node[i]->id);
+		int e;
+		for (e=0; e < T->node[i]->size; e++)
+			printf((e>0) ? ", [%04i:t%01i]" : "[%04i:t%01i]", T->node[i]->edge[e]->id, T->node[i]->tour[e]);
+		printf("\n");
+	}
+	
 	//TODO: turn intermediates into valid tours
 	
 	// clean up
 	printf("\nClean up...");
 	freeGraph(R);
+	freeGraph(T);
 	printf("graph gone...");
 	freeCities(Cities);
 	printf("main cities gone...");

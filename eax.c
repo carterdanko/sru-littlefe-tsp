@@ -78,6 +78,66 @@ graph_t* mergeTours(const tour_t* const tA, const tour_t* const tB)
 } // mergeTours()
 
 /**
+ * creates a graph that consists of all of the edges in tour A.
+ * tA : pointer to tour A
+ * returns : a pointer to the generated graph structure (remember to free this memory when you're finished)
+ */
+graph_t* createGraph(const tour_t* const tA)
+{
+	// declarations
+	graph_t* R; // the graph we're going to create from the edges in tA, this is also the return value
+	node_t* curNode; // current node we're modifying or looking at in the graph
+	city_t* curCity; // current city we're looking at
+	int i; // loop counter
+	int tourSize;
+	
+	// initializations
+	tourSize = tA->size; // size of the tour
+	
+	// create an empty graph
+	DPRINTF("\ncreating empty graph (of size %i)...", tourSize);
+	R = (graph_t*)malloc(sizeof(graph_t)); // TODO: FREE_MEM: don't forget to free(R) when you're done using it
+	R->size = tourSize;
+	for (i=0; i < tourSize; i++)
+	{
+		R->node[i] = (node_t*)malloc(sizeof(node_t)); // TODO: FREE_MEM: don't forget to free each node when freeing R
+		R->node[i]->size = 0;
+		
+		R->node[i]->id = i; // Each node in the graph is numbered the same as the master city list
+	}
+	DPRINTF("done!\n");
+	
+	// visit each city in both tours, adding the edges to R
+	// node[i] is the same city as tA->city[i], but feel free to look at the id's to be sure
+	DPRINTF("populating the graph (merging the edges)...");
+	for (i=1; i < tourSize-1; i++)
+	{
+		// tourA's cities
+		curNode = R->node[tA->city[i]->id]; // grab the node representing tour A's city[i]
+		curNode->tour[curNode->size] = curNode->tour[curNode->size+1] = 0; // these edges belong to A
+		curNode->edge[curNode->size++] = R->node[tA->city[i-1]->id]; // previous node in tourA
+		curNode->edge[curNode->size++] = R->node[tA->city[i+1]->id]; // next node in tourA
+	}
+	DPRINTF("Special cases..."); //TODO debug remove
+	// now handle the special case of the first and last nodes in the tour, which link back around (each tour is a cycle)
+	// first city in each tour
+	curNode = R->node[tA->city[0]->id]; // grab the node representing tour A's city[0]
+	curNode->tour[curNode->size] = curNode->tour[curNode->size+1] = 0; // these edges belong to A
+	curNode->edge[curNode->size++] = R->node[tA->city[tourSize-1]->id]; // previous node in tourA
+	curNode->edge[curNode->size++] = R->node[tA->city[1]->id]; // next node in tourA
+	
+	// last city in each tour
+	curNode = R->node[tA->city[tourSize-1]->id]; // grab the node representing tour A's last city
+	curNode->tour[curNode->size] = curNode->tour[curNode->size+1] = 0; // these edges belong to A
+	curNode->edge[curNode->size++] = R->node[tA->city[tourSize-2]->id]; // previous node in tourA
+	curNode->edge[curNode->size++] = R->node[tA->city[0]->id]; // next node in tourA
+	DPRINTF("done!\n"); //TODO debug remove
+	
+	// at this point R should be fully populated with all of the edges in tA, so we can return what we calculated
+	return R;
+} // mergeTours()
+
+/**
  * frees all of the memory used by graph R
  * R : the graph structure whose memory to free
  * side-effects : R will point to invalid memory, it is suggested to set it to null when finished
@@ -603,3 +663,252 @@ int generateESetRAND(const tour_t* const Cities, tour_t** cycles /*byref*/, int 
 	// return the number of AB cycles in the E-set
 	return size;
 }// generateESetRAND()
+
+/**
+ * Applies an eset to a tour, generating an intermediate tour with disjoint
+ * sub-cycles. If the edge in the cycle belongs to tourA, the edge is removed. if the edge
+ * in the cycle belongs to tourB, the edge is added.
+ * T : (byref) the intermediate to create (this is "tourA" represented as a graph)
+ * E : (byref) the E-set
+ * nCycles : number of cycles in the E-set
+ * returns : the number of disjoint cycles in the graph
+ */
+int applyESet(graph_t* T /*byref*/, tour_t** E /*byref*/, int nCycles)
+{
+	int e = 0; // current ab cycle
+	int vi = 0; // current vertex in the current cycle
+	
+	// iterate over every cycle in the E-set, removing or adding edges as appropriate
+	for (e = 0; e < nCycles; e++)
+	{
+		tour_t* curCycle = E[e];
+		// iterate over every city in the current cycle, removing or adding edges as appropriate
+		for (vi = 0; vi < curCycle->size; vi++)
+		{
+			// find the edge
+			node_t* v1 = T->node[curCycle->city[vi]->id]; // current node in the cycle
+			node_t* v2 = T->node[curCycle->city[(vi+1)%curCycle->size]->id]; // next node in the cycle
+			
+			// remove or add the edge to v1
+			int removing = 1; // keep track for v2 whether we removed or added
+			switch(v1->size)
+			{
+			case 0: // no edges on v1, have to be adding the edge
+				removing = 0;
+				v1->edge[v1->size++] = v2;
+				break;
+			case 1: // only one edge to check
+				if (v1->edge[0] == v2)
+				{
+					--v1->size; // last node, safe to decrement
+				}
+				else // must be adding
+				{
+					removing = 0;
+					v1->edge[v1->size++] = v2;
+				}
+				break;
+			case 2: // two edges to check
+				if (v1->edge[0] == v2)
+				{
+					REMOVE_EDGE(v1, 0);
+				}
+				else if (v1->edge[1] == v2)
+				{
+					--v1->size; // last node, safe to decrement
+				}
+				else // must be adding
+				{
+					removing = 0;
+					v1->edge[v1->size++] = v2;
+				}
+				break;
+			case 3: // three edges to check
+				if (v1->edge[0] == v2)
+				{
+					REMOVE_EDGE(v1, 0);
+				}
+				else if (v1->edge[1] == v2)
+				{
+					REMOVE_EDGE(v1, 1);
+				}
+				else if (v1->edge[2] == v2)
+				{
+					--v1->size; // last node, safe to decrement
+				}
+				else // must be adding
+				{
+					removing = 0;
+					v1->edge[v1->size++] = v2;
+				}
+				break;
+			case 4: // four edges to check
+				if (v1->edge[0] == v2)
+				{
+					REMOVE_EDGE(v1, 0);
+				}
+				else if (v1->edge[1] == v2)
+				{
+					REMOVE_EDGE(v1, 1);
+				}
+				else if (v1->edge[2] == v2)
+				{
+					REMOVE_EDGE(v1, 2);
+				}
+				else if (v1->edge[3] == v2)
+				{
+					--v1->size; // last node, safe to decrement
+				}
+				else // must be adding
+				{
+					removing = 0;
+					v1->edge[v1->size++] = v2;
+				}
+				break;
+			default:
+				ERROR_TEXT;
+				printf("ERROR339: invalid number of edges on vertex 1 [id:%i,size:%i]\n",
+					(v1? v1->id:-1),
+					(v1? v1->size:-1));
+				break;
+			} // switch on the number of edges on v1, to remove or add
+			
+			// remove or add edge to v2
+			if (removing)
+			{
+				switch(v2->size)
+				{
+				case 0: // no edges on v2, must've already removed the edge in v1's processing
+					ERROR_TEXT;
+					printf("ERROR333: No edges on v2, this shouldn't happen. halting\n");
+					exit(333);
+					break;
+				case 1: // only one edge to check, if it's not v1 we have a problem
+					if (v2->edge[0] == v1)
+					{
+						--v2->size; // last node, safe to decrement
+					}
+					else // we messed up
+					{
+						ERROR_TEXT;
+						printf("ERROR334: only edge on v2 wasn't v1. We messed up.\n");
+						exit(334);
+					}
+					break;
+				case 2: // two edges to check, if they're not v1 we have a problem
+					if (v2->edge[0] == v1)
+					{
+						REMOVE_EDGE(v2, 0);
+					}
+					else if (v2->edge[1] == v1)
+					{
+						--v2->size; // last node, safe to decrement
+					}
+					else // we messed up
+					{
+						ERROR_TEXT;
+						printf("ERROR336: only edge on v2 wasn't v1. We messed up.\n");
+						exit(336);
+					}
+					break;
+				case 3: // three edges to check, if they're not v1 we have a problem
+					if (v2->edge[0] == v1)
+					{
+						REMOVE_EDGE(v2, 0);
+					}
+					else if (v2->edge[1] == v1)
+					{
+						REMOVE_EDGE(v2, 1);
+					}
+					else if (v2->edge[2] == v1)
+					{
+						--v2->size; // last node, safe to decrement
+					}
+					else // we messed up
+					{
+						ERROR_TEXT;
+						printf("ERROR335: only edge on v2 wasn't v1. We messed up.\n");
+						exit(335);
+					}
+					break;
+				case 4: // four edges to check, if they're not v1 we have a problem
+					if (v2->edge[0] == v1)
+					{
+						REMOVE_EDGE(v2, 0);
+					}
+					else if (v2->edge[1] == v1)
+					{
+						REMOVE_EDGE(v2, 1);
+					}
+					else if (v2->edge[2] == v1)
+					{
+						REMOVE_EDGE(v2, 2);
+					}
+					else if (v2->edge[3] == v1)
+					{
+						--v2->size; // last node, safe to decrement
+					}
+					else // we messed up
+					{
+						ERROR_TEXT;
+						printf("ERROR337: only edge on v2 wasn't v1. We messed up.\n");
+						exit(335);
+					}
+					break;
+				default:
+					ERROR_TEXT;
+					printf("ERROR338: invalid number of edges on vertex 2 [id:%i,size:%i]\n",
+						(v2? v2->id:-1),
+						(v2? v2->size:-1));
+					break;
+				}// switch on the number of edges on v2, to remove or add
+			}
+			else
+			{
+				DPRINTF("adding edge to v2...\n");
+				v2->edge[v2->size++] = v1;
+			}// else we're adding an edge
+		}// for each city in the current cycle
+	}// for each cycle
+	
+	// iterate over the graph, finding the disjoint cycles
+	int visited[MAX_CITIES];
+	memset((void*)visited, 0, sizeof(visited)); // reset visited nodes for this cycle
+	// start at the first node, traverse the graph, keeping track of which nodes belong to which cycles
+	int iteration = 1; // this is the current disjoint cycle number we're looking at
+	int i; // don't confuse with iteration, this is just a generic loop counter
+	DPRINTF("tracking disjoint cycles...\n");
+	do
+	{
+		// grab the first unvisited node
+		DPRINTF("grabbing first unvisited node: ");
+		for (i=0; i < T->size; i++)
+			if (!visited[i])
+				break;
+		DPRINTF("%i\n", i);
+		node_t* curNode, *startingNode, *lastNode, *tempNode;
+		curNode = startingNode = T->node[i];
+		lastNode = tempNode = 0; // tempNode for swapping, lastNode was previous node in the cycle
+		do
+		{
+			DPRINTF("next node...\n");
+			visited[curNode->id] = iteration;
+			tempNode = curNode;
+			curNode = curNode->edge[curNode->edge[0]==lastNode?1:0]; // make sure we don't back-track
+			lastNode = tempNode;
+		} while (curNode != startingNode);
+		++iteration;
+		DPRINTF("Checking visited array.\n");
+		///////////////////////////////////////////////////////////////////////
+		// check visited array
+		// yes, I know this looks like assembly programming but I think it's fast, and it makes sense to me :P
+		for (i=-1; i+1 < T->size; i++)
+			if (!visited[i+1])
+				{DPRINTF("unvisited[%i]!\n", i);break;} // found an unvisited node, keep iterating
+		if (!visited[i]) // keep iterating
+			continue;
+		break;// if we made it this far, then all nodes were visited
+	} while (1);
+	
+	return iteration-1; //TODO: return number of disjoint cycles
+}// applyESet()
