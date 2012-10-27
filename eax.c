@@ -254,21 +254,21 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			case 2: // this would be the case when there is only one path left on these verts
 				c[0] = (v1->tour[0] == TOUR_A) ? 1 : 0;
 				// use boolean indices to decide if it's an optional choice or the only choice
-				c[(c[0] == 1)?1:0] = (v1->tour[1] == TOUR_A) ? 2 : 0;
+				c[c[0] ? 1 : 0] = (v1->tour[1] == TOUR_A) ? 2 : 0;
 				break;
 			case 3: // this would be the case when creating a closed loop, but also another loop
 			        // could be on that vertex in another AB cycle
 				c[0] = (v1->tour[0] == TOUR_A) ? 1 : 0;
 				// use boolean indices to decide if it's an optional choice or the only choice
-				c[(c[0] == 1)?1:0] = (v1->tour[1] == TOUR_A) ? 2 : 0;
-				c[(c[0] == 1)?1:0] = (v1->tour[2] == TOUR_A) ? 3 : c[1];
+				c[c[0] ? 1 : 0] = (v1->tour[1] == TOUR_A) ? 2 : 0;
+				c[c[0] ? 1 : 0] = (v1->tour[2] == TOUR_A) ? 3 : c[1];
 				break;
 			case 4: // this would be the case when two AB cycles can be generated from that vertex
 				c[0] = (v1->tour[0] == TOUR_A) ? 1 : 0;
 				// use boolean indices to decide if it's an optional choice or the only choice
-				c[(c[0] == 1)?1:0] = (v1->tour[1] == TOUR_A) ? 2 : 0;
-				c[(c[0] == 1)?1:0] = (v1->tour[2] == TOUR_A) ? 3 : c[1];
-				c[(c[0] == 1)?1:0] = (v1->tour[3] == TOUR_A) ? 4 : c[1];
+				c[c[0] ? 1 : 0] = (v1->tour[1] == TOUR_A) ? 2 : 0;
+				c[c[0] ? 1 : 0] = (v1->tour[2] == TOUR_A) ? 3 : c[1];
+				c[c[0] ? 1 : 0] = (v1->tour[3] == TOUR_A) ? 4 : c[1];
 				break;
 			default:
 				ERROR_TEXT;
@@ -362,21 +362,21 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			case 2: // this would be the case when there is only one path left on these verts
 				c[0] = (v1->tour[0] == TOUR_B) ? 1 : 0;
 				// use boolean indices to decide if it's an optional choice or the only choice
-				c[(c[0] == 1)?1:0] = (v1->tour[1] == TOUR_B) ? 2 : 0;
+				c[c[0] ? 1 : 0] = (v1->tour[1] == TOUR_B) ? 2 : 0;
 				break;
 			case 3: // this would be the case when creating a closed loop, but also another loop
 			        // could be on that vertex in another AB cycle
 				c[0] = (v1->tour[0] == TOUR_B) ? 1 : 0;
 				// use boolean indices to decide if it's an optional choice or the only choice
-				c[(c[0] == 1)?1:0] = (v1->tour[1] == TOUR_B) ? 2 : 0;
-				c[(c[0] == 1)?1:0] = (v1->tour[2] == TOUR_B) ? 3 : c[1];
+				c[c[0] ? 1 : 0] = (v1->tour[1] == TOUR_B) ? 2 : 0;
+				c[c[0] ? 1 : 0] = (v1->tour[2] == TOUR_B) ? 3 : c[1];
 				break;
 			case 4: // this would be the case when two AB cycles can be generated from that vertex
 				c[0] = (v1->tour[0] == TOUR_B) ? 1 : 0;
 				// use boolean indices to decide if it's an optional choice or the only choice
-				c[(c[0] == 1)?1:0] = (v1->tour[1] == TOUR_B) ? 2 : 0;
-				c[(c[0] == 1)?1:0] = (v1->tour[2] == TOUR_B) ? 3 : c[1];
-				c[(c[0] == 1)?1:0] = (v1->tour[3] == TOUR_B) ? 4 : c[1];
+				c[c[0] ? 1 : 0] = (v1->tour[1] == TOUR_B) ? 2 : 0;
+				c[c[0] ? 1 : 0] = (v1->tour[2] == TOUR_B) ? 3 : c[1];
+				c[c[0] ? 1 : 0] = (v1->tour[3] == TOUR_B) ? 4 : c[1];
 				break;
 			default:
 				ERROR_TEXT;
@@ -668,12 +668,16 @@ int generateESetRAND(const tour_t* const Cities, tour_t** cycles /*byref*/, int 
  * Applies an eset to a tour, generating an intermediate tour with disjoint
  * sub-cycles. If the edge in the cycle belongs to tourA, the edge is removed. if the edge
  * in the cycle belongs to tourB, the edge is added.
+ * Modifies the E-set into a collection of the sub-cycles
+ * Cities : master array of all cities
  * T : (byref) the intermediate to create (this is "tourA" represented as a graph)
- * E : (byref) the E-set
+ * E : (byref) the E-set -> this gets transformed into a collection of the cycles
  * nCycles : number of cycles in the E-set
+ * edges : (byref) pre-allocated array of edge structures. The data needn't be specially initialized, but they
+ *         do need to be allocated. All the edges of the graph will be placed into this array.
  * returns : the number of disjoint cycles in the graph
  */
-int applyESet(graph_t* T /*byref*/, tour_t** E /*byref*/, int nCycles)
+int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byref*/, int nCycles, edge_t** edges /*byref*/)
 {
 	int e = 0; // current ab cycle
 	int vi = 0; // current vertex in the current cycle
@@ -873,6 +877,7 @@ int applyESet(graph_t* T /*byref*/, tour_t** E /*byref*/, int nCycles)
 	
 	// iterate over the graph, finding the disjoint cycles
 	int visited[MAX_CITIES];
+	int curEdge = 0;
 	memset((void*)visited, 0, sizeof(visited)); // reset visited nodes for this cycle
 	// start at the first node, traverse the graph, keeping track of which nodes belong to which cycles
 	int iteration = 1; // this is the current disjoint cycle number we're looking at
@@ -888,6 +893,10 @@ int applyESet(graph_t* T /*byref*/, tour_t** E /*byref*/, int nCycles)
 		DPRINTF("%i\n", i);
 		node_t* curNode, *startingNode, *lastNode, *tempNode;
 		curNode = startingNode = T->node[i];
+		tour_t* curCycle = E[iteration-1];
+		// set up this sub-cycle
+		curCycle->size=0;
+		curCycle->city[curCycle->size++] = Cities->city[curNode->id];
 		lastNode = tempNode = 0; // tempNode for swapping, lastNode was previous node in the cycle
 		do
 		{
@@ -895,17 +904,19 @@ int applyESet(graph_t* T /*byref*/, tour_t** E /*byref*/, int nCycles)
 			visited[curNode->id] = iteration;
 			tempNode = curNode;
 			curNode = curNode->edge[curNode->edge[0]==lastNode?1:0]; // make sure we don't back-track
-			lastNode = tempNode;
+			curCycle->city[curCycle->size++] = Cities->city[curNode->id]; // add this node onto the sub-cycle
+			lastNode = tempNode; // swap temps
+			INIT_EDGE(edges[curEdge++], lastNode, curNode, iteration); // add the edge to the list
 		} while (curNode != startingNode);
 		++iteration;
 		DPRINTF("Checking visited array.\n");
 		///////////////////////////////////////////////////////////////////////
 		// check visited array
 		// yes, I know this looks like assembly programming but I think it's fast, and it makes sense to me :P
-		for (i=-1; i+1 < T->size; i++)
-			if (!visited[i+1])
-				{DPRINTF("unvisited[%i]!\n", i);break;} // found an unvisited node, keep iterating
-		if (!visited[i]) // keep iterating
+		for (i=0; i < T->size; i++)
+			if (!visited[i])
+				break; // found an unvisited node, keep iterating
+		if (i < T->size) // if we broke earlier, then keep iterating
 			continue;
 		break;// if we made it this far, then all nodes were visited
 	} while (1);

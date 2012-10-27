@@ -179,7 +179,7 @@ int main(int argc, char** argv)
 	// apply E-sets to generate intermediates
 	graph_t* T = createGraph(&tourA);
 	// output the created graph from tourA
-	printf("\nGraph T contains: \n");
+	printf("\n\033[32mIntermediate Tour T\033[0m contains: \n");
 	for (i=0; i < N; i++)
 	{
 		printf("%04i [id:%04i] -> edges: ", i, T->node[i]->id);
@@ -189,15 +189,39 @@ int main(int argc, char** argv)
 		printf("\n");
 	}
 	// apply the eset to the graph
-	applyESet(T, cycles, nCycles);
+	printf("allocating edges array...\n");
+	edge_t** edges = (edge_t**)malloc(sizeof(edge_t *) * Cities->size);
+	for (i=0; i < Cities->size; i++)
+	{
+		edges[i] = (edge_t*)malloc(sizeof(edge_t));
+	}
+	printf("Applying the E-set.\n");
+	int disjointCycles = applyESet(Cities, T, cycles, nCycles, edges);
+	printf("there were \033[32m%i\033[0m disjoint cycles.\n", disjointCycles);
 	// output the intermediate
-	printf("\nGraph T contains: \n");
+	printf("\n\033[32mIntermediate Tour T\033[0m contains: \n");
 	for (i=0; i < N; i++)
 	{
 		printf("%04i [id:%04i] -> edges: ", i, T->node[i]->id);
 		int e;
 		for (e=0; e < T->node[i]->size; e++)
 			printf((e>0) ? ", [%04i:t%01i]" : "[%04i:t%01i]", T->node[i]->edge[e]->id, T->node[i]->tour[e]);
+		printf("\n");
+	}
+	// output the edges
+	printf("Printing all %i edges in the graph: \n", Cities->size);
+	for (i=0; i < Cities->size; i++)
+	{
+		printf("Edge[%i] = {%i -> %i : i%i : c%f}\n", i, edges[i]->v1->id, edges[i]->v2->id, edges[i]->cycle, edges[i]->cost);
+	}
+	// output the sub-disjointCycles
+	printf("Printing all %i cycles in the \033[32mIntermediate Tour\033[0m...\n", disjointCycles);
+	for (i=0; i < disjointCycles; i++)
+	{
+		printf("Cycle[%i]: [%i]", i, cycles[i]->city[0]->id);
+		int a;
+		for (a=1; a < cycles[i]->size; a++)
+			printf(", [%i]", cycles[i]->city[a]->id);
 		printf("\n");
 	}
 	

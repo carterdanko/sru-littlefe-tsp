@@ -27,6 +27,15 @@
                 V->edge[V->size] = V->edge[E]; V->tour[V->size++] = V->tour[E]; \
 			  	V->edge[E] = _tv; V->tour[E] = _tt; \
             } while(0) 
+// initializes an edge
+#define INIT_EDGE(E, V1, V2, C) do { \
+				edge_t* _E = E; \
+				_E->v1 = V1; \
+				_E->v2 = V2; \
+				_E->cycle = C; \
+				_E->cost = lookup_distance(V1->id, V2->id); \
+				DPRINTF("initialized edge = {%i -> %i : i%i : c%f}\n", V1?_E->v1->id:-1, V2?_E->v2->id:-1, _E->cycle, _E->cost); \
+			} while(0)
 
 // constants
 #define MAX_SUB_TOURS 10  // maximum number of sub-tours in an intermediate tour
@@ -46,6 +55,18 @@ typedef struct node_struct {
 	int id; // the id of this node in the graph (same as the city it represents)
 } node_t;
 
+/**
+ * an edge in a graph
+ * used for convenience when operating on edges
+ * changes to edges must be manually maintained between the graph
+ * struct and the edge struct.
+ */
+typedef struct edge_struct {
+	node_t* v1, *v2; // end points of the edge
+	int cycle; // which sub-cycle this edge belongs to, 0 for "no" cycle (the edge was created by the merging process, but can still be considered a candidate)
+	float cost; // the "cost" of the edge, just the distance
+} edge_t;
+ 
 /**
  * used when combining two tours to create a graph consisting of the
  * edges in both tourA and tourB
