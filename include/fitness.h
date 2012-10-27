@@ -1,7 +1,7 @@
 #ifndef FIT_FUNH // header guard
 #define FIT_FUNH 1
 
-#include "tsp.h"
+#include "include/tsp.h"
 
 /** Stores distances from every point to another. */
 float distTable[TABLE_SIZE];

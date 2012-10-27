@@ -4,7 +4,7 @@
 #ifndef EAX_H // header guard
 #define EAX_H
 
-#include "tsp.h"
+#include "include/tsp.h"
 
 // inlines
 // removes edge E from vertex V 

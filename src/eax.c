@@ -1,4 +1,4 @@
-#include "eax.h"
+#include "include/eax.h"
 
 /**
  * creates a graph that consists of all of the edges in tour A and all of the edges in tour B

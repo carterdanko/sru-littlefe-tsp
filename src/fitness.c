@@ -6,8 +6,8 @@
  */
 #include <stdio.h>
 #include <math.h>
-#include "fitness.h"
-#include "tsp.h"
+#include "include/fitness.h"
+#include "include/tsp.h"
 
 #define DEBUG 1
 

@@ -2,9 +2,9 @@
  * main module for the TSP solver
  */
  
-#include "tsp.h"
-#include "eax.h"
-#include "fitness.h"
+#include "include/tsp.h"
+#include "include/eax.h"
+#include "include/fitness.h"
 
 // "global" variables. I try to start these with capital letters
 tour_t* Cities; // the "tour" that contains every city in their provided order. Not really a tour, just used as the master array of cities

@@ -1,4 +1,4 @@
-#include "tsp.h"
+#include "include/tsp.h"
 
 float frand() {
 	return ((float)rand())/((float)RAND_MAX);
