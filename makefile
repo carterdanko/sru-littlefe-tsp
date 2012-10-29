@@ -8,5 +8,8 @@ tsp: makefile $(sources) $(includes)
 genrandcity: genrandcity.c
 	cc -g src/genrandcity.c -o genrandcity
 
+cuda: src/fitnesscuda.cu
+	nvcc -lm -g src/fitnesscuda.cu -o cuda -Iinclude/* -I.
+
 clean:
 	rm tsp genrandcity
