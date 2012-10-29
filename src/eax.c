@@ -670,11 +670,11 @@ int generateESetRAND(const tour_t* const Cities, tour_t** cycles /*byref*/, int 
  * in the cycle belongs to tourB, the edge is added.
  * Modifies the E-set into a collection of the sub-cycles
  * Cities : master array of all cities
- * T : (byref) the intermediate to create (this is "tourA" represented as a graph)
- * E : (byref) the E-set -> this gets transformed into a collection of the cycles
+ * T : (byref) IN: tourA as a graph OUT: the intermediate created
+ * E : (byref) IN: the E-set OUT: this gets transformed into a collection of the cycles
  * nCycles : number of cycles in the E-set
- * edges : (byref) pre-allocated array of edge structures. The data needn't be specially initialized, but they
- *         do need to be allocated. All the edges of the graph will be placed into this array.
+ * edges : (byref) IN: pre-allocated array of edge structures. The data needn't be specially initialized, but they
+ *         do need to be allocated. OUT: All the edges of the graph will be placed into this array.
  * returns : the number of disjoint cycles in the graph
  */
 int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byref*/, int nCycles, edge_t** edges /*byref*/)
@@ -921,5 +921,38 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
 		break;// if we made it this far, then all nodes were visited
 	} while (1);
 	
-	return iteration-1; //TODO: return number of disjoint cycles
+	//TODO: sort the sub-cycles by size
+	
+	return iteration-1; // return number of disjoint cycles
 }// applyESet()
+
+/**
+ * merges the sub-tours in an intermediate tour creating a valid tour object
+ * Cities : master cities structure containing all of the cities
+ * T : IN : graph containing the disjoint sub-cycles in the intermediate tour OUT : fixed tour
+ * cycles : the array of the sub cycles in the intermediate tour
+ * nCycles : number of disjoin sub-cycles in T
+ * edges : an array that contains information about all of the edges in T
+ * returns : 1
+ */
+int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t** cycles, int nCycles, edge_t** edges)
+{
+	int i; // loop counter
+	int cycleNum; // index of current cycle
+	tour_t* curCycle; // current cycle
+	edge_t edge1, edge2; // temporary edges, so I can allocate on the stack
+	edge_t* e1, *e2, *e3, *e4; // e1 and e2 are the two edges being examined for removal, e3 and e4 are the two candidate edges to be added
+	e3 = &edge1;
+	e4 = &edge2;
+	int bestCost; // cost of the current best edges found
+	node_t* v0, *v1, *v2;
+	
+	for (cycleNum = 0; cycleNum < nCycles; cycleNum++)
+	{
+		curCycle = cycles[cycleNum];
+		e1 = e2 = bestCost = 0;
+		for (
+	}
+
+	return 1;
+}
