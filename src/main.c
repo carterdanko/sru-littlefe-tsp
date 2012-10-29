@@ -10,51 +10,65 @@
 tour_t* Cities; // the "tour" that contains every city in their provided order. Not really a tour, just used as the master array of cities
  
 int main(int argc, char** argv)
-{
-	/*
-	printf("numargs: %i\n", argc);
-	printf("filename? '%s'\n", argv[0]);
-	*/
+{	
+	int randSeed = 0; // random seed to use
+	char* citiesFile = 0; // cities file name
+	int i;// loop counter
 	
 	// check number of parameters
 	if (argc < 2)
 	{
-		printf("Usage: tsp <filename of cities text document> [flags]\n");
+		printf("Usage: %s [flags] <filename of cities text document>\n", argv[0]);
+		printf("Try -h or --help for more information.\n");
 		exit(1); // ERROR: must supply a filename for the cities
 	}
-	
-	// search input for cities file, and any relevant flags
-	char* citiesFile = 0;
-	int i;
-	for (i = 1; i < argc; i++)
+	else // process params
 	{
-		if (argv[i][0] == '-')
+		for (i=1; i < argc; i++)
 		{
-			//TODO: process the flags
-			if (strcmp(argv[i], "--help") == 0)
+			char* p = argv[i];
+			if (strcmp(p, "-h") == 0 || strcmp(p, "-H") == 0 || strcmp(p, "--help") == 0 || strcmp(p, "--HELP") == 0)
 			{
-				printf("Usage: tsp <filename of cities text document> [flags]\n");
-				printf("The first line of the cities text document is the number of cities.\n");
-				printf("The following lines are each city. 2 integers, space separated, are the x and y of that city. Example: \n");
-				printf("23 45\n");
+				printf("Usage: %s [flags] <filename of cities text document>\n", argv[0]);
+				printf(" -- File Format Explanation --\n");
+				printf("  The first line of the cities text document is the number of cities.\n");
+				printf("  The following lines are each city. 2 integers, space separated, are the x and y of that city. Example: \n");
+				printf("  23 45\n");
+				printf(" -- optional flags --\n");
+				printf("-h, --help : this screen.\n");
+				printf("-s <random seed> : random seed to initialize srand with.\n");
+				//printf("-d <maximum distance> : max x or y.\n");
 			}
-		}
-		else if (citiesFile)
-		{
-			printf("Please only supply one city file. Use tsp --help for help\n");
-			exit(2); // ERROR: must supply exactly one city file
-		}
-		else
-		{
-			citiesFile = argv[i];
-			printf("City file: '%s'\n", citiesFile);
-		}
-	} // for each parameter
+			else if (strcmp(p, "-s") == 0)
+			{
+				// random seed
+				randSeed = atoi(argv[++i]);
+			}
+			else
+			{
+				citiesFile = argv[i];
+			}// else filename
+		}// for each argument
+	}// else process the arguments
+
 	// check to make sure we got a city file
 	if (!citiesFile)
 	{
 		printf("no city file present. halting\n");
 		exit(3); // ERROR: no city file present
+	}
+	
+	// initialize srand
+	if (randSeed)
+	{
+		DPRINTF("Using \033[31m%i\033[0m as random seed.\n", randSeed);
+		srand(randSeed);
+	}
+	else // otherwise use a random seed
+	{
+		randSeed = time(0);
+		DPRINTF("Picked a random seed (\033[31m%i\033[0m).\n", randSeed);
+		srand(randSeed);
 	}
 	
 	// load the cities specified by the file
@@ -110,7 +124,6 @@ int main(int argc, char** argv)
 	print_tour(&tourB);
 
 	// now, testing roulette wheel 5 times.
-	srand(0);
 	tours[0] = tourA;
 	tours[1] = tourB;
 	tour_t* tempt;

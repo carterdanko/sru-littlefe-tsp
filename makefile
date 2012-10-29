@@ -5,7 +5,7 @@ includes=include/eax.h include/fitness.h include/tsp.h
 tsp: makefile $(sources) $(includes)
 	cc -lm -g $(sources) -o tsp -Iinclude/* -I.
 	
-genrandcity: genrandcity.c
+genrandcity: src/genrandcity.c
 	cc -g src/genrandcity.c -o genrandcity
 
 clean:

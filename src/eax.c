@@ -921,7 +921,26 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
 		break;// if we made it this far, then all nodes were visited
 	} while (1);
 	
-	//TODO: sort the sub-cycles by size
+	// sort the sub-cycles by size, I believe I implemented a basic selection sort here
+	for (i=0; i < iteration-2; i++)
+	{
+		int a;
+		int min = iteration-2;
+		// find the next minimum
+		for (a=i; a < iteration-2; a++)
+		{
+			if (E[a]->size < E[min]->size)
+				min = a;
+		}// for inner selection loop
+		
+		// check and do the swap iteration
+		if (min != i) // if the cycle is out of position, swap it
+		{
+			tour_t* t = E[i];
+			E[i] = E[min];
+			E[min] = t;
+		}
+	}// for outer selection loop
 	
 	return iteration-1; // return number of disjoint cycles
 }// applyESet()
