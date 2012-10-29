@@ -951,7 +951,7 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 	{
 		curCycle = cycles[cycleNum];
 		e1 = e2 = bestCost = 0;
-		for (
+		//for (
 	}
 
 	return 1;

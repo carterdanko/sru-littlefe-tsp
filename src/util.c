@@ -19,3 +19,4 @@ void dprint_tour(tour_t* tour) {
 		DPRINTF(", [%i]", tour->city[i]->id);
 	DPRINTF("\n");
 }
+
