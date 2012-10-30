@@ -43,12 +43,6 @@ typedef struct {
 	float fitness; // the fitness of the entire tour.
 } tour_t;
 
-typedef struct {//build a "bag" to hold all the stuff
-        int x1, y1,             //starting point
-        x2, y2;         //end point
-}LineSegment;
-
-
 /** Data structure containing the coordinates of every city. */
 city_t cities[MAX_CITIES];
 /** Data structure that holds all of the tours in the population. */
