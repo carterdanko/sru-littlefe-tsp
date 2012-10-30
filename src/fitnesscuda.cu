@@ -9,6 +9,8 @@
 #include "include/fitness.h"
 #include "include/tsp.h"
 #include "util.c"
+//~~!
+#include "tsp.c"
 
 #define DEBUG 1
 
@@ -19,18 +21,22 @@
 /**
  * Using The Pythagorean's Theorem, calculate the distance from p1 to p2. (CUDA)
  */
-__device__ float dev_get_distance_between(int p1, int p2, tour_t* cities) {
+__device__ float dev_get_distance_between(city_t* citylist) {
 	float x,y;
-	x = cities->city[p1]->x - cities->city[p2]->x;
-	y = cities->city[p1]->y - cities->city[p2]->y;
-	return sqrtf(x*x+y*y);
+	x = citylist[threadIdx.x].x - citylist[blockIdx.x].x;
+	y = citylist[threadIdx.x].y - citylist[blockIdx.x].y;
+	return hypotf(x,y); // CUDA function.
 }
 
 /**
  * CUDA function for finding table distances.
  */
-__global__ void compute_distances(float *table, tour_t* cities) {
-	table[blockIdx.x * blockDim.x + threadIdx.x] = dev_get_distance_between(blockIdx.x,threadIdx.x,cities);
+__global__ void compute_distances(float *table, city_t *cities) {
+	if (threadIdx.x < blockIdx.x) {
+		int index = blockIdx.x * (blockIdx.x - 1) / 2;
+		index+= threadIdx.x;
+		table[index] = dev_get_distance_between(cities);
+	}
 }
 
 
@@ -49,24 +55,32 @@ float get_distance_between(int p1, int p2, tour_t* cities) {
  *  Constructs the distTable. Implemented with CUDA.
  */
 void construct_distTable(tour_t* cities, int num_cities) {
-//	int i,j,index;
-//	index=0;
-//	for (i=0;i<num_cities;i++) {
-//		for (j=i+1;j<num_cities;j++) {
-//			distTable[index] = get_distance_between(i,j,cities);
-//			index++;
-//		}
-//	}
 	int num_bytes = TABLE_SIZE * sizeof(float);
+	int i;
 	float *dev_table;
-	tour_t *dev_cities;
+	city_t *dev_cities;//,*host_cities;
+	city_t host_cities[MAX_CITIES];
+
+	for (i=0;i<num_cities;i++) {
+		host_cities[i]=*cities->city[i];
+	}
+	memset((void*)distTable, 0, sizeof(distTable));
 
 	// allocate memory for cuda device variable
 	cudaMalloc((void**)&dev_table,num_bytes);
-	cudaMalloc((void**)&dev_cities,sizeof(cities));
+	cudaMalloc((void**)&dev_cities,sizeof(host_cities));
+	cudaMemcpy(dev_cities,host_cities,sizeof(host_cities),cudaMemcpyHostToDevice);
+	cudaMemcpy(dev_table,distTable,sizeof(distTable),cudaMemcpyHostToDevice);
 
 	// now, pass the table through to the GPU.
 	compute_distances<<<num_cities,num_cities>>>(dev_table,dev_cities);
+
+	// Now, read memory back to host
+	cudaMemcpy(distTable,dev_table,num_bytes,cudaMemcpyDeviceToHost);
+
+	// deallocate memory
+	cudaFree(dev_table);
+	cudaFree(dev_cities);
 }
 
 /**
@@ -200,6 +214,10 @@ tour_t* roulette_select(tour_t tours[], int num_tours) {
 }
 
 int main() {
-	//TODO:  Make this do something!
-	printf("trying out cuda stuff...\n");
+	// init the cities
+	int num_cities = 5;
+	tour_t* myCities = loadCities("input/cities1.in");
+
+	// construct the distance table.
+	construct_distTable(myCities,num_cities);
 }
