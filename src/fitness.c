@@ -28,6 +28,7 @@ float get_distance_between(int p1, int p2, tour_t* cities) {
  *  Constructs the distTable.
  */
 void construct_distTable(tour_t* cities, int num_cities) {
+	//TODO: rewrite so it mirrors the CUDA method: (1,0) (2,0) (2,1) etc...
 	int i,j,index;
 	index=0;
 	for (i=0;i<num_cities;i++) {
@@ -43,6 +44,7 @@ void construct_distTable(tour_t* cities, int num_cities) {
  *   This is retrieved from the distTable hashtable.
  */
 float lookup_distance(int p1, int p2) {
+	//TODO: rewrite so it mirrors the CUDA method: (1,0) (2,0) (2,1) etc...
 	if (p1<p2) {
 		return distTable[TABLE_SIZE-((MAX_CITIES-p1-1)*(MAX_CITIES-p1))/2+p2-p1-1];
 	} else if (p1>p2) {
