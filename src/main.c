@@ -114,6 +114,10 @@ void run_genalg() {
 	// End while
 }
 
+void perform_eax() {
+
+}
+
 int main(int argc, char** argv)
 {
 	int randSeed = 0; // random seed to use
@@ -202,7 +206,10 @@ int main(int argc, char** argv)
 	load_cities(mpi_flag,citiesFile,Cities);
 	// process the cities
 	int N = Cities->size;
-	construct_distTable(Cities,N);// compute distances as soon as we can (now)
+
+	// construct the distance table (everyone does this themselves)
+	construct_distTable(Cities,N);
+
 	// output the city information to the console
 	DPRINTF("\nNum Cities: %04i\n", Cities->size);
 	DPRINTF("---------------------------\n");
