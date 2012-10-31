@@ -27,6 +27,9 @@ void terminate_program(int ecode) {
 		printf("AB cycles structure gone...");
 		printf("done!\n");
 
+		//free tours
+		free(Tours);
+
 		// done (just used to make sure that the program ran to completion)
 		printf("Program ran to completion (done).\n");
 	}
@@ -35,40 +38,16 @@ void terminate_program(int ecode) {
 	exit(ecode);
 }
 
-void populate_tours(int N, int mpi_rank, tour_t** arr_tours) {
+void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities) {
 	int i;
-	tour_t* tourA, *tourB;
-	tour_t* tstar;
-	tourA = malloc(sizeof(*tourA));
-	tourB = malloc(sizeof(*tourB));
-	Tours = malloc(sizeof(*Tours) * N);
+	printf("N-->%i\n",N);
 
-	tourA->size = Cities->size;
-	for (i=0; i < N; i++)
-	{
-		tourA->city[i] = Cities->city[(i*2)%N];
+	for (i=0;i<N;i++) {
+		printf("-- %i ",i);
+		arr_tours[i] = create_tour_nn(arr_cities->city[i], N, arr_cities);
+		printf("\n");
+		print_tour(arr_tours[i]);
 	}
-	tstar = create_tour_nn(Cities->city[0], Cities->size, Cities);
-	tourB = tstar;
-	// now, find fitness of the tours.
-	set_tour_fitness(tourA,N);
-	set_tour_fitness(tourB,N);
-	DPRINTF("fitness of A,B is %f,%f.\n", tourA->fitness, tourB->fitness);
-	// output the two tours
-	printf("TourA: [%i]", tourA->city[0]->id);
-	for (i=1; i < N; i++)
-		printf(", [%i]", tourA->city[i]->id);
-	printf("\nTourB: [%i]", tourB->city[0]->id);
-	for (i=1; i < N; i++)
-		printf(", [%i]", tourB->city[i]->id);
-	printf("\n");
-
-	// now, testing print tour function for A and B.
-	print_tour(tourA);
-	print_tour(tourB);
-
-	Tours[0]=tourA;
-	Tours[1]=tourB;
 }
 
 void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs) {
@@ -118,7 +97,9 @@ void run_genalg(int N, char *lcv) {
 	// Select parents for child creation (roulette wheel)
 
 	// Create children
+	printf("enter eax\n");
 	perform_eax(N);
+	printf("exit eax\n");
 
 	// Update sorted population array
 
@@ -332,9 +313,13 @@ int main(int argc, char** argv)
 	load_cities(mpi_rank,citiesFile,Cities);
 	// process the cities
 	int N = Cities->size;
+	// allocate memory for Tours
+	Tours = malloc( sizeof(tour_t*) * MAX_POPULATION );
 
 	// construct the distance table (on all processes)
+	printf("Enter dist table\n");
 	construct_distTable(Cities,N);
+	printf("Exit dist table\n");
 
 	// output the city information to the console
 	DPRINTF("\nNum Cities: %04i\n", Cities->size);
@@ -345,7 +330,9 @@ int main(int argc, char** argv)
 	}
 
 	// populate tours (on all processes)
-	populate_tours(N,mpi_rank,Tours);
+	populate_tours(N,mpi_rank,Tours,Cities);
+	print_tour(Tours[0]);
+	print_tour(Tours[1]);
 	//----------------------------------------------------
 
 
@@ -353,6 +340,7 @@ int main(int argc, char** argv)
 	// Run Genetic Algorithm (Enter "The Islands")
 	//####################################################
 	while (lcv) {
+		printf("Loop . . .\n");
 		if (mpi_rank==0 && mpi_flag==1) {
 			// if you are the master AND mpi is on, start listening
 			master_listener();

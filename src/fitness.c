@@ -100,6 +100,7 @@ tour_t* create_tour_nn(city_t* city, int num_cities, tour_t* cities) {
 	// Iterate through the cities, adding new ones and marking them off.
 	for (i=1;i<num_cities;i++) {
 		next_city = find_nearest_neighbor(next_city,num_cities,cities,cities_visited);
+		printf("--> %i ",*next_city);
 		tour->city[i]=next_city;
 		cities_visited[ next_city->id ]=1;
 	}

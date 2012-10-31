@@ -61,7 +61,7 @@ tour_t* roulette_select(tour_t tours[], int num_tours); // selects a random tour
 
 void terminate_program(int ecode);
 
-void populate_tours(int N, int mpi_rank, tour_t** arr_tours);
+void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities);
 
 void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs);
 
