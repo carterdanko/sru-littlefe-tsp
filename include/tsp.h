@@ -67,7 +67,7 @@ void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs);
 
 void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities);
 
-void run_genalg(int N);
+void run_genalg(int N, char* lcv);
 
 void perform_eax(int N);
 

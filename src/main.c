@@ -30,6 +30,7 @@ void terminate_program(int ecode) {
 		// done (just used to make sure that the program ran to completion)
 		printf("Program ran to completion (done).\n");
 	}
+
 	// exit the program.
 	exit(ecode);
 }
@@ -80,6 +81,16 @@ void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs) {
 	}
 }
 
+void master_listener() {
+	// note -- this will have to listen for ANY island & not just the sequence 1..num_procs
+
+	//TODO: MPI receive (tours from each island)
+
+	//TODO: udpate master population
+
+	//TODO: MPI send (tours back to each island)
+}
+
 void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities) {
 	// if master...
 	if (mpi_rank==0) {
@@ -100,7 +111,7 @@ void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities) {
 	}
 }
 
-void run_genalg(int N) {
+void run_genalg(int N, char *lcv) {
 	// While the run condition holds true...
 	// ...
 
@@ -239,6 +250,7 @@ int main(int argc, char** argv)
 	int i; // loop counter
 	char mpi_flag; // mpi is on (1) or off (0)
 	int mpi_rank,mpi_procs; // mpi rank (for each process) and number of processes
+	char lcv = 1; // loop control variable for the while loop (run until lcv->0)
 
 	//TODO: make argument handler set the number of procedures (mpi_procs) and mpi_flag.
 	mpi_flag = 0;
@@ -340,7 +352,16 @@ int main(int argc, char** argv)
 	//####################################################
 	// Run Genetic Algorithm (Enter "The Islands")
 	//####################################################
-	run_genalg(N);
+	while (lcv) {
+		if (mpi_rank==0 && mpi_flag==1) {
+			// if you are the master AND mpi is on, start listening
+			master_listener();
+		}
+		else {
+			// otherwise, run the GA
+			run_genalg(N,&lcv);
+		}
+	}
 	//----------------------------------------------------
 
 
