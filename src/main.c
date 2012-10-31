@@ -85,6 +85,20 @@ int main(int argc, char** argv)
 	// process the cities
 	int N = Cities->size;
 	construct_distTable(Cities,N);// compute distances as soon as we can (now)
+	// output distance table
+	int x,y;
+	printf(" -- DISTANCE TABLE --\n");
+	printf("    ");
+	for (x=0; x < N; x++)
+		printf("  %02i ", x);
+	printf("\n");
+	for (y=0; y < N; y++)
+	{
+		printf("%02i :", y);
+		for (x=0; x < N; x++)
+			printf("%4f ", (y!=x)?lookup_distance(x, y):0);
+		printf("\n");
+	}
 
 	// output the city information to the console
 	printf("\nNum Cities: %04i\n", Cities->size);

@@ -28,14 +28,15 @@ float get_distance_between(int p1, int p2, tour_t* cities) {
  *  Constructs the distTable.
  */
 void construct_distTable(tour_t* cities, int num_cities) {
-	//TODO: rewrite so it mirrors the CUDA method: (1,0) (2,0) (2,1) etc...
 	int i,j,index;
 	index=0;
 	for (i=0;i<num_cities;i++) {
-		for (j=i+1;j<num_cities;j++) {
+		for (j=0;j<i;j++) {
 			distTable[index] = get_distance_between(i,j,cities);
+			printf("(%i,%i)->%f\t",i,j,distTable[index]);
 			index++;
 		}
+		printf("\n");
 	}
 }
 
@@ -44,11 +45,10 @@ void construct_distTable(tour_t* cities, int num_cities) {
  *   This is retrieved from the distTable hashtable.
  */
 float lookup_distance(int p1, int p2) {
-	//TODO: rewrite so it mirrors the CUDA method: (1,0) (2,0) (2,1) etc...
 	if (p1<p2) {
-		return distTable[TABLE_SIZE-((MAX_CITIES-p1-1)*(MAX_CITIES-p1))/2+p2-p1-1];
+		return distTable[(p2*(p2-1)/2)+p1];
 	} else if (p1>p2) {
-		return distTable[TABLE_SIZE-((MAX_CITIES-p2-1)*(MAX_CITIES-p2))/2+p1-p2-1];
+		return distTable[(p1*(p1-1)/2)+p2];
 	} else {
 		printf("WARNING -- THIS SHOULD NEVER HAPPEN (p1==p2); returning 0...\n");
 		return 0.0;

@@ -88,15 +88,16 @@ void construct_distTable(tour_t* cities, int num_cities) {
  *   This is retrieved from the distTable hashtable.
  */
 float lookup_distance(int p1, int p2) {
-	if (p1<p2) {
-		return distTable[TABLE_SIZE-((MAX_CITIES-p1-1)*(MAX_CITIES-p1))/2+p2-p1-1];
-	} else if (p1>p2) {
-		return distTable[TABLE_SIZE-((MAX_CITIES-p2-1)*(MAX_CITIES-p2))/2+p1-p2-1];
-	} else {
-		printf("WARNING -- THIS SHOULD NEVER HAPPEN (p1==p2); returning 0...\n");
-		return 0.0;
-	}
+        if (p1<p2) {
+                return distTable[(p2*(p2-1)/2)+p1];
+        } else if (p1>p2) {
+                return distTable[(p1*(p1-1)/2)+p2];
+        } else {
+                printf("WARNING -- THIS SHOULD NEVER HAPPEN (p1==p2); returning 0...\n");
+                return 0.0;
+        }
 }
+
 
 /**
  * Given a tour and the number of cities, determine its fitness by
