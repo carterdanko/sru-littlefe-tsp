@@ -28,14 +28,17 @@
 			  	V->edge[E] = _tv; V->tour[E] = _tt; \
             } while(0) 
 // initializes an edge
+/*
 #define INIT_EDGE(E, V1, V2, C) do { \
 				edge_t* _E = E; \
 				_E->v1 = V1; \
 				_E->v2 = V2; \
 				_E->cycle = C; \
-				_E->cost = lookup_distance(V1->id, V2->id); \
+				_E->cost = (float)lookup_distance(V1->id, V2->id); \
+				DPRINTF("looked up distance: %f\n", lookup_distance(V1->id, V2->id)); \
 				DPRINTF("initialized edge = {%i -> %i : i%i : c%f}\n", V1?_E->v1->id:-1, V2?_E->v2->id:-1, _E->cycle, _E->cost); \
 			} while(0)
+//*/
 
 // constants
 #define MAX_SUB_TOURS 10  // maximum number of sub-tours in an intermediate tour

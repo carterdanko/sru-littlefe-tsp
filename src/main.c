@@ -4,42 +4,45 @@
 
 #include "include/tsp.h"
 #include "include/eax.h"
-#include "include/fitness.h"
 
 // "global" variables. I try to start these with capital letters
 tour_t* Cities; // the "tour" that contains every city in their provided order. Not really a tour, just used as the master array of cities.
+tour_t** Tours; // all of the current tours in the population
 
 void populate_tours(int N) {
 	int i;
-	tour_t tourA, tourB;
+	tour_t* tourA, *tourB;
 	tour_t* tstar;
+	tourA = malloc(sizeof(*tourA));
+	tourB = malloc(sizeof(*tourB));
+	Tours = malloc(sizeof(*Tours) * N);
 
-	tourA.size = Cities->size;
+	tourA->size = Cities->size;
 	for (i=0; i < N; i++)
 	{
-		tourA.city[i] = Cities->city[(i*2)%N];
+		tourA->city[i] = Cities->city[(i*2)%N];
 	}
 	tstar = create_tour_nn(Cities->city[0], Cities->size, Cities);
-	tourB = *tstar;
+	tourB = tstar;
 	// now, find fitness of the tours.
-	set_tour_fitness(&tourA,N);
-	set_tour_fitness(&tourB,N);
-	DPRINTF("fitness of A,B is %f,%f.\n", tourA.fitness,tourB.fitness);
+	set_tour_fitness(tourA,N);
+	set_tour_fitness(tourB,N);
+	DPRINTF("fitness of A,B is %f,%f.\n", tourA->fitness, tourB->fitness);
 	// output the two tours
-	printf("TourA: [%i]", tourA.city[0]->id);
+	printf("TourA: [%i]", tourA->city[0]->id);
 	for (i=1; i < N; i++)
-		printf(", [%i]", tourA.city[i]->id);
-	printf("\nTourB: [%i]", tourB.city[0]->id);
+		printf(", [%i]", tourA->city[i]->id);
+	printf("\nTourB: [%i]", tourB->city[0]->id);
 	for (i=1; i < N; i++)
-		printf(", [%i]", tourB.city[i]->id);
+		printf(", [%i]", tourB->city[i]->id);
 	printf("\n");
 
 	// now, testing print tour function for A and B.
-	print_tour(&tourA);
-	print_tour(&tourB);
+	print_tour(tourA);
+	print_tour(tourB);
 
-	tours[0]=tourA;
-	tours[1]=tourB;
+	Tours[0]=tourA;
+	Tours[1]=tourB;
 }
 
 void run_genalg() {
@@ -137,8 +140,22 @@ int main(int argc, char** argv)
 	DPRINTF("done! (loaded %i cities from the file)\n", Cities->size);
 	// process the cities
 	int N = Cities->size;
-	// compute city distances
-	construct_distTable(Cities,N);
+	construct_distTable(Cities,N);// compute distances as soon as we can (now)
+	// output the distance table
+	int x,y;
+	printf(" -- DISTANCE TABLE --\n");
+	printf("    ");
+	for (x=0; x < N; x++)
+		printf("  %02i ", x);
+	printf("\n");
+	for (y=0; y < N; y++)
+	{
+		printf("%02i :", y);
+		for (x=0; x < N; x++)
+			printf("%4.2f ", (y!=x)?lookup_distance(x, y):0);
+		printf("\n");
+	}
+
 	// output the city information to the console
 	DPRINTF("\nNum Cities: %04i\n", Cities->size);
 	DPRINTF("---------------------------\n");
@@ -161,7 +178,7 @@ int main(int argc, char** argv)
 	// merge the two tours
 	printf("\nMerging A with B...");
 //	graph_t* R = mergeTours(&tourA, &tourB);
-	graph_t* R = mergeTours(&tours[0], &tours[1]);
+	graph_t* R = mergeTours(Tours[0], Tours[1]);
 	printf("done!\n");
 
 	// output the merged graph
@@ -216,7 +233,7 @@ int main(int argc, char** argv)
 
 	// apply E-sets to generate intermediates
 //	graph_t* T = createGraph(&tourA);
-	graph_t* T = createGraph(&tours[0]);
+	graph_t* T = createGraph(Tours[0]);
 	// output the created graph from tourA
 	printf("\n\033[32mIntermediate Tour T\033[0m contains: \n");
 	for (i=0; i < N; i++)
@@ -265,6 +282,8 @@ int main(int argc, char** argv)
 	}
 
 	//TODO: turn intermediates into valid tours
+	/*int code=*/fixIntermediate(Cities, T /* byref */, cycles, nCycles, edges);
+	
 	//----------------------------------------------------
 
 

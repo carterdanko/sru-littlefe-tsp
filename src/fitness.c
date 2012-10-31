@@ -4,15 +4,14 @@
  *          and that I didn't have to rewrite this code again. OK? So, this
  *          is the original file I wrote, because I only wrote this once.
  */
+
 #include <stdio.h>
 #include <math.h>
-#include "include/fitness.h"
 #include "include/tsp.h"
-
-#define DEBUG 1
-
+#include "include/eax.h"
 /** Stores distances from every point to another. */
-float distTable[TABLE_SIZE];
+float* distTable;// initialized in fitness.c inside construct_distTable
+
 
 /**
  * Using The Pythagorean's Theorem, calculate the distance from p1 to p2.
@@ -28,6 +27,7 @@ float get_distance_between(int p1, int p2, tour_t* cities) {
  *  Constructs the distTable.
  */
 void construct_distTable(tour_t* cities, int num_cities) {
+	distTable = malloc(sizeof(*distTable) * ((num_cities * (num_cities-1)) / 2));
 	int i,j,index;
 	index=0;
 	for (i=0;i<num_cities;i++) {
@@ -46,8 +46,14 @@ void construct_distTable(tour_t* cities, int num_cities) {
  */
 float lookup_distance(int p1, int p2) {
 	if (p1<p2) {
+		DPRINTF("p1<p2 inside lookup_distance: distTable[(%i*(%i-1)/2)+%i==%i]=%f\n", p2, p2, p1, (p2*(p2-1)/2)+p1, distTable[(p2*(p2-1)/2)+p1]);
+		float f = distTable[(p2*(p2-1)/2)+p1];
+		//DPRINTF("f=%f\n", f);
 		return distTable[(p2*(p2-1)/2)+p1];
 	} else if (p1>p2) {
+		DPRINTF("p1>p2 inside lookup_distance: distTable[(%i*(%i-1)/2)+%i==%i]=%f\n", p1, p1, p2, (p1*(p1-1)/2)+p2, distTable[(p1*(p1-1)/2)+p2]);
+		float f = distTable[(p1*(p1-1)/2)+p2];
+		//DPRINTF("f=%f\n", f);
 		return distTable[(p1*(p1-1)/2)+p2];
 	} else {
 		printf("WARNING -- THIS SHOULD NEVER HAPPEN (p1==p2); returning 0...\n");
