@@ -34,7 +34,7 @@ void terminate_program(int ecode) {
 	exit(ecode);
 }
 
-void populate_tours(int N) {
+void populate_tours(int N, int mpi_rank, tour_t** arr_tours) {
 	int i;
 	tour_t* tourA, *tourB;
 	tour_t* tstar;
@@ -237,8 +237,8 @@ int main(int argc, char** argv)
 	int randSeed = 0; // random seed to use
 	char* citiesFile = 0; // cities file name
 	int i; // loop counter
-	char mpi_flag;
-	int mpi_rank,mpi_procs;
+	char mpi_flag; // mpi is on (1) or off (0)
+	int mpi_rank,mpi_procs; // mpi rank (for each process) and number of processes
 
 	//TODO: make argument handler set the number of procedures (mpi_procs) and mpi_flag.
 	mpi_flag = 0;
@@ -321,7 +321,7 @@ int main(int argc, char** argv)
 	// process the cities
 	int N = Cities->size;
 
-	// construct the distance table (everyone does this themselves)
+	// construct the distance table (on all processes)
 	construct_distTable(Cities,N);
 
 	// output the city information to the console
@@ -332,8 +332,8 @@ int main(int argc, char** argv)
 		DPRINTF("City[%04i] at %04i, %04i   [id: %04i]\n", i, Cities->city[i]->x, Cities->city[i]->y, Cities->city[i]->id);
 	}
 
-	// create two new tours by some arbitrary but reproducible means
-	populate_tours(N);
+	// populate tours (on all processes)
+	populate_tours(N,mpi_rank,Tours);
 	//----------------------------------------------------
 
 
