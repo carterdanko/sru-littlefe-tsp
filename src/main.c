@@ -1,20 +1,70 @@
 /**
  * main module for the TSP solver
  */
- 
+
 #include "include/tsp.h"
 #include "include/eax.h"
 #include "include/fitness.h"
 
 // "global" variables. I try to start these with capital letters
-tour_t* Cities; // the "tour" that contains every city in their provided order. Not really a tour, just used as the master array of cities
- 
+tour_t* Cities; // the "tour" that contains every city in their provided order. Not really a tour, just used as the master array of cities.
+
+void populate_tours(int N) {
+	int i;
+	tour_t tourA, tourB;
+	tour_t* tstar;
+
+	tourA.size = Cities->size;
+	for (i=0; i < N; i++)
+	{
+		tourA.city[i] = Cities->city[(i*2)%N];
+	}
+	tstar = create_tour_nn(Cities->city[0], Cities->size, Cities);
+	tourB = *tstar;
+	// now, find fitness of the tours.
+	set_tour_fitness(&tourA,N);
+	set_tour_fitness(&tourB,N);
+	DPRINTF("fitness of A,B is %f,%f.\n", tourA.fitness,tourB.fitness);
+	// output the two tours
+	printf("TourA: [%i]", tourA.city[0]->id);
+	for (i=1; i < N; i++)
+		printf(", [%i]", tourA.city[i]->id);
+	printf("\nTourB: [%i]", tourB.city[0]->id);
+	for (i=1; i < N; i++)
+		printf(", [%i]", tourB.city[i]->id);
+	printf("\n");
+
+	// now, testing print tour function for A and B.
+	print_tour(&tourA);
+	print_tour(&tourB);
+
+	tours[0]=tourA;
+	tours[1]=tourB;
+}
+
+void run_genalg() {
+	// While the run condition holds true...
+	// ...
+
+	// Select parents for child creation (roulette wheel)
+
+	// Create children
+
+	// Update sorted population array
+
+	// ...
+	// End while
+}
+
 int main(int argc, char** argv)
-{	
+{
 	int randSeed = 0; // random seed to use
 	char* citiesFile = 0; // cities file name
-	int i;// loop counter
-	
+	int i; // loop counter
+
+	//####################################################
+	// Argument Handler
+	//####################################################
 	// check number of parameters
 	if (argc < 2)
 	{
@@ -57,7 +107,7 @@ int main(int argc, char** argv)
 		printf("no city file present. halting\n");
 		exit(3); // ERROR: no city file present
 	}
-	
+
 	// initialize srand
 	if (randSeed)
 	{
@@ -70,89 +120,50 @@ int main(int argc, char** argv)
 		DPRINTF("Picked a random seed (\033[31m%i\033[0m).\n", randSeed);
 		srand(randSeed);
 	}
-	
+	//----------------------------------------------------
+
+
+	//####################################################
+	// Load Cities, Initialize Tables, Create Init tours
+	//####################################################
 	// load the cities specified by the file
-	printf("Loading cities...");
+	DPRINTF("Loading cities...");
 	Cities = loadCities(citiesFile);
 	if (!Cities)
 	{
 		printf("Error while loading cities. refer to error log? halting.\n");
 		exit(5); // ERROR: error while loading cities
 	}
-	printf("done! (loaded %i cities from the file)\n", Cities->size);
-	
-	///////////////////////////////////////////////////////////////////////////
+	DPRINTF("done! (loaded %i cities from the file)\n", Cities->size);
 	// process the cities
 	int N = Cities->size;
-	construct_distTable(Cities,N);// compute distances as soon as we can (now)
-	// output distance table
-	int x,y;
-	printf(" -- DISTANCE TABLE --\n");
-	printf("    ");
-	for (x=0; x < N; x++)
-		printf("  %02i ", x);
-	printf("\n");
-	for (y=0; y < N; y++)
-	{
-		printf("%02i :", y);
-		for (x=0; x < N; x++)
-			printf("%4f ", (y!=x)?lookup_distance(x, y):0);
-		printf("\n");
-	}
-
+	// compute city distances
+	construct_distTable(Cities,N);
 	// output the city information to the console
-	printf("\nNum Cities: %04i\n", Cities->size);
-	printf("---------------------------\n");
+	DPRINTF("\nNum Cities: %04i\n", Cities->size);
+	DPRINTF("---------------------------\n");
 	for (i=0; i < Cities->size; i++)
 	{
-		printf("City[%04i] at %04i, %04i   [id: %04i]\n", i, Cities->city[i]->x, Cities->city[i]->y, Cities->city[i]->id);
+		DPRINTF("City[%04i] at %04i, %04i   [id: %04i]\n", i, Cities->city[i]->x, Cities->city[i]->y, Cities->city[i]->id);
 	}
-	
+
 	// create two new tours by some arbitrary but reproducible means
-	tour_t tourA, tourB;
-	tour_t* tstar;
-	tourA.size = Cities->size;
-	for (i=0; i < N; i++)
-	{
-		tourA.city[i] = Cities->city[(i*2)%N];
-	}
-	tstar = create_tour_nn(Cities->city[0], Cities->size, Cities);
-	tourB = *tstar;
+	populate_tours(N);
+	//----------------------------------------------------
 
-	// now, find fitness of the tours.
-	set_tour_fitness(&tourA,N);
-	set_tour_fitness(&tourB,N);
-	
-	DPRINTF("fitness of A,B is %f,%f.\n", tourA.fitness,tourB.fitness);
-	// output the two tours
-	printf("TourA: [%i]", tourA.city[0]->id);
-	for (i=1; i < N; i++)
-		printf(", [%i]", tourA.city[i]->id);
-	printf("\nTourB: [%i]", tourB.city[0]->id);
-	for (i=1; i < N; i++)
-		printf(", [%i]", tourB.city[i]->id);
-	printf("\n");
 
-	// now, testing print tour function for A and B.
-	print_tour(&tourA);
-	print_tour(&tourB);
+	//####################################################
+	// Run Genetic Algorithm (Enter "The Islands")
+	//####################################################
+	run_genalg();
+	//TODO: move this EAX code into the island function. Add parameters as necessary.
 
-	// now, testing roulette wheel 5 times.
-	tours[0] = tourA;
-	tours[1] = tourB;
-	tour_t* tempt;
-	DPRINTF(" ~~~ ROULETTE WHEEL ~~\n");
-	for (i=0;i<5;i++) {
-		tempt = roulette_select(tours, 2);
-		dprint_tour(tempt);
-	}
-	DPRINTF(" ~~~  END ROULETTE  ~~\n");
-	
 	// merge the two tours
 	printf("\nMerging A with B...");
-	graph_t* R = mergeTours(&tourA, &tourB);
+//	graph_t* R = mergeTours(&tourA, &tourB);
+	graph_t* R = mergeTours(&tours[0], &tours[1]);
 	printf("done!\n");
-	
+
 	// output the merged graph
 	printf("\nGraph R contains: \n");
 	for (i=0; i < N; i++)
@@ -204,7 +215,8 @@ int main(int argc, char** argv)
 	}
 
 	// apply E-sets to generate intermediates
-	graph_t* T = createGraph(&tourA);
+//	graph_t* T = createGraph(&tourA);
+	graph_t* T = createGraph(&tours[0]);
 	// output the created graph from tourA
 	printf("\n\033[32mIntermediate Tour T\033[0m contains: \n");
 	for (i=0; i < N; i++)
@@ -251,9 +263,14 @@ int main(int argc, char** argv)
 			printf(", [%i]", cycles[i]->city[a]->id);
 		printf("\n");
 	}
-	
+
 	//TODO: turn intermediates into valid tours
-	
+	//----------------------------------------------------
+
+
+	//####################################################
+	// Free Memory, Terminate Program
+	//####################################################
 	// clean up
 	printf("\nClean up...");
 	freeGraph(R);
@@ -265,7 +282,7 @@ int main(int argc, char** argv)
 	//	freeCities(cycles[i]);
 	printf("AB cycles structure gone...");
 	printf("done!\n");
-	
+
 	// done (just used to make sure that the program ran to completion)
 	printf("Program ran to completion (done).\n");
 	exit(0);

@@ -3,6 +3,8 @@
 
 #include "include/tsp.h"
 
+#define TABLE_SIZE (MAX_CITIES*(MAX_CITIES-1))/2 // size based on a counting argument
+
 /** Stores distances from every point to another. */
 float distTable[TABLE_SIZE];
 
