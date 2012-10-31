@@ -80,9 +80,9 @@ void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs) {
 	}
 }
 
-void load_cities(char mpi_flag, char *citiesFile, tour_t *arr_cities) {
+void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities) {
 	// if master...
-	if (mpi_flag==0) {
+	if (mpi_rank==0) {
 		// load the cities specified by the file
 		DPRINTF("Loading cities...");
 		Cities = loadCities(citiesFile);
@@ -100,13 +100,14 @@ void load_cities(char mpi_flag, char *citiesFile, tour_t *arr_cities) {
 	}
 }
 
-void run_genalg() {
+void run_genalg(int N) {
 	// While the run condition holds true...
 	// ...
 
 	// Select parents for child creation (roulette wheel)
 
 	// Create children
+	perform_eax(N);
 
 	// Update sorted population array
 
@@ -114,120 +115,8 @@ void run_genalg() {
 	// End while
 }
 
-void perform_eax() {
-
-}
-
-int main(int argc, char** argv)
-{
-	int randSeed = 0; // random seed to use
-	char* citiesFile = 0; // cities file name
-	int i; // loop counter
-	char mpi_flag;
-	int mpi_rank,mpi_procs;
-
-	//TODO: make argument handler set the number of procedures (mpi_procs) and mpi_flag.
-	mpi_flag = 0;
-	mpi_procs = 1;
-
-	//####################################################
-	// Argument Handler
-	//####################################################
-	// check number of parameters
-	if (argc < 2)
-	{
-		printf("Usage: %s [flags] <filename of cities text document>\n", argv[0]);
-		printf("Try -h or --help for more information.\n");
-		exit(1); // ERROR: must supply a filename for the cities
-	}
-	else // process params
-	{
-		for (i=1; i < argc; i++)
-		{
-			char* p = argv[i];
-			if (strcmp(p, "-h") == 0 || strcmp(p, "-H") == 0 || strcmp(p, "--help") == 0 || strcmp(p, "--HELP") == 0)
-			{
-				printf("Usage: %s [flags] <filename of cities text document>\n", argv[0]);
-				printf(" -- File Format Explanation --\n");
-				printf("  The first line of the cities text document is the number of cities.\n");
-				printf("  The following lines are each city. 2 integers, space separated, are the x and y of that city. Example: \n");
-				printf("  23 45\n");
-				printf(" -- optional flags --\n");
-				printf("-h, --help : this screen.\n");
-				printf("-s <random seed> : random seed to initialize srand with.\n");
-				//printf("-d <maximum distance> : max x or y.\n");
-			}
-			else if (strcmp(p, "-s") == 0)
-			{
-				// random seed
-				randSeed = atoi(argv[++i]);
-			}
-			else
-			{
-				citiesFile = argv[i];
-			}// else filename
-		}// for each argument
-	}// else process the arguments
-
-	// check to make sure we got a city file
-	if (!citiesFile)
-	{
-		printf("no city file present. halting\n");
-		exit(3); // ERROR: no city file present
-	}
-
-	// initialize srand
-	if (randSeed)
-	{
-		DPRINTF("Using \033[31m%i\033[0m as random seed.\n", randSeed);
-		srand(randSeed);
-	}
-	else // otherwise use a random seed
-	{
-		randSeed = time(0);
-		DPRINTF("Picked a random seed (\033[31m%i\033[0m).\n", randSeed);
-		srand(randSeed);
-	}
-	//----------------------------------------------------
-
-
-	//####################################################
-	// MPI Initializations
-	//####################################################
-	// Handles MPI initializations and sets its variables.
-	MPI_init(&mpi_flag,&mpi_rank,&mpi_procs);
-	//----------------------------------------------------
-
-
-	//####################################################
-	// Load Cities, Initialize Tables, Create Init tours
-	//####################################################
-	// load the cities
-	load_cities(mpi_flag,citiesFile,Cities);
-	// process the cities
-	int N = Cities->size;
-
-	// construct the distance table (everyone does this themselves)
-	construct_distTable(Cities,N);
-
-	// output the city information to the console
-	DPRINTF("\nNum Cities: %04i\n", Cities->size);
-	DPRINTF("---------------------------\n");
-	for (i=0; i < Cities->size; i++)
-	{
-		DPRINTF("City[%04i] at %04i, %04i   [id: %04i]\n", i, Cities->city[i]->x, Cities->city[i]->y, Cities->city[i]->id);
-	}
-
-	// create two new tours by some arbitrary but reproducible means
-	populate_tours(N);
-	//----------------------------------------------------
-
-
-	//####################################################
-	// Run Genetic Algorithm (Enter "The Islands")
-	//####################################################
-	run_genalg();
-	//TODO: move this EAX code into the island function. Add parameters as necessary.
+void perform_eax(int N) {
+	int i;
 
 	// merge the two tours
 	printf("\nMerging A with B...");
@@ -340,6 +229,118 @@ int main(int argc, char** argv)
 	printf("\nClean up...");
 	freeGraph(R);
 	freeGraph(T);
+
+}
+
+int main(int argc, char** argv)
+{
+	int randSeed = 0; // random seed to use
+	char* citiesFile = 0; // cities file name
+	int i; // loop counter
+	char mpi_flag;
+	int mpi_rank,mpi_procs;
+
+	//TODO: make argument handler set the number of procedures (mpi_procs) and mpi_flag.
+	mpi_flag = 0;
+	mpi_procs = 1;
+
+	//####################################################
+	// Argument Handler
+	//####################################################
+	// check number of parameters
+	if (argc < 2)
+	{
+		printf("Usage: %s [flags] <filename of cities text document>\n", argv[0]);
+		printf("Try -h or --help for more information.\n");
+		exit(1); // ERROR: must supply a filename for the cities
+	}
+	else // process params
+	{
+		for (i=1; i < argc; i++)
+		{
+			char* p = argv[i];
+			if (strcmp(p, "-h") == 0 || strcmp(p, "-H") == 0 || strcmp(p, "--help") == 0 || strcmp(p, "--HELP") == 0)
+			{
+				printf("Usage: %s [flags] <filename of cities text document>\n", argv[0]);
+				printf(" -- File Format Explanation --\n");
+				printf("  The first line of the cities text document is the number of cities.\n");
+				printf("  The following lines are each city. 2 integers, space separated, are the x and y of that city. Example: \n");
+				printf("  23 45\n");
+				printf(" -- optional flags --\n");
+				printf("-h, --help : this screen.\n");
+				printf("-s <random seed> : random seed to initialize srand with.\n");
+				//printf("-d <maximum distance> : max x or y.\n");
+			}
+			else if (strcmp(p, "-s") == 0)
+			{
+				// random seed
+				randSeed = atoi(argv[++i]);
+			}
+			else
+			{
+				citiesFile = argv[i];
+			}// else filename
+		}// for each argument
+	}// else process the arguments
+
+	// check to make sure we got a city file
+	if (!citiesFile)
+	{
+		printf("no city file present. halting\n");
+		exit(3); // ERROR: no city file present
+	}
+
+	// initialize srand
+	if (randSeed)
+	{
+		DPRINTF("Using \033[31m%i\033[0m as random seed.\n", randSeed);
+		srand(randSeed);
+	}
+	else // otherwise use a random seed
+	{
+		randSeed = time(0);
+		DPRINTF("Picked a random seed (\033[31m%i\033[0m).\n", randSeed);
+		srand(randSeed);
+	}
+	//----------------------------------------------------
+
+
+	//####################################################
+	// MPI Initializations
+	//####################################################
+	// Handles MPI initializations and sets its variables.
+	MPI_init(&mpi_flag,&mpi_rank,&mpi_procs);
+	//----------------------------------------------------
+
+
+	//####################################################
+	// Load Cities, Initialize Tables, Create Init tours
+	//####################################################
+	// load the cities
+	load_cities(mpi_rank,citiesFile,Cities);
+	// process the cities
+	int N = Cities->size;
+
+	// construct the distance table (everyone does this themselves)
+	construct_distTable(Cities,N);
+
+	// output the city information to the console
+	DPRINTF("\nNum Cities: %04i\n", Cities->size);
+	DPRINTF("---------------------------\n");
+	for (i=0; i < Cities->size; i++)
+	{
+		DPRINTF("City[%04i] at %04i, %04i   [id: %04i]\n", i, Cities->city[i]->x, Cities->city[i]->y, Cities->city[i]->id);
+	}
+
+	// create two new tours by some arbitrary but reproducible means
+	populate_tours(N);
+	//----------------------------------------------------
+
+
+	//####################################################
+	// Run Genetic Algorithm (Enter "The Islands")
+	//####################################################
+	run_genalg(N);
 	//----------------------------------------------------
 
 

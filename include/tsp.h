@@ -59,4 +59,16 @@ void print_tour(tour_t* tour); // Simple print procedure for a tour.
 
 tour_t* roulette_select(tour_t tours[], int num_tours); // selects a random tour weighted by its fitness.
 
+void terminate_program(int ecode);
+
+void populate_tours(int N);
+
+void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs);
+
+void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities);
+
+void run_genalg(int N);
+
+void perform_eax(int N);
+
 #endif // header guard
