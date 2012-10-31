@@ -9,6 +9,31 @@
 tour_t* Cities; // the "tour" that contains every city in their provided order. Not really a tour, just used as the master array of cities.
 tour_t** Tours; // all of the current tours in the population
 
+
+/*
+ * Use of this function is not currently necessary but will be when MPI is implemented.
+ */
+void terminate_program(int ecode) {
+	//TODO: MPI close function calls
+
+	// only runs for "successful" program termination.
+	if (ecode==0) {
+		// clean up
+		printf("graph gone...");
+		freeCities(Cities);
+		printf("main cities gone...");
+		//for (i=0; i < MAX_ABCYCLES; i++)
+		//	freeCities(cycles[i]);
+		printf("AB cycles structure gone...");
+		printf("done!\n");
+
+		// done (just used to make sure that the program ran to completion)
+		printf("Program ran to completion (done).\n");
+	}
+	// exit the program.
+	exit(ecode);
+}
+
 void populate_tours(int N) {
 	int i;
 	tour_t* tourA, *tourB;
@@ -45,6 +70,36 @@ void populate_tours(int N) {
 	Tours[1]=tourB;
 }
 
+void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs) {
+	if (*mpi_flag>0) {
+		// If running MPI, then use the MPI commands.
+		//TODO: MPI initlizations
+	} else {
+		*mpi_rank = 0;
+		*mpi_procs = 1;
+	}
+}
+
+void load_cities(char mpi_flag, char *citiesFile, tour_t *arr_cities) {
+	// if master...
+	if (mpi_flag==0) {
+		// load the cities specified by the file
+		DPRINTF("Loading cities...");
+		Cities = loadCities(citiesFile);
+		if (!Cities)
+		{
+			printf("Error while loading cities. refer to error log? halting.\n");
+			terminate_program(5); // ERROR: error while loading cities
+		}
+		DPRINTF("done! (loaded %i cities from the file)\n", Cities->size);
+		//TODO: MPI send cities
+	}
+	// otherwise...
+	else {
+		//TODO: MPI receive cities
+	}
+}
+
 void run_genalg() {
 	// While the run condition holds true...
 	// ...
@@ -64,6 +119,12 @@ int main(int argc, char** argv)
 	int randSeed = 0; // random seed to use
 	char* citiesFile = 0; // cities file name
 	int i; // loop counter
+	char mpi_flag;
+	int mpi_rank,mpi_procs;
+
+	//TODO: make argument handler set the number of procedures (mpi_procs) and mpi_flag.
+	mpi_flag = 0;
+	mpi_procs = 1;
 
 	//####################################################
 	// Argument Handler
@@ -127,35 +188,21 @@ int main(int argc, char** argv)
 
 
 	//####################################################
+	// MPI Initializations
+	//####################################################
+	// Handles MPI initializations and sets its variables.
+	MPI_init(&mpi_flag,&mpi_rank,&mpi_procs);
+	//----------------------------------------------------
+
+
+	//####################################################
 	// Load Cities, Initialize Tables, Create Init tours
 	//####################################################
-	// load the cities specified by the file
-	DPRINTF("Loading cities...");
-	Cities = loadCities(citiesFile);
-	if (!Cities)
-	{
-		printf("Error while loading cities. refer to error log? halting.\n");
-		exit(5); // ERROR: error while loading cities
-	}
-	DPRINTF("done! (loaded %i cities from the file)\n", Cities->size);
+	// load the cities
+	load_cities(mpi_flag,citiesFile,Cities);
 	// process the cities
 	int N = Cities->size;
 	construct_distTable(Cities,N);// compute distances as soon as we can (now)
-	// output the distance table
-	int x,y;
-	printf(" -- DISTANCE TABLE --\n");
-	printf("    ");
-	for (x=0; x < N; x++)
-		printf("  %02i ", x);
-	printf("\n");
-	for (y=0; y < N; y++)
-	{
-		printf("%02i :", y);
-		for (x=0; x < N; x++)
-			printf("%4.2f ", (y!=x)?lookup_distance(x, y):0);
-		printf("\n");
-	}
-
 	// output the city information to the console
 	DPRINTF("\nNum Cities: %04i\n", Cities->size);
 	DPRINTF("---------------------------\n");
@@ -177,7 +224,6 @@ int main(int argc, char** argv)
 
 	// merge the two tours
 	printf("\nMerging A with B...");
-//	graph_t* R = mergeTours(&tourA, &tourB);
 	graph_t* R = mergeTours(Tours[0], Tours[1]);
 	printf("done!\n");
 
@@ -232,7 +278,6 @@ int main(int argc, char** argv)
 	}
 
 	// apply E-sets to generate intermediates
-//	graph_t* T = createGraph(&tourA);
 	graph_t* T = createGraph(Tours[0]);
 	// output the created graph from tourA
 	printf("\n\033[32mIntermediate Tour T\033[0m contains: \n");
@@ -283,26 +328,16 @@ int main(int argc, char** argv)
 
 	//TODO: turn intermediates into valid tours
 	/*int code=*/fixIntermediate(Cities, T /* byref */, cycles, nCycles, edges);
-	
+
+	// clean up
+	printf("\nClean up...");
+	freeGraph(R);
+	freeGraph(T);
 	//----------------------------------------------------
 
 
 	//####################################################
 	// Free Memory, Terminate Program
 	//####################################################
-	// clean up
-	printf("\nClean up...");
-	freeGraph(R);
-	freeGraph(T);
-	printf("graph gone...");
-	freeCities(Cities);
-	printf("main cities gone...");
-	//for (i=0; i < MAX_ABCYCLES; i++)
-	//	freeCities(cycles[i]);
-	printf("AB cycles structure gone...");
-	printf("done!\n");
-
-	// done (just used to make sure that the program ran to completion)
-	printf("Program ran to completion (done).\n");
-	exit(0);
+	terminate_program(0);
 }
