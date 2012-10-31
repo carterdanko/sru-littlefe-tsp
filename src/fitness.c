@@ -33,7 +33,7 @@ void construct_distTable(tour_t* cities, int num_cities) {
 	for (i=0;i<num_cities;i++) {
 		for (j=0;j<i;j++) {
 			distTable[index] = get_distance_between(i,j,cities);
-			printf("(%i,%i)->%f\t",i,j,distTable[index]);
+			DPRINTF("(%i,%i)->%f\t",i,j,distTable[index]);
 			index++;
 		}
 		printf("\n");
