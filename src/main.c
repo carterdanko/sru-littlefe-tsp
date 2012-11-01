@@ -40,39 +40,11 @@ void terminate_program(int ecode) {
 
 void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities) {
 	int i;
-<<<<<<< HEAD
-	tour_t* tourA, *tourB;
-	tour_t* tstar;
-	tourA = malloc(sizeof(*tourA));
-	tourB = malloc(sizeof(*tourB));
-	Tours = malloc(sizeof(*Tours) * N);
 
-	tourA->size = Cities->size;
-	for (i=0; i < N; i++)
-	{
-		tourA->city[i] = Cities->city[(i*2)%N];
+	for (i=0;i<N;i++) {
+		arr_tours[i] = create_tour_nn(arr_cities->city[i], N, arr_cities);
+		set_tour_fitness(arr_tours[i], N);
 	}
-	tstar = create_tour_nn(Cities->city[0], Cities->size, Cities);
-	tourB = tstar;
-	// now, find fitness of the tours.
-	set_tour_fitness(tourA,N);
-	set_tour_fitness(tourB,N);
-	DPRINTF("fitness of A,B is %f,%f.\n", tourA->fitness, tourB->fitness);
-	// output the two tours
-	printf("TourA: [%i]", tourA->city[0]->id);
-	for (i=1; i < N; i++)
-		printf(", [%i]", tourA->city[i]->id);
-	printf("\nTourB: [%i]", tourB->city[0]->id);
-	for (i=1; i < N; i++)
-		printf(", [%i]", tourB->city[i]->id);
-	printf("\n");
-
-	// now, testing print tour function for A and B.
-	print_tour(tourA);
-	print_tour(tourB);
-
-	Tours[0]=tourA;
-	Tours[1]=tourB;
 }
 
 #ifdef DEBUG
@@ -104,22 +76,11 @@ void testTourConversion()
 	}
 }
 
-void testTourArrayConversion(tour_t**)
+void testTourArrayConversion(tour_t** t)
 {
 	
 }
 #endif
-
-void run_genalg() {
-	// While the run condition holds true...
-	// ...
-=======
-
-	for (i=0;i<N;i++) {
-		arr_tours[i] = create_tour_nn(arr_cities->city[i], N, arr_cities);
-		set_tour_fitness(arr_tours[i], N);
-	}
-}
 
 void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs) {
 	if (*mpi_flag>0) {
@@ -130,7 +91,6 @@ void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs) {
 		*mpi_procs = 1;
 	}
 }
->>>>>>> master
 
 void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours) {
 	// if you are within the constraints, perform actions
@@ -215,7 +175,10 @@ void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities) {
 		DPRINTF("done! (loaded %i cities from the file)\n", Cities->size);
 		//TODO: MPI send cities
 	}
-<<<<<<< HEAD
+	// otherwise...
+	else {
+		//TODO: MPI receive cities
+	}
 	DPRINTF("done! (loaded %i cities from the file)\n", Cities->size);
 	// process the cities
 	int N = Cities->size;
@@ -243,14 +206,10 @@ void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities) {
 	// output the city information to the console
 	DPRINTF("\nNum Cities: %04i\n", Cities->size);
 	DPRINTF("---------------------------\n");
+	int i;
 	for (i=0; i < Cities->size; i++)
 	{
 		DPRINTF("City[%04i] at %04i, %04i   [id: %04i]\n", i, Cities->city[i]->x, Cities->city[i]->y, Cities->city[i]->id);
-=======
-	// otherwise...
-	else {
-		//TODO: MPI receive cities
->>>>>>> master
 	}
 }
 
