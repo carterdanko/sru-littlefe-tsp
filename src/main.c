@@ -61,6 +61,9 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours) 
 	// if you are within the constraints, perform actions
 	if (*iter<MAX_ITERATIONS && *delta_iter<MAX_DELTA) {
 		float delta_fit=0.0;
+
+		//TODO: MPI send (tours back to each island)
+
 		//TODO: note -- this will have to listen for ANY island & not just the sequence 1..num_procs
 
 		//TODO: MPI receive (tours from each island)
@@ -68,7 +71,7 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours) 
 		// First, grab the original best tour's fitness.
 		delta_fit=arr_tours[0]->fitness;
 
-		//TODO: udpate master population
+		//TODO: udpate master population (sort it)
 
 		// Next, subtract by the new best tour's fitness
 		delta_fit-=arr_tours[0]->fitness;
@@ -79,8 +82,6 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours) 
 			//Otherwise, reset counter
 			*delta_iter=0;
 		}
-
-		//TODO: MPI send (tours back to each island)
 
 		// increment the iteration number.
 		*iter++;
@@ -146,20 +147,22 @@ void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities) {
 }
 
 void run_genalg(int N, char *lcv) {
-	// While the run condition holds true...
-	// ...
+	//TODO: notice -- the slaves will start by reciving tours.
+		// this way, if we are to stop, master will send an empty tour.
+	//TODO: MPI Recv new tours from master
 
-	// Select parents for child creation (roulette wheel)
+	// if the tour is not empty...
 
-	// Create children
-	printf("enter eax\n");
-	perform_eax(N);
-	printf("exit eax\n");
+		//TODO: Update sorted population array
 
-	// Update sorted population array
+		//TODO: Select parents for child creation (roulette wheel)
 
-	// ...
-	// End while
+		// Create children
+		perform_eax(N);
+
+		//TODO: MPI Send tours
+
+	// else, set lcv->0
 }
 
 void perform_eax(int N) {
@@ -365,7 +368,18 @@ int main(int argc, char** argv)
 	// Load Cities, Initialize Tables, Create Init tours
 	//####################################################
 	// load the cities
-	load_cities(mpi_rank,citiesFile,Cities);
+	if (mpi_flag==1) {
+		// If MPI active, then let the master load cities and broadcast
+		if (mpi_rank==0) {
+			load_cities(mpi_rank,citiesFile,Cities);
+			//TODO: MPI Send cities
+		} else {
+			//TODO: MPI Receive cities
+		}
+	} else {
+		// Otherwise, just load the cities.
+		load_cities(mpi_rank,citiesFile,Cities);
+	}
 	// process the cities
 	int N = Cities->size;
 	// allocate memory for Tours
