@@ -41,6 +41,15 @@ typedef struct {
 	float fitness; // the fitness of the entire tour.
 } tour_t;
 
+// util.c
+void city_tToInt(tour_t* C, int nCities, int* I);
+void intToCity_t(int* I, int nCities, tour_t* C);
+void tour_tToInt(tour_t** tours, int nTours, int* I);
+void intToTour_t(tour_t* Cities, int* I, int nTours, tour_t** tours);
+float frand(); // Returns a random float between 0.0 and 1.0.
+void print_tour(tour_t* tour); // Simple print procedure for a tour.
+////////////////
+
 float get_distance_between(int p1, int p2, tour_t* cities); // calculate distance between 2 cities.
 
 void construct_distTable(tour_t* cities, int num_cities); // constructs distTable variable.
@@ -57,9 +66,7 @@ tour_t* loadCities(const char* const fileName); // loads cities from file
 
 void freeCities(tour_t* cities); // frees the memory used by the structure
 
-float frand(); // Returns a random float between 0.0 and 1.0.
 
-void print_tour(tour_t* tour); // Simple print procedure for a tour.
 
 tour_t* roulette_select(tour_t tours[], int num_tours); // selects a random tour weighted by its fitness.
 

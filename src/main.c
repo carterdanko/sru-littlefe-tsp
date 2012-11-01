@@ -40,6 +40,80 @@ void terminate_program(int ecode) {
 
 void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities) {
 	int i;
+<<<<<<< HEAD
+	tour_t* tourA, *tourB;
+	tour_t* tstar;
+	tourA = malloc(sizeof(*tourA));
+	tourB = malloc(sizeof(*tourB));
+	Tours = malloc(sizeof(*Tours) * N);
+
+	tourA->size = Cities->size;
+	for (i=0; i < N; i++)
+	{
+		tourA->city[i] = Cities->city[(i*2)%N];
+	}
+	tstar = create_tour_nn(Cities->city[0], Cities->size, Cities);
+	tourB = tstar;
+	// now, find fitness of the tours.
+	set_tour_fitness(tourA,N);
+	set_tour_fitness(tourB,N);
+	DPRINTF("fitness of A,B is %f,%f.\n", tourA->fitness, tourB->fitness);
+	// output the two tours
+	printf("TourA: [%i]", tourA->city[0]->id);
+	for (i=1; i < N; i++)
+		printf(", [%i]", tourA->city[i]->id);
+	printf("\nTourB: [%i]", tourB->city[0]->id);
+	for (i=1; i < N; i++)
+		printf(", [%i]", tourB->city[i]->id);
+	printf("\n");
+
+	// now, testing print tour function for A and B.
+	print_tour(tourA);
+	print_tour(tourB);
+
+	Tours[0]=tourA;
+	Tours[1]=tourB;
+}
+
+#ifdef DEBUG
+void testTourConversion()
+{
+	tour_t cities;
+	memcpy(&cities, Cities, sizeof(*Cities));
+	int citiesInts[MAX_CITIES*3];
+	
+	printf("Converting to ints\n");
+	city_tToInt(&cities, cities.size, &citiesInts);
+	// verify that they're all equal
+	int i;
+	for (i=0; i < cities.size; i++)
+	{
+		city_t* city = cities.city[i];
+		if (city->x != citiesInts[i*3] || city->y != citiesInts[i*3+1] || city->id != citiesInts[i*3+2])
+			printf("(converting to):City invalid city: {%i, %i, %i} cityInt: {%i, %i, %i}\n", city->x, city->y, city->id, citiesInts[i*3], citiesInts[i*3+1], citiesInts[i*3+2]);
+	}
+	
+	printf("Converting to cities\n");
+	intToCity_t(&citiesInts, cities.size, &cities);
+	// verify that they're all equal
+	for (i=0; i < cities.size; i++)
+	{
+		city_t* city = cities.city[i];
+		if (city->x != citiesInts[i*3] || city->y != citiesInts[i*3+1] || city->id != citiesInts[i*3+2])
+			printf("(converting back): City invalid city: {%i, %i, %i} cityInt: {%i, %i, %i}\n", city->x, city->y, city->id, citiesInts[i*3], citiesInts[i*3+1], citiesInts[i*3+2]);
+	}
+}
+
+void testTourArrayConversion(tour_t**)
+{
+	
+}
+#endif
+
+void run_genalg() {
+	// While the run condition holds true...
+	// ...
+=======
 
 	for (i=0;i<N;i++) {
 		arr_tours[i] = create_tour_nn(arr_cities->city[i], N, arr_cities);
@@ -56,6 +130,7 @@ void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs) {
 		*mpi_procs = 1;
 	}
 }
+>>>>>>> master
 
 void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours) {
 	// if you are within the constraints, perform actions
@@ -140,9 +215,42 @@ void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities) {
 		DPRINTF("done! (loaded %i cities from the file)\n", Cities->size);
 		//TODO: MPI send cities
 	}
+<<<<<<< HEAD
+	DPRINTF("done! (loaded %i cities from the file)\n", Cities->size);
+	// process the cities
+	int N = Cities->size;
+	construct_distTable(Cities,N);// compute distances as soon as we can (now)
+	// output the distance table
+	int x,y;
+	printf(" -- DISTANCE TABLE --\n");
+	printf("    ");
+	for (x=0; x < N; x++)
+		printf("  %02i ", x);
+	printf("\n");
+	for (y=0; y < N; y++)
+	{
+		printf("%02i :", y);
+		for (x=0; x < N; x++)
+			printf("%4.2f ", (y!=x)?lookup_distance(x, y):0);
+		printf("\n");
+	}
+	
+#if DEBUG
+	// run conversion tests
+	testTourConversion();
+#endif
+
+	// output the city information to the console
+	DPRINTF("\nNum Cities: %04i\n", Cities->size);
+	DPRINTF("---------------------------\n");
+	for (i=0; i < Cities->size; i++)
+	{
+		DPRINTF("City[%04i] at %04i, %04i   [id: %04i]\n", i, Cities->city[i]->x, Cities->city[i]->y, Cities->city[i]->id);
+=======
 	// otherwise...
 	else {
 		//TODO: MPI receive cities
+>>>>>>> master
 	}
 }
 
