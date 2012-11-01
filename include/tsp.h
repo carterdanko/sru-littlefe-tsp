@@ -18,6 +18,10 @@
 #define MAX_TOUR 100     // this should basically be the same as MAX_CITIES
 #define MAX_POPULATION 200
 #define TABLE_SIZE (MAX_CITIES*(MAX_CITIES-1))/2 // size based on a counting argument
+#define MAX_ITERATIONS 100 // sets the maximum number of generations to iterate through in the GA
+#define DELTA 0.50 // A float threshold for the difference in the population's best fitness.
+		// When the difference is within this threshold, begin counting how frequently it occurs.
+#define MAX_DELTA 20 // set the maximum number of generations to iterate through when the difference in fitness was repetitively within DELTA.
 
 /**
  * represents a city that must be visited to create a complete tour
@@ -66,6 +70,10 @@ void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities)
 void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs);
 
 void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities);
+
+void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours);
+
+void serial_listener(int *iter,int *delta_iter,char *lcv,tour_t** arr_tours, int N);
 
 void run_genalg(int N, char* lcv);
 

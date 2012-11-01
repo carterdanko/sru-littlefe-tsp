@@ -40,13 +40,10 @@ void terminate_program(int ecode) {
 
 void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities) {
 	int i;
-	printf("N-->%i\n",N);
 
 	for (i=0;i<N;i++) {
-		printf("-- %i ",i);
 		arr_tours[i] = create_tour_nn(arr_cities->city[i], N, arr_cities);
-		printf("\n");
-		print_tour(arr_tours[i]);
+		set_tour_fitness(arr_tours[i], N);
 	}
 }
 
@@ -60,15 +57,73 @@ void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs) {
 	}
 }
 
-void master_listener() {
-	// note -- this will have to listen for ANY island & not just the sequence 1..num_procs
+void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours) {
+	// if you are within the constraints, perform actions
+	if (*iter<MAX_ITERATIONS && *delta_iter<MAX_DELTA) {
+		float delta_fit=0.0;
+		//TODO: note -- this will have to listen for ANY island & not just the sequence 1..num_procs
 
-	//TODO: MPI receive (tours from each island)
+		//TODO: MPI receive (tours from each island)
 
-	//TODO: udpate master population
+		// First, grab the original best tour's fitness.
+		delta_fit=arr_tours[0]->fitness;
 
-	//TODO: MPI send (tours back to each island)
+		//TODO: udpate master population
+
+		// Next, subtract by the new best tour's fitness
+		delta_fit-=arr_tours[0]->fitness;
+		if (delta_fit<=DELTA) {
+			// If you are within DELTA, increment counter
+			*delta_iter++;
+		} else {
+			//Otherwise, reset counter
+			*delta_iter=0;
+		}
+
+		//TODO: MPI send (tours back to each island)
+
+		// increment the iteration number.
+		*iter++;
+	}
+	// Otherwise, order other processes to halt
+	else {
+		*lcv = 0;
+		//TODO: MPI send "stop"
+	}
 }
+
+void serial_listener(int *iter,int *delta_iter,char *lcv,tour_t** arr_tours, int N) {
+	// if you are within the constraints, perform actions
+	if (*iter<MAX_ITERATIONS && *delta_iter<MAX_DELTA) {
+		float delta_fit=0.0;
+
+		// run the GA
+		run_genalg(N,lcv);
+
+		// First, grab the original best tour's fitness.
+		delta_fit=arr_tours[0]->fitness;
+
+		//TODO: udpate master population
+
+		// Next, subtract by the new best tour's fitness
+		delta_fit-=arr_tours[0]->fitness;
+		if (delta_fit<=DELTA) {
+			// If you are within DELTA, increment counter
+			*delta_iter++;
+		} else {
+			//Otherwise, reset counter
+			*delta_iter=0;
+		}
+
+		// increment the iteration number.
+		*iter++;
+	}
+	// Otherwise, order other processes to halt
+	else {
+		*lcv = 0;
+	}
+}
+
 
 void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities) {
 	// if master...
@@ -339,15 +394,22 @@ int main(int argc, char** argv)
 	//####################################################
 	// Run Genetic Algorithm (Enter "The Islands")
 	//####################################################
+	int iter=0; // the number of iterations performed.
+	int delta_iter=0; // the number of iterations performed with fitness consecutively within DELTA.
 	while (lcv) {
-		printf("Loop . . .\n");
-		if (mpi_rank==0 && mpi_flag==1) {
-			// if you are the master AND mpi is on, start listening
-			master_listener();
-		}
-		else {
-			// otherwise, run the GA
+		if (mpi_flag==1) {
+			if (mpi_rank==0) {
+				// if you are the master AND mpi is on, start listening
+				master_listener(&iter,&delta_iter,&lcv,Tours);
+			}
+			else {
+				// if you are a slave and MPI is on, run the GA
+				run_genalg(N,&lcv);
+			}
+		} else {
+			// otherwise, run the GA and perform the loop condition checks manually.
 			run_genalg(N,&lcv);
+			serial_listener(&iter,&delta_iter,&lcv,Tours,N);
 		}
 	}
 	//----------------------------------------------------
@@ -358,3 +420,4 @@ int main(int argc, char** argv)
 	//####################################################
 	terminate_program(0);
 }
+

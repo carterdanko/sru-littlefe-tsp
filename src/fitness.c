@@ -71,9 +71,10 @@ void set_tour_fitness(tour_t* tour, int num_cities) {
 	for (i=0;i<num_cities-1;i++) {
 		fitness+=lookup_distance(tour->city[i]->id,tour->city[i+1]->id);
 	}
-	// do we count arr[n] --> arr[0] ?
+	// and, we count arr[n] --> arr[0]
+	fitness+=lookup_distance(tour->city[0]->id,tour->city[num_cities-1]->id);
+
 	tour->fitness=fitness;
-//	return fitness;
 }
 
 /**
@@ -100,7 +101,6 @@ tour_t* create_tour_nn(city_t* city, int num_cities, tour_t* cities) {
 	// Iterate through the cities, adding new ones and marking them off.
 	for (i=1;i<num_cities;i++) {
 		next_city = find_nearest_neighbor(next_city,num_cities,cities,cities_visited);
-		printf("--> %i ",*next_city);
 		tour->city[i]=next_city;
 		cities_visited[ next_city->id ]=1;
 	}
