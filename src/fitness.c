@@ -46,17 +46,19 @@ void construct_distTable(tour_t* cities, int num_cities) {
  */
 float lookup_distance(int p1, int p2) {
 	if (p1<p2) {
-		DPRINTF("p1<p2 inside lookup_distance: distTable[(%i*(%i-1)/2)+%i==%i]=%f\n", p2, p2, p1, (p2*(p2-1)/2)+p1, distTable[(p2*(p2-1)/2)+p1]);
-		float f = distTable[(p2*(p2-1)/2)+p1];
+		//DPRINTF("p1<p2 inside lookup_distance: distTable[(%i*(%i-1)/2)+%i==%i]=%f\n", p2, p2, p1, (p2*(p2-1)/2)+p1, distTable[(p2*(p2-1)/2)+p1]);
+		//float f = distTable[(p2*(p2-1)/2)+p1];
 		//DPRINTF("f=%f\n", f);
 		return distTable[(p2*(p2-1)/2)+p1];
 	} else if (p1>p2) {
-		DPRINTF("p1>p2 inside lookup_distance: distTable[(%i*(%i-1)/2)+%i==%i]=%f\n", p1, p1, p2, (p1*(p1-1)/2)+p2, distTable[(p1*(p1-1)/2)+p2]);
-		float f = distTable[(p1*(p1-1)/2)+p2];
+		//DPRINTF("p1>p2 inside lookup_distance: distTable[(%i*(%i-1)/2)+%i==%i]=%f\n", p1, p1, p2, (p1*(p1-1)/2)+p2, distTable[(p1*(p1-1)/2)+p2]);
+		//float f = distTable[(p1*(p1-1)/2)+p2];
 		//DPRINTF("f=%f\n", f);
 		return distTable[(p1*(p1-1)/2)+p2];
 	} else {
-		printf("WARNING -- THIS SHOULD NEVER HAPPEN (p1==p2); returning 0...\n");
+		ERROR_TEXT;
+		DPRINTF("WARNING -- THIS SHOULD NEVER HAPPEN (p1==p2); returning 0...\n");
+		NORMAL_TEXT;
 		return 0.0;
 	}
 }

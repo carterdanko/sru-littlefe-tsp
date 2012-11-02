@@ -29,15 +29,7 @@
             } while(0) 
 // initializes an edge
 /*
-#define INIT_EDGE(E, V1, V2, C) do { \
-				edge_t* _E = E; \
-				_E->v1 = V1; \
-				_E->v2 = V2; \
-				_E->cycle = C; \
-				_E->cost = (float)lookup_distance(V1->id, V2->id); \
-				DPRINTF("looked up distance: %f\n", lookup_distance(V1->id, V2->id)); \
-				DPRINTF("initialized edge = {%i -> %i : i%i : c%f}\n", V1?_E->v1->id:-1, V2?_E->v2->id:-1, _E->cycle, _E->cost); \
-			} while(0)
+//TODO: inline init_edge was here, so put it back?
 //*/
 
 // constants
@@ -47,6 +39,13 @@
 #define MAX_ABCYCLES 100 // only for allocation purposes, no boundary checking assurances
 #define TOUR_A 0
 #define TOUR_B 1 // this is for code clarity
+
+// debugging
+#define PRINT_PARENT_TOURS 1
+#define PRINT_INTERMEDIATE_INFO 1
+#define PRINT_CHILD_TOURS 1
+#define PRINT_GRAPHS 1
+#define PRINT_CYCLES 1
 
 /**
  * a node in a graph
@@ -98,5 +97,6 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 // E-sets
 
 // intermediates generation and modification into valid tours
+void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC);
 
 #endif // header guard

@@ -1,4 +1,5 @@
 #include "include/tsp.h"
+#include "include/eax.h"
 
 float frand() {
 	return ((float)rand())/((float)RAND_MAX);
@@ -18,6 +19,36 @@ void dprint_tour(tour_t* tour) {
 	for (i=1; i < tour->size; i++)
 		DPRINTF(", [%i]", tour->city[i]->id);
 	DPRINTF("\n");
+}
+
+/*
+ * Use of this function is not currently necessary but will be when MPI is implemented.
+ */
+void terminate_program(int ecode) 
+{
+	//TODO: MPI close function calls
+
+	// only runs for "successful" program termination.
+	OOPS_TEXT;
+	printf("randSeed: %i, citiesFile: '%s'\n", randSeed, citiesFile);
+	NORMAL_TEXT;
+	if (ecode==0) 
+	{
+
+		// done (just used to make sure that the program ran to completion)
+		STRONG_TEXT;
+		printf("Program ran to completion (done).\n");
+		NORMAL_TEXT;
+	}
+	else
+	{
+		ERROR_TEXT;
+		printf("PROGRAM ABNORMALLY TERMINATED, ECODE: %i\n", ecode);
+		NORMAL_TEXT;
+	}
+
+	// exit the program.
+	exit(ecode);
 }
 
 /**
@@ -94,4 +125,24 @@ void intToTour_t(tour_t* Cities, int* I, int nTours, tour_t** tours)
 		for (a=0; a < tours[i]->size; a++)
 			tours[i]->city[a] = Cities->city[I[position++]];
 	}
+}
+
+void dumpGraphToFile(graph_t* G, char* fn)
+{
+	FILE* f = fopen(fn, "w");
+	fprintf(f, "%i\n", G->size);
+	
+	int a, b;
+	for (a=0; a < G->size; a++)
+	{
+		node_t* curNode = G->node[a];
+		fprintf(f, "%i %i", curNode->id, curNode->size);
+		for (b=0; b < curNode->size; b++)
+		{
+			fprintf(f, " %i %i", curNode->tour[b], curNode->edge[b]->id);
+		}
+		fprintf(f, "\n");
+	}
+	
+	fclose(f);
 }

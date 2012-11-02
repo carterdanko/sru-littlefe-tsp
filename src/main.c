@@ -9,35 +9,6 @@
 tour_t* Cities; // the "tour" that contains every city in their provided order. Not really a tour, just used as the master array of cities.
 tour_t** Tours; // all of the current tours in the population
 
-
-/*
- * Use of this function is not currently necessary but will be when MPI is implemented.
- */
-void terminate_program(int ecode) {
-	//TODO: MPI close function calls
-
-	// only runs for "successful" program termination.
-	if (ecode==0) {
-		// clean up
-		printf("graph gone...");
-		freeCities(Cities);
-		printf("main cities gone...");
-		//for (i=0; i < MAX_ABCYCLES; i++)
-		//	freeCities(cycles[i]);
-		printf("AB cycles structure gone...");
-		printf("done!\n");
-
-		//free tours
-		free(Tours);
-
-		// done (just used to make sure that the program ran to completion)
-		printf("Program ran to completion (done).\n");
-	}
-
-	// exit the program.
-	exit(ecode);
-}
-
 void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities) {
 	int i;
 
@@ -130,7 +101,7 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours) 
 
 void serial_listener(int *iter,int *delta_iter,char *lcv,tour_t** arr_tours, int N) {
 	// if you are within the constraints, perform actions
-	if (*iter<MAX_ITERATIONS && *delta_iter<MAX_DELTA) {
+	if (((*iter)<MAX_ITERATIONS) && ((*delta_iter)<MAX_DELTA)) {
 		float delta_fit=0.0;
 
 		// run the GA
@@ -145,18 +116,32 @@ void serial_listener(int *iter,int *delta_iter,char *lcv,tour_t** arr_tours, int
 		delta_fit-=arr_tours[0]->fitness;
 		if (delta_fit<=DELTA) {
 			// If you are within DELTA, increment counter
-			*delta_iter++;
+			(*delta_iter)++;
 		} else {
 			//Otherwise, reset counter
-			*delta_iter=0;
+			(*delta_iter)=0;
 		}
 
 		// increment the iteration number.
-		*iter++;
+		(*iter)++;
+		STRONG_TEXT;
+		DPRINTF("**************  Iteration %i *****************\n", *iter);
+		NORMAL_TEXT;
 	}
 	// Otherwise, order other processes to halt
 	else {
-		*lcv = 0;
+		(*lcv) = 0;
+		OOPS_TEXT;
+		DPRINTF("Exiting because ");
+		if ((*delta_iter)<MAX_DELTA)	
+		{
+			DPRINTF("of too many iterations!\n");
+		}
+		else
+		{
+			DPRINTF("the tours converged!\n");
+		}
+		NORMAL_TEXT;
 	}
 }
 
@@ -225,134 +210,19 @@ void run_genalg(int N, char *lcv) {
 		//TODO: Select parents for child creation (roulette wheel)
 
 		// Create children
-		perform_eax(N);
+		performEAX(Cities, Tours[0], Tours[1], Tours[2]);
 
 		//TODO: MPI Send tours
 
 	// else, set lcv->0
 }
 
-void perform_eax(int N) {
-	int i;
-
-	// merge the two tours
-	printf("\nMerging A with B...");
-	graph_t* R = mergeTours(Tours[0], Tours[1]);
-	printf("done!\n");
-
-	// output the merged graph
-	printf("\nGraph R contains: \n");
-	for (i=0; i < N; i++)
-	{
-		printf("%04i [id:%04i] -> edges: ", i, R->node[i]->id);
-		int e;
-		for (e=0; e < R->node[i]->size; e++)
-			printf((e>0) ? ", [%04i:t%01i]" : "[%04i:t%01i]", R->node[i]->edge[e]->id, R->node[i]->tour[e]);
-		printf("\n");
-	}
-
-	// create A-B cycles on R
-	printf("Allocating cycles...");
-	tour_t** cycles;
-	cycles = (tour_t**)malloc(sizeof(tour_t *) * MAX_ABCYCLES);
-	for (i=0; i < MAX_ABCYCLES; i++)
-	{
-		cycles[i] = (tour_t*)malloc(sizeof(tour_t));
-	}
-	printf("done!\n");
-	int nCycles;
-	printf("Generating AB Cycles....");
-	// REMEMBER! R gets defiled by this call, and the contents of cycles isn't important, it all gets overwritten
-	nCycles = generateABCycles(Cities, R, cycles);
-	printf("done!\n");
-
-	// output the cycles
-	printf("Printing all %i cycles...\n", nCycles);
-	for (i=0; i < nCycles; i++)
-	{
-		printf("Cycle[%i]: [%i]", i, cycles[i]->city[0]->id);
-		int a;
-		for (a=1; a < cycles[i]->size; a++)
-			printf(", [%i]", cycles[i]->city[a]->id);
-		printf("\n");
-	}
-
-	// create E-sets from the cycles
-	nCycles = generateESetRAND(Cities, cycles, nCycles);
-	// output the E-set
-	printf("Printing all %i cycles in the \033[32mE-set\033[0m...\n", nCycles);
-	for (i=0; i < nCycles; i++)
-	{
-		printf("Cycle[%i]: [%i]", i, cycles[i]->city[0]->id);
-		int a;
-		for (a=1; a < cycles[i]->size; a++)
-			printf(", [%i]", cycles[i]->city[a]->id);
-		printf("\n");
-	}
-
-	// apply E-sets to generate intermediates
-	graph_t* T = createGraph(Tours[0]);
-	// output the created graph from tourA
-	printf("\n\033[32mIntermediate Tour T\033[0m contains: \n");
-	for (i=0; i < N; i++)
-	{
-		printf("%04i [id:%04i] -> edges: ", i, T->node[i]->id);
-		int e;
-		for (e=0; e < T->node[i]->size; e++)
-			printf((e>0) ? ", [%04i:t%01i]" : "[%04i:t%01i]", T->node[i]->edge[e]->id, T->node[i]->tour[e]);
-		printf("\n");
-	}
-	// apply the eset to the graph
-	printf("allocating edges array...\n");
-	edge_t** edges = (edge_t**)malloc(sizeof(edge_t *) * Cities->size);
-	for (i=0; i < Cities->size; i++)
-	{
-		edges[i] = (edge_t*)malloc(sizeof(edge_t));
-	}
-	printf("Applying the E-set.\n");
-	int disjointCycles = applyESet(Cities, T, cycles, nCycles, edges);
-	printf("there were \033[32m%i\033[0m disjoint cycles.\n", disjointCycles);
-	// output the intermediate
-	printf("\n\033[32mIntermediate Tour T\033[0m contains: \n");
-	for (i=0; i < N; i++)
-	{
-		printf("%04i [id:%04i] -> edges: ", i, T->node[i]->id);
-		int e;
-		for (e=0; e < T->node[i]->size; e++)
-			printf((e>0) ? ", [%04i:t%01i]" : "[%04i:t%01i]", T->node[i]->edge[e]->id, T->node[i]->tour[e]);
-		printf("\n");
-	}
-	// output the edges
-	printf("Printing all %i edges in the graph: \n", Cities->size);
-	for (i=0; i < Cities->size; i++)
-	{
-		printf("Edge[%i] = {%i -> %i : i%i : c%f}\n", i, edges[i]->v1->id, edges[i]->v2->id, edges[i]->cycle, edges[i]->cost);
-	}
-	// output the sub-disjointCycles
-	printf("Printing all %i cycles in the \033[32mIntermediate Tour\033[0m...\n", disjointCycles);
-	for (i=0; i < disjointCycles; i++)
-	{
-		printf("Cycle[%i]: [%i]", i, cycles[i]->city[0]->id);
-		int a;
-		for (a=1; a < cycles[i]->size; a++)
-			printf(", [%i]", cycles[i]->city[a]->id);
-		printf("\n");
-	}
-
-	//TODO: turn intermediates into valid tours
-	/*int code=*/fixIntermediate(Cities, T /* byref */, cycles, nCycles, edges);
-
-	// clean up
-	printf("\nClean up...");
-	freeGraph(R);
-	freeGraph(T);
-
-}
+// global variables about the running state of the program
+int randSeed = 0;
+char* citiesFile = 0;
 
 int main(int argc, char** argv)
 {
-	int randSeed = 0; // random seed to use
-	char* citiesFile = 0; // cities file name
 	int i; // loop counter
 	char mpi_flag; // mpi is on (1) or off (0)
 	int mpi_rank,mpi_procs; // mpi rank (for each process) and number of processes
@@ -467,8 +337,6 @@ int main(int argc, char** argv)
 
 	// populate tours (on all processes)
 	populate_tours(N,mpi_rank,Tours,Cities);
-	print_tour(Tours[0]);
-	print_tour(Tours[1]);
 	//----------------------------------------------------
 
 

@@ -1,0 +1,113 @@
+<HTML>
+<head>
+	<title>graph viewer</title>
+	<script type="text/javascript">
+		var canvas;
+		var inputBox;
+		var drawButton;
+		var positions;
+		
+		function onLoad()
+		{
+			console.log
+			canvas = document.getElementById('canvas');
+			inputBox = document.getElementById('inputBox');
+			drawButton = document.getElementById('drawGraph');
+			
+			drawButton.onclick = drawGraph;
+			
+			positions = [];
+			for (var i = 0; i < 10000; i++)
+			{
+				positions[i] = {
+					x : Math.random() * 640,
+					y : Math.random() * 480
+				};
+			}
+		}
+		
+		var graph;
+		function drawGraph()
+		{
+			var file = inputBox.value;
+			//alert('graph: ' + file);
+			// build the document
+			var lines = file.split("\n");
+			for (var i = 0; i < lines.length; i++)
+			{
+				lines[i] = lines[i].split(" ");
+				console.log(lines[i]);
+			}
+			
+			// build the graph
+			graph = {};
+			var size = lines[0][0];
+			console.log("Graph size : " + size);
+			for (var i = 0; i < size; i++)
+			{
+				var id = 'n' + lines[1+i][0];
+				graph[id] = {};
+				graph[id].id = id;
+				graph[id].size = lines[1+i][1];
+				graph[id].edges = [];
+				graph[id].tours = [];
+				for (var a = 0; a < graph[id].size; a++)
+				{
+					graph[id].tours[a] = 't'+lines[1+i][2+a*2];
+					graph[id].edges[a] = 'n'+lines[1+i][3+a*2];
+				}
+				console.log(graph[id]);
+				
+				graph[id].x = positions[i].x;
+				graph[id].y = positions[i].y
+			}
+			
+			// now draw the graph
+			var ctx = canvas.getContext("2d");
+			ctx.fillStyle = 'rgb(0,0,0)';
+			ctx.fillRect(0,0,640,480);
+			
+			// draw edges
+			for (var id in graph)
+			{
+				var node = graph[id];
+				
+				// node
+				for (var a = 0; a < node.size; a++)
+				{
+					var edge = node.edges[a];
+					var tour = node.tours[a];
+					
+					ctx.moveTo(node.x, node.y);
+					ctx.lineTo(graph[edge].x, graph[edge].y);
+					
+					ctx.strokeStyle = (tour == 't0') ? 'rgb(255, 0, 0)' : 'rgb(0, 255, 0)';
+					ctx.stroke();
+				}
+			
+			}
+			
+			// draw nodes and ids
+			for (var id in graph)
+			{
+				node = graph[id];
+				
+				// node
+				ctx.fillStyle = 'rgb(255,0,0)';
+				ctx.fillRect(node.x, node.y, 20, 20);
+				
+				// id
+				ctx.font = "bold 12px sans-serif";
+				ctx.fillStyle = 'rgb(255,255,255)';
+				ctx.fillText(node.id, node.x+10, node.y+10);
+			}
+		}
+	</script>
+</head>
+<body onload='onLoad();'>
+	<textarea id="inputBox">
+		put graph here
+	</textarea>
+	<button id="drawGraph">drawGraph</button>
+	<canvas id="canvas" width="640px" height="480px"></canvas>
+</body>
