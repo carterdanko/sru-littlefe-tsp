@@ -26,7 +26,7 @@ void dprint_tour(tour_t* tour) {
  */
 void terminate_program(int ecode) 
 {
-	//TODO: MPI close function calls
+	MPI_Finalize();
 
 	// only runs for "successful" program termination.
 	OOPS_TEXT;
@@ -145,4 +145,16 @@ void dumpGraphToFile(graph_t* G, char* fn)
 	}
 	
 	fclose(f);
+}
+
+void getBestTours(int max, tour_t** tours, tour_t** bestTours) {
+	//TODO: Find the $(max) best tours from the tours array.
+}
+
+void mergeToursToPop(tour_t** tours, tour_t** toursToMerge, int numToursToMerge) {
+	//TODO: given a sorted list "tours", merge new tours based on their fitness.
+}
+
+void sortTours() {
+	//TODO: given an array of tours, sort them based on their fitness in ascending order.
 }

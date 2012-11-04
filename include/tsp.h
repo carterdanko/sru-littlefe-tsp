@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <mpi.h>
 
 #include "include/printcolors.h"
 
@@ -22,6 +23,7 @@
 #define DELTA 0.50 // A float threshold for the difference in the population's best fitness.
 		// When the difference is within this threshold, begin counting how frequently it occurs.
 #define MAX_DELTA 20 // set the maximum number of generations to iterate through when the difference in fitness was repetitively within DELTA.
+#define MPI_TAG 2
 
 /**
  * represents a city that must be visited to create a complete tour
@@ -82,15 +84,15 @@ void terminate_program(int ecode);
 
 void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities);
 
-void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs);
+void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs, int *argc, char **argv);
 
 void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities);
 
-void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours);
+void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, int mpi_procs);
 
 void serial_listener(int *iter,int *delta_iter,char *lcv,tour_t** arr_tours, int N);
 
-void run_genalg(int N, char* lcv);
+void run_genalg(int N, char* lcv, tour_t** arr_tours, int mpi_flag);
 
 void perform_eax(int N);
 
