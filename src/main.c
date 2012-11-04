@@ -4,6 +4,10 @@
 
 #include "include/tsp.h"
 #include "include/eax.h"
+#if MPIFLAG==1
+	#include "mpi.h"
+#endif
+
 
 // "global" variables. I try to start these with capital letters
 tour_t* Cities; // the "tour" that contains every city in their provided order. Not really a tour, just used as the master array of cities.
@@ -53,18 +57,21 @@ void testTourArrayConversion(tour_t** t)
 }
 #endif
 
-void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs, int *argc, char **argv) {
+void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs, int *argc, char ***argv) {
 	if (*mpi_flag>0) {
 		// If running MPI, then use the MPI commands.
+#if MPIFLAG
 		MPI_Init(argc,argv);
-		MPI_Comm_rank(MPI_COMM_WORLD,&mpi_rank);
-		MPI_Comm_size(MPI_COMM_WORLD,&mpi_procs);
+		MPI_Comm_rank(MPI_COMM_WORLD,mpi_rank);
+		MPI_Comm_size(MPI_COMM_WORLD,mpi_procs);
+#endif
 	} else {
 		*mpi_rank = 0;
 		*mpi_procs = 1;
 	}
 }
 
+#if MPIFLAG
 void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, int mpi_procs) {
 	// if you are within the constraints, perform actions
 	if (*iter<MAX_ITERATIONS && *delta_iter<MAX_DELTA) {
@@ -122,6 +129,7 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
 		free(stoparray);
 	}
 }
+#endif
 
 void serial_listener(int *iter,int *delta_iter,char *lcv,tour_t** arr_tours, int N) {
 	// if you are within the constraints, perform actions
@@ -229,6 +237,7 @@ void run_genalg(int N, char *lcv, tour_t** arr_tours, int mpi_flag) {
 		// Create children
 		performEAX(Cities, arr_tours[0], arr_tours[1], arr_tours[2]);
 	} else {
+#if MPIFLAG
 		int *intTours;
 		MPI_Status status;
 		tour_t** tempTours = malloc(MAX_CITIES * sizeof(tour_t*) * 5);
@@ -264,6 +273,7 @@ void run_genalg(int N, char *lcv, tour_t** arr_tours, int mpi_flag) {
 		// free memory
 		free(tempTours);
 		free(intTours);
+#endif
 	}
 }
 
@@ -347,7 +357,7 @@ int main(int argc, char** argv)
 	// MPI Initializations
 	//####################################################
 	// Handles MPI initializations and sets its variables.
-	MPI_init(&mpi_flag,&mpi_rank,&mpi_procs,&argc,argv);
+	MPI_init(&mpi_flag,&mpi_rank,&mpi_procs,&argc,&argv);
 	//----------------------------------------------------
 
 
@@ -356,8 +366,10 @@ int main(int argc, char** argv)
 	//####################################################
 	// load the cities
 	int *intCities = malloc(MAX_CITIES * sizeof(city_t*));
-	MPI_Status status;
 	if (mpi_flag==1) {
+#if MPIFLAG
+		MPI_Status status;
+
 		// If MPI active, then let the master load cities and broadcast
 		if (mpi_rank==0) {
 			load_cities(mpi_rank,citiesFile,Cities);
@@ -370,6 +382,7 @@ int main(int argc, char** argv)
 			MPI_Recv(intCities, MAX_CITIES*sizeof(int)*3, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status); // size of intCities has x, y, id values.
 			intToCity_t(intCities, Cities->size, Cities);
 		}
+#endif
 	} else {
 		// Otherwise, just load the cities.
 		load_cities(mpi_rank,citiesFile,Cities);
@@ -405,6 +418,7 @@ int main(int argc, char** argv)
 	int delta_iter=0; // the number of iterations performed with fitness consecutively within DELTA.
 	while (lcv) {
 		if (mpi_flag==1) {
+#if MPIFLAG
 			if (mpi_rank==0) {
 				// if you are the master AND mpi is on, start listening
 				master_listener(&iter,&delta_iter,&lcv,Tours,mpi_procs);
@@ -413,6 +427,7 @@ int main(int argc, char** argv)
 				// if you are a slave and MPI is on, run the GA
 				run_genalg(N,&lcv,Tours,mpi_flag);
 			}
+#endif
 		} else {
 			// otherwise, run the GA and perform the loop condition checks manually.
 			run_genalg(N,&lcv,Tours,mpi_flag);

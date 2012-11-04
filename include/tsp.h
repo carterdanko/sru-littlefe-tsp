@@ -3,13 +3,16 @@
  */
 #ifndef TSP_H // header guard
 #define TSP_H
+#define MPIFLAG 1 // this decides whether or not we are using MPI (for compiling purposes)
 
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#if MPIFLAG
 #include <mpi.h>
+#endif
 
 #include "include/printcolors.h"
 
@@ -84,7 +87,7 @@ void terminate_program(int ecode);
 
 void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities);
 
-void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs, int *argc, char **argv);
+void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs, int *argc, char ***argv);
 
 void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities);
 

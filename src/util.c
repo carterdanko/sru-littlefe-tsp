@@ -26,7 +26,9 @@ void dprint_tour(tour_t* tour) {
  */
 void terminate_program(int ecode) 
 {
+#if MPIFLAG
 	MPI_Finalize();
+#endif
 
 	// only runs for "successful" program termination.
 	OOPS_TEXT;
