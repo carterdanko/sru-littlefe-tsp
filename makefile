@@ -11,5 +11,8 @@ genrandcity: src/genrandcity.c
 cuda: src/fitnesscuda.cu
 	nvcc -lm -g src/fitnesscuda.cu -o cuda -Iinclude/* -I.
 
+mpi: makefile $(sources) $(includes)
+	mpicc -lm -g $(sources) -o mpitsp -Iinclude/* -I.
+
 clean:
-	rm tsp genrandcity cuda
+	rm tsp genrandcity cuda mpitsp
