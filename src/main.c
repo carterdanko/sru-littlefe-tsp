@@ -252,7 +252,7 @@ void run_genalg(int N, char *lcv, tour_t** arr_tours, int mpi_flag) {
 #if MPIFLAG
 		int *intTours = malloc(Cities->size * 5);
 		MPI_Status status;
-		tour_t** tempTours = malloc(Cities->size * sizeof(tour_t*) * 5);
+		tour_t** tempTours = malloc(sizeof(tour_t*) * 5); //~~!
 
 		// notice -- the slaves will start by reciving tours.
 		// this way, if we are to stop, master will send an empty tour.
@@ -410,7 +410,7 @@ int main(int argc, char** argv)
 			MPI_Recv(&(Cities->size), 1, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status);
 			DPRINTF("Got city size!\n");
 			DPRINTF("Island waiting for cities...\n");
-			MPI_Recv(intCities, MAX_CITIES*3, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status); // size of intCities has x, y, id values.
+			MPI_Recv(intCities, Cities->size*3, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status); // size of intCities has x, y, id values.
 			DPRINTF("Island got cities!\n");
 			intToCity_t(intCities, Cities->size, Cities);
 			print_tour(Cities);

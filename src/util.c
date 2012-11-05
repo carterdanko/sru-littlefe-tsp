@@ -137,7 +137,7 @@ void intToTour_t(tour_t* Cities, int* I, int nTours, tour_t** tours)
 	for (i=0; i < nTours; i++)
 	{
 		int a;
-		tours[i] = malloc(sizeof(tour_t));
+		tours[i] = (tour_t*)malloc(sizeof(tour_t));
 		DPRINTF("INT_TO_TOUR::  ");
 //		for (a=0; a < tours[i]->size; a++) {
 		for (a=0; a < Cities->size; a++) {
