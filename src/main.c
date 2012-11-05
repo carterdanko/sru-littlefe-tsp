@@ -4,10 +4,6 @@
 
 #include "include/tsp.h"
 #include "include/eax.h"
-#if MPIFLAG==1
-	#include "mpi.h"
-#endif
-
 
 // "global" variables. I try to start these with capital letters
 tour_t* Cities; // the "tour" that contains every city in their provided order. Not really a tour, just used as the master array of cities.
@@ -98,7 +94,7 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
 			MPI_Recv(intTours, MAX_CITIES * sizeof(int) * MAX_TOUR, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD, &status);
 			intToTour_t(Cities, intTours, 5, tempTours);
 			// udpate master population (sort it)
-			mergeToursToPop(arr_tours, tempTours, 5);
+			mergeToursToPop(arr_tours, tempTours, 5, MAX_TOUR);
 		}
 
 		// Next, subtract by the new best tour's fitness
@@ -252,7 +248,7 @@ void run_genalg(int N, char *lcv, tour_t** arr_tours, int mpi_flag) {
 		if (intTours[0]!=-1) {
 			// Udpate the island's population (sort it)
 			intToTour_t(Cities, intTours, 5, tempTours);
-			mergeToursToPop(arr_tours, tempTours, 5);
+			mergeToursToPop(arr_tours, tempTours, 5, MAX_TOUR);
 
 			//TODO: Select parents for child creation (roulette wheel)
 
@@ -289,7 +285,7 @@ int main(int argc, char** argv)
 	char lcv = 1; // loop control variable for the while loop (run until lcv->0)
 
 	//TODO: make argument handler set the number of procedures (mpi_procs) and mpi_flag.
-	mpi_flag = 0;
+	mpi_flag = MPIFLAG;
 	mpi_procs = 1;
 
 	//####################################################
@@ -417,7 +413,7 @@ int main(int argc, char** argv)
 	int iter=0; // the number of iterations performed.
 	int delta_iter=0; // the number of iterations performed with fitness consecutively within DELTA.
 	while (lcv) {
-		if (mpi_flag==1) {
+		if (mpi_flag==1 && mpi_procs>1) {
 #if MPIFLAG
 			if (mpi_rank==0) {
 				// if you are the master AND mpi is on, start listening
@@ -430,7 +426,7 @@ int main(int argc, char** argv)
 #endif
 		} else {
 			// otherwise, run the GA and perform the loop condition checks manually.
-			run_genalg(N,&lcv,Tours,mpi_flag);
+			run_genalg(N,&lcv,Tours,0);
 			serial_listener(&iter,&delta_iter,&lcv,Tours,N);
 		}
 	}
