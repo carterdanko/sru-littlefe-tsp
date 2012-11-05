@@ -141,10 +141,11 @@ void intToTour_t(tour_t* Cities, int* I, int nTours, tour_t** tours)
 		DPRINTF("INT_TO_TOUR::  ");
 //		for (a=0; a < tours[i]->size; a++) {
 		for (a=0; a < Cities->size; a++) {
-			DPRINTF("%i:%i->%i  ",i,a,*(Cities->city[I[position]]));
 			tours[i]->city[a] = Cities->city[I[position++]];
+			DPRINTF("%i:%i->%i  ",i,a,tours[i]->city[a]->id);
 		}
 		DPRINTF("\n");
+		tours[i]->size = Cities->size;
 	}
 }
 

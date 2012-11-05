@@ -9,6 +9,8 @@
 tour_t* Cities; // the "tour" that contains every city in their provided order. Not really a tour, just used as the master array of cities.
 tour_t** Tours; // all of the current tours in the population
 
+//TODO: Some variable to keep track of the current size of the Population
+
 void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities) {
 	int i;
 
@@ -226,7 +228,8 @@ void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities) {
 
 #if DEBUG
 	// run conversion tests
-	testTourConversion();
+	//~~!
+//	testTourConversion();
 #endif
 
 	// output the city information to the console
@@ -268,7 +271,9 @@ void run_genalg(int N, char *lcv, tour_t** arr_tours, int mpi_flag) {
 			//TODO: Select parents for child creation (roulette wheel)
 
 			// Create children
+			printf(">> NOW RUNNING EAX <<\n");
 			performEAX(Cities, Tours[0], Tours[1], Tours[2]);
+			printf(">> EXIT EAX <<\n");
 
 			// MPI send (tours to master)
 			getBestTours(5, arr_tours, tempTours);
