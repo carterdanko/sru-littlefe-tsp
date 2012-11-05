@@ -195,14 +195,18 @@ void mergeTourToPop(tour_t** tours, int num_tours, tour_t* mergetour) {
 
 void mergeToursToPop(tour_t** tours, tour_t** toursToMerge, int numToursToMerge, int num_tours) {
 	// given a sorted list "tours", merge new tours based on their fitness.
+	DPRINTF("Merging tours to population . . .\n");
 	int i;
 	for (i=0;i<numToursToMerge;i++) {
 		mergeTourToPop(tours, num_tours, toursToMerge[i]);
 	}
+	DPRINTF("OK! Merged tours to pop.\n");
 }
 
 void sortTours(tour_t** tours, int numTours) {
+	DPRINTF("Sorting tours . . .\n");
 	merge_sort(tours, 0, numTours-1);
+	DPRINTF("OK! Sorted Tours.\n");
 }
 
 /**
