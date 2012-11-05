@@ -391,6 +391,8 @@ int main(int argc, char** argv)
 //			DPRINTF("Master is broadcasting the cities...\n");
 //			MPI_Bcast(intCities, sizeof(intCities), MPI_INT, 0, MPI_COMM_WORLD);
 			for (i=1;i<mpi_procs;i++) {
+				DPRINTF("Master sends city size to %i\n",i);
+				MPI_Send(&(Cities->size), 1, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD);
 				DPRINTF("Master sends tours to %i\n",i);
 				MPI_Send(intCities, Cities->size*3, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD);
 			}
@@ -398,10 +400,13 @@ int main(int argc, char** argv)
 		} else {
 			// MPI Receive cities
 			Cities = (tour_t*)malloc(sizeof(tour_t));
+			DPRINTF("Island receiving citysize...\n");
+			MPI_Recv(&(Cities->size), 1, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status);
+			DPRINTF("Got city size!\n");
 			DPRINTF("Island waiting for cities...\n");
 			MPI_Recv(intCities, MAX_CITIES*3, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status); // size of intCities has x, y, id values.
 			DPRINTF("Island got cities!\n");
-			intToCity_t(intCities, 5, Cities);
+			intToCity_t(intCities, Cities->size, Cities);
 			print_tour(Cities);
 		}
 #endif
