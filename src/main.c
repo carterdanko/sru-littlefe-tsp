@@ -80,14 +80,14 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
 		// MPI send (tours back to each island)
 		tour_t** bestTours = malloc(sizeof(tour_t*) * 5);
 		getBestTours(5, arr_tours, bestTours);
-		int *intTours = malloc(MAX_CITIES * sizeof(int) * 5);
+		int *intTours = malloc(Cities->size * sizeof(int) * 5);
 		tour_tToInt(bestTours, 5, intTours);
-		int arraysize = MAX_CITIES * 5;
+		int arraysize = Cities->size * 5;
 //		DPRINTF("Master broadcasts tours\n");
 //		MPI_Bcast(intTours, MAX_CITIES*5, MPI_INT, 0, MPI_COMM_WORLD);
 		for (i=1;i<mpi_procs;i++) {
 			DPRINTF("Master sends tours to %i\n",i);
-			MPI_Send(intTours, MAX_CITIES*5, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD);
+			MPI_Send(intTours, Cities->size*5, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD);
 		}
 
 		// First, grab the original best tour's fitness.
@@ -98,7 +98,7 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
 		for (i=1;i<mpi_procs;i++) {
 			//TODO: does master always receive 5 tours?
 			DPRINTF("Master waiting to receive tours from islands...\n");
-			MPI_Recv(intTours, MAX_CITIES * sizeof(int) * MAX_TOUR, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD, &status);
+			MPI_Recv(intTours, Cities->size * 5, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD, &status);
 			intToTour_t(Cities, intTours, 5, tempTours);
 			// udpate master population (sort it)
 			mergeToursToPop(arr_tours, tempTours, 5, MAX_TOUR);
@@ -247,19 +247,20 @@ void run_genalg(int N, char *lcv, tour_t** arr_tours, int mpi_flag) {
 		performEAX(Cities, arr_tours[0], arr_tours[1], arr_tours[2]);
 	} else {
 #if MPIFLAG
-		int *intTours;
+		int *intTours = malloc(Cities->size * 5);
 		MPI_Status status;
-		tour_t** tempTours = malloc(MAX_CITIES * sizeof(tour_t*) * 5);
+		tour_t** tempTours = malloc(Cities->size * sizeof(tour_t*) * 5);
 
 		// notice -- the slaves will start by reciving tours.
 		// this way, if we are to stop, master will send an empty tour.
 
 		// MPI Recv new tours from master
 		DPRINTF("Island waiting to receive tours from master...\n");
-		MPI_Recv(intTours, MAX_CITIES * sizeof(int) * MAX_TOUR, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status);
+		MPI_Recv(intTours, Cities->size * 5, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status);
 
 		// if the tour is not empty...
 		if (intTours[0]!=-1) {
+			printf("OK! Island received non-empty tour.\n");
 			// Udpate the island's population (sort it)
 			intToTour_t(Cities, intTours, 5, tempTours);
 			mergeToursToPop(arr_tours, tempTours, 5, MAX_TOUR);
@@ -271,11 +272,11 @@ void run_genalg(int N, char *lcv, tour_t** arr_tours, int mpi_flag) {
 
 			// MPI send (tours to master)
 			getBestTours(5, arr_tours, tempTours);
-			int *intTours = malloc(MAX_CITIES * sizeof(int) * 5);
+			int *intTours = malloc(Cities->size * sizeof(int) * 5);
 			tour_tToInt(tempTours, 5, intTours);
-			int arraysize = MAX_CITIES * 5;
+			int arraysize = Cities->size * 5;
 			DPRINTF("Island is sending its tours to master.\n");
-			MPI_Send(intTours, MAX_CITIES*5, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD);
+			MPI_Send(intTours, Cities->size*5, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD);
 		} else {
 			// else, set lcv->0
 			DPRINTF("Island recognizes order and commences halt procedure.\n");

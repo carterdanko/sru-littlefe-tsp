@@ -63,12 +63,15 @@ void terminate_program(int ecode)
 void city_tToInt(tour_t* C, int nCities, int* I)
 {
 	int i;
+	DPRINTF("CITY_TO_INT::  ");
 	for (i=0; i < nCities; i++)
 	{
 		I[i*3] = C->city[i]->x;
 		I[i*3+1] = C->city[i]->y;
 		I[i*3+2] = C->city[i]->id;
+		DPRINTF("%i(%i,%i)  ",I[i*3+2],I[i*3],I[i*3+1]);
 	}
+	DPRINTF("\n");
 }
 
 /**
@@ -82,13 +85,16 @@ void intToCity_t(int* I, int nCities, tour_t* C)
 {
 	int i;
 //	C->size = nCities;
+	DPRINTF("INT_TO_CITY::  ");
 	for (i=0; i < nCities; i++)
 	{
 		C->city[i]=(city_t*)malloc(sizeof(city_t));
 		C->city[i]->x = I[i*3];
 		C->city[i]->y = I[i*3+1];
 		C->city[i]->id = I[i*3+2];
+		DPRINTF("%i(%i,%i)  ",I[i*3+2],I[i*3],I[i*3+1]);
 	}
+	DPRINTF("\n");
 }
 
 /**
@@ -104,9 +110,13 @@ void tour_tToInt(tour_t** tours, int nTours, int* I)
 	int size = 0;
 	for (i=0; i < nTours; i++)
 	{
+		DPRINTF("TOUR_TO_INT::  ");
 		int a;
-		for (a=0; a < tours[i]->size; a++)
+		for (a=0; a < tours[i]->size; a++) {
+			DPRINTF("%i:%i->%i  ",i,a,tours[i]->city[a]->id);
 			I[size++] = tours[i]->city[a]->id;
+		}
+		DPRINTF("\n");
 	}
 }
 
@@ -121,13 +131,20 @@ void tour_tToInt(tour_t** tours, int nTours, int* I)
  */
 void intToTour_t(tour_t* Cities, int* I, int nTours, tour_t** tours)
 {
+	DPRINTF("in intToTour_t()\n");
 	int i;
 	int position = 0;
 	for (i=0; i < nTours; i++)
 	{
 		int a;
-		for (a=0; a < tours[i]->size; a++)
+		tours[i] = malloc(sizeof(tour_t));
+		DPRINTF("INT_TO_TOUR::  ");
+//		for (a=0; a < tours[i]->size; a++) {
+		for (a=0; a < Cities->size; a++) {
+			DPRINTF("%i:%i->%i  ",i,a,*(Cities->city[I[position]]));
 			tours[i]->city[a] = Cities->city[I[position++]];
+		}
+		DPRINTF("\n");
 	}
 }
 
