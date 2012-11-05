@@ -81,8 +81,10 @@ void city_tToInt(tour_t* C, int nCities, int* I)
 void intToCity_t(int* I, int nCities, tour_t* C)
 {
 	int i;
+	C->size = nCities;
 	for (i=0; i < nCities; i++)
 	{
+		C->city[i]=(city_t*)malloc(sizeof(city_t));
 		C->city[i]->x = I[i*3];
 		C->city[i]->y = I[i*3+1];
 		C->city[i]->id = I[i*3+2];
