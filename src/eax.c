@@ -222,13 +222,17 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 	// generate AB cycles
 	while (edges > 0)
 	{
+#if PRINT_GENERATE_AB_CYCLES
 		DPRINTF("Generating AB Cycle, edges left: \033[032m%i[\033[0m...\n", edges);
 		// pick starting edge
 		DPRINTF("Choosing a random vertex...\n");//TODO: debug remove
+#endif
 		// choose a vertex with at least 2 edges (to create a loop)
 		v2 = R->node[rand() % R->size];
 		panic = 0;
+#if PRINT_GENERATE_AB_CYCLES
 		DPRINTF("first pick: [%i]->s:%i\n", v2->id, v2->size);
+#endif
 		for (;v2->size == 0 && panic<PANIC_EXIT; panic++)
 			v2 = R->node[rand() % R->size];
 		if (panic >= PANIC_EXIT)
@@ -237,18 +241,25 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			printf("generateABCycles() :: ERROR : panic_exit : too many iterations (%i >= %i) when trying to pick a vertex that has remaining edges. halting...\n", panic, PANIC_EXIT);
 			terminate_program(32);
 		}
+#if PRINT_GENERATE_AB_CYCLES
 		DPRINTF("v2:%i...\n", v2->id);//TODO: debug remove
-
+#endif
 		// set up current cycle
+#if PRINT_GENERATE_AB_CYCLES
 		DPRINTF("next cycle #%i...\n", size);
+#endif
 		curCycle = cycles[size++];
 		curCycle->size = 0;
+#if PRINT_GENERATE_AB_CYCLES
 		DPRINTF("Initializing cycle...\n");
+#endif
 		memset((void*)visited, 0, sizeof(visited)); // reset visited nodes for this cycle
 		memset((void*)iteration, 0, sizeof(iteration)); // reset the iteration tracking array for this cycle
 		currentIteration = 0;
 		v0 = v2; // save the starting vertex
+#if PRINT_GENERATE_AB_CYCLES
 		DPRINTF("entering cycle loop...\n"); //TODO: debug remove
+#endif
 		do  // keep alternating until we've made a cycle
 		{
 			// first, add this edge to the current cycle
@@ -257,7 +268,9 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			curCycle->tour[curCycle->size] = TOUR_A;
 			if (!visited[v2->id]++) iteration[v2->id] = currentIteration;
 			++currentIteration;
+#if PRINT_GENERATE_AB_CYCLES
 			DPRINTF("Adding edge to cycle...\n");//TODO: debug remove
+#endif
 			//DPRINTF("Alternating tour picking new edge...\n");//TODO: debug remove
 			v1 = v2; // we need to pick a new v2
 			c[2]; // choice1 and an optional choice 2
@@ -300,18 +313,22 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			}
 			// pick one of the choices if there are more than one, otherwise the only choice
 			v2i = c[1] ? c[rand() % 2]-1 : c[0]-1; // subtract one, since they're OBO, see above
+#if PRINT_GENERATE_AB_CYCLES
 			DPRINTF("v2i: %i, c[0]: %i, c[1]: %i\n",v2i, c[0]-1, c[1]-1);
 			DPRINTF("v1e0: %i, v1e1: %i, v1e2: %i, v1e3: %i\n", 
 				(v1->edge[0]?v1->edge[0]->id:-1), 
 				(v1->edge[1]?v1->edge[1]->id:-1), 
 				(v1->edge[2]?v1->edge[2]->id:-1), 
 				(v1->edge[3]?v1->edge[3]->id:-1));
+#endif
 			v2 = v1->edge[v2i];
 			// END PICKING V2
 			//DPRINTF("next!\n");
+#if PRINT_GENERATE_AB_CYCLES
 			STRONG_TEXT;
 			DPRINTF("next iteration...v1:%i, v2:%i\n", v1->id, v2->id);//TODO: debug remove
 			NORMAL_TEXT;
+#endif
 
 			// remove the edge from the graph
 			// undirected graph, so first remove the edge from v1
@@ -367,7 +384,9 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			curCycle->tour[curCycle->size] = TOUR_B;
 			if (!visited[v2->id]++) iteration[v2->id] = currentIteration;
 			++currentIteration;
+#if PRINT_GENERATE_AB_CYCLES
 			DPRINTF("Adding edge to cycle...\n");//TODO: debug remove
+#endif
 			//DPRINTF("Alternating tour picking new edge...\n");//TODO: debug remove
 			v1 = v2; // we need to pick a new v2
 			c[0] = c[1] = 0; // NOTE: these are off by one indices to speed up boolean checks!
@@ -409,18 +428,21 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			}
 			// pick one of the choices if there are more than one, otherwise the only choice
 			v2i = c[1] ? c[rand() % 2]-1 : c[0]-1; // subtract one, since they're OBO, see above
+#if PRINT_GENERATE_AB_CYCLES
 			DPRINTF("v2i: %i, c[0]: %i, c[1]: %i\n",v2i, c[0]-1, c[1]-1);
 			DPRINTF("v1e0: %i, v1e1: %i, v1e2: %i, v1e3: %i\n", 
 				(v1->edge[0]?v1->edge[0]->id:-1), 
 				(v1->edge[1]?v1->edge[1]->id:-1), 
 				(v1->edge[2]?v1->edge[2]->id:-1), 
 				(v1->edge[3]?v1->edge[3]->id:-1));
+#endif
 			v2 = v1->edge[v2i];
 			// END PICKING V2
-			//DPRINTF("next!\n");
+#if PRINT_GENERATE_AB_CYCLES
 			STRONG_TEXT;
 			DPRINTF("next iteration...v1:%i, v2:%i\n", v1->id, v2->id);//TODO: debug remove
 			NORMAL_TEXT;
+#endif
 
 			// remove the edge from the graph
 			// undirected graph, so first remove the edge from v1
@@ -467,7 +489,9 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 				break;
 			}// removing the edge from v2
 		} while ((visited[v2->id]==0 || ((currentIteration-iteration[v2->id])%2==1)) && edges > 0); // while creating a cycle
-		//TODO: REMOVE, print iteration array
+#if PRINT_CYCLES
+#if PRINT_GENERATE_AB_CYCLES
+		// print iteration array
 		DPRINTF("ITERATIONS : ");
 		for (i=0; i < Cities->size; i++)
 			DPRINTF("%i, ", iteration[i]);
@@ -478,13 +502,17 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			DPRINTF("-t%1i-> [%i]", curCycle->tour[n], curCycle->city[n]->id);
 		DPRINTF("\n");
 		NORMAL_TEXT;
+#endif
+#endif
 
 		// check to see if we've made a cycle with a tail
 		if (v2 != v0)
 		{
+#if PRINT_GENERATE_AB_CYCLES
 			OOPS_TEXT;
 			DPRINTF("Cycle with tail generated, removing tail...\n");
 			NORMAL_TEXT;
+#endif
 
 			// flip the entire current cycle, this makes it easier to remove cities from it
 			a = 0;
@@ -505,29 +533,39 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 				curCycle->tour[a] = ((a+(t0==TOUR_A?1:0))%2)==0 ? TOUR_A : TOUR_B;
 			}
 			// Print out the reversed cycle for verification
+#if PRINT_CYCLES
+#if PRINT_GENERATE_AB_CYCLES
 			DPRINTF("Ab cycle reversed: ");
 			STRONG_TEXT;
 			for (n=0; n < curCycle->size; n++)
 				DPRINTF("-t%1i-> [%i]", curCycle->tour[n], curCycle->city[n]->id);
 			DPRINTF("\n");
 			NORMAL_TEXT;
+#endif
+#endif
 
 			// now keep removing the last city in the cycle and adding that edge back to R
 			// until v2 represents the last city in the cycle
 			//v1 = v0; // move back to the original vertex
 			v0 = v2; // the "new" original vertex is the actual end of the cycle
 			v2 = R->node[curCycle->city[curCycle->size-1]->id];
+#if PRINT_GENERATE_AB_CYCLES
 			DPRINTF("v0,v1,v2: %i,%i,%i\n", v0->id, v1->id, v2->id);
+#endif
 			int curTour; // the current tour of the edge we're trying to restore. alternates
 			curTour = TOUR_A; // every path starts with tourA, then we flipped it,
 			                  // meaning that the tail edge of curCycle must be from tourA
 			while (v0->id != curCycle->city[--curCycle->size]->id)
 			{
+#if PRINT_GENERATE_AB_CYCLES
 				DPRINTF("curCycle->city[%i]->id = %i\n", curCycle->size, curCycle->city[curCycle->size]->id);
+#endif
 				// grab the new tip of the tail, and restore the edge
 				v1 = v2;
 				v2 = R->node[curCycle->city[curCycle->size-1]->id];
+#if PRINT_GENERATE_AB_CYCLES
 				DPRINTF("Restoring edge: %i->%i\n", v1->id, v2->id);
+#endif
 				// we need to add that edge back to the graph, but the edge
 				// actualy still exists in the graph, we just 'removed' it by modifying its
 				// position in the arrays and changing the size of the arrays.
@@ -614,13 +652,17 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 		else // closed loop created normally
 		{
 			//v1 = v2 = 0; //TODO: i don't think this is actually necessary.
+#if PRINT_GENERATE_AB_CYCLES
 			DPRINTF("No fixing necessary (no 'tail' on cycle)\n.");
+#endif
 		}
 		
 		// make the cycle loop back on itself
 		curCycle->tour[curCycle->size] = (curCycle->tour[curCycle->size-1]==TOUR_A) ? TOUR_B : TOUR_A;
 		curCycle->city[curCycle->size++] = curCycle->city[0];
 		
+#if PRINT_CYCLES
+#if PRINT_GENERATE_AB_CYCLES
 		DPRINTF("Ab cycle as fixed: ");
 		//int n;
 		STRONG_TEXT;
@@ -628,8 +670,12 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			DPRINTF("-t%1i-> [%i]", curCycle->tour[n], curCycle->city[n]->id);
 		DPRINTF("\n");
 		NORMAL_TEXT;
+#endif
+#endif
 
+#if PRINT_GENERATE_AB_CYCLES
 		DPRINTF("next AB Cycle (back to top of outer while)\n"); //TODO: debug remove
+#if PRINT_GRAPHS
 		DPRINTF("\nGraph R contains %i nodes: \n", R->size);
 		for (i=0; i < R->size; i++)
 		{
@@ -638,10 +684,12 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 				DPRINTF((e>0) ? ", [\033[32m%04i\033[0m:t%01i]" : "[%04i:t%01i]", R->node[i]->edge[e]->id, R->node[i]->tour[e]);
 			DPRINTF("\n");
 		}
+#endif
+#endif
 	}// while R has edges left
 
 	return size;
-}
+} // generateABCycles()
 
 /**
  * generates an e-set from the given AB-cycles by choosing an AB cycle for inclusion
@@ -656,6 +704,7 @@ int generateESetRAND(const tour_t* const Cities, tour_t** cycles /*byref*/, int 
 	int size = nCycles; // contains the number of AB cycles in the E-set
 	int curCycle = 0; // current ABcycle
 	float r; // random number. if >=0.5 then the cycle is included in the E-set
+	tour_t* temp; // used for swapping
 	
 	// iterate until every ABcycle has been examined
 	while (curCycle < size)
@@ -669,22 +718,32 @@ int generateESetRAND(const tour_t* const Cities, tour_t** cycles /*byref*/, int 
 		if (r < 0.5) // remove cycle from E-set
 		{
 			// outputting tour that was removed
+#if PRINT_GENERATE_ESET
+#if PRINT_CYCLES
 			DPRINTF("(r:%f)removing Cycle[%i]: [%i]", r, curCycle, cycles[curCycle]->city[0]->id);
 			int a;
 			for (a=1; a < cycles[curCycle]->size; a++)
 				DPRINTF(", [%i]", cycles[curCycle]->city[a]->id);
 			DPRINTF("\n");
-			// remove the cycle
+#endif
+#endif
+			// remove the cycle by swapping
+			temp = cycles[curCycle];
 			cycles[curCycle] = cycles[--size];
+			cycles[size] = temp;
 		}// if remove the cycle
 		else
 		{
-			// outputting tour that was removed
-			DPRINTF("(r:%f)allowing Cycle[%i]: [%i]", r, curCycle, cycles[curCycle]->city[0]->id);
+			// outputting tour that was allowed
+#if PRINT_GENERATE_ESET
+#if PRINT_CYCLES
+			DPRINTF("(r:%f)removing Cycle[%i]: [%i]", r, curCycle, cycles[curCycle]->city[0]->id);
 			int a;
 			for (a=1; a < cycles[curCycle]->size; a++)
 				DPRINTF(", [%i]", cycles[curCycle]->city[a]->id);
 			DPRINTF("\n");
+#endif
+#endif
 			// allow this cycle, examin the next one
 			++curCycle;
 		}// else allow the cycle
@@ -744,10 +803,12 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
 				case 1: // only one edge to check
 					if (v1->edge[0] == v2)
 					{
+#if PRINT_APPLY_ESET
 						DPRINTF("\033[33mremoving\033[0m edge(v[%i]->v[%i]t%i from graph (final edge v1)...\n", 
 								(v1?v1->id:-1), 
 								(v1 && v1->edge[0]?v1->edge[0]->id:-1), 
 								(v1?v1->tour[0]:-1));
+#endif
 						--v1->size; // last node, safe to decrement
 					}
 					else // adding? wtf
@@ -770,10 +831,12 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
 					}
 					else if (v1->edge[1] == v2)
 					{
+#if PRINT_APPLY_ESET
 						DPRINTF("\033[33mremoving\033[0m edge(v[%i]->v[%i]t%i from graph (final edge v1)...\n", 
 								(v1?v1->id:-1), 
 								(v1 && v1->edge[1]?v1->edge[1]->id:-1), 
 								(v1?v1->tour[1]:-1));
+#endif
 						--v1->size; // last node, safe to decrement
 					}
 					else // adding? wtf
@@ -800,10 +863,12 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
 					}
 					else if (v1->edge[2] == v2)
 					{
+#if PRINT_APPLY_ESET
 						DPRINTF("\033[33mremoving\033[0m edge(v[%i]->v[%i]t%i from graph (final edge v1)...\n", 
 								(v1?v1->id:-1), 
 								(v1 && v1->edge[2]?v1->edge[2]->id:-1), 
 								(v1?v1->tour[2]:-1));
+#endif
 						--v1->size; // last node, safe to decrement
 					}
 					else // adding? wtf
@@ -834,10 +899,12 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
 					}
 					else if (v1->edge[3] == v2)
 					{
+#if PRINT_APPLY_ESET
 						DPRINTF("\033[33mremoving\033[0m edge(v[%i]->v[%i]t%i from graph (final edge v1)...\n", 
 								(v1?v1->id:-1), 
 								(v1 && v1->edge[3]?v1->edge[3]->id:-1), 
 								(v1?v1->tour[3]:-1));
+#endif
 						--v1->size; // last node, safe to decrement
 					}
 					else // adding? wtf
@@ -877,10 +944,12 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
 				case 1: // only one edge to check, if it's not v1 we have a problem
 					if (v2->edge[0] == v1)
 					{
+#if PRINT_APPLY_ESET
 						DPRINTF("\033[33mremoving\033[0m edge(v[%i]->v[%i]t%i from graph (final edge v2)...\n", 
 							(v2?v2->id:-1), 
 							(v2 && v2->edge[0]?v2->edge[0]->id:-1), 
 							(v2?v2->tour[0]:-1));
+#endif
 						--v2->size; // last node, safe to decrement
 					}
 					else // we messed up
@@ -903,10 +972,12 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
 					}
 					else if (v2->edge[1] == v1)
 					{
+#if PRINT_APPLY_ESET
 						DPRINTF("\033[33mremoving\033[0m edge(v[%i]->v[%i]t%i from graph (final edge v2)...\n", 
 							(v2?v2->id:-1), 
 							(v2 && v2->edge[1]?v2->edge[1]->id:-1), 
 							(v2?v2->tour[1]:-1));
+#endif
 						--v2->size; // last node, safe to decrement
 					}
 					else // we messed up
@@ -933,10 +1004,12 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
 					}
 					else if (v2->edge[2] == v1)
 					{
+#if PRINT_APPLY_ESET
 						DPRINTF("\033[33mremoving\033[0m edge(v[%i]->v[%i]t%i from graph (final edge v2)...\n", 
 							(v2?v2->id:-1), 
 							(v2 && v2->edge[2]?v2->edge[2]->id:-1), 
 							(v2?v2->tour[2]:-1));
+#endif
 						--v2->size; // last node, safe to decrement
 					}
 					else // we messed up
@@ -967,10 +1040,12 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
 					}
 					else if (v2->edge[3] == v1)
 					{
+#if PRINT_APPLY_ESET
 						DPRINTF("\033[33mremoving\033[0m edge(v[%i]->v[%i]t%i from graph (final edge v2)...\n", 
 							(v2?v2->id:-1), 
 							(v2 && v2->edge[3]?v2->edge[3]->id:-1), 
 							(v2?v2->tour[3]:-1));
+#endif
 						--v2->size; // last node, safe to decrement
 					}
 					else // we messed up
@@ -1001,16 +1076,22 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
 			}// if removing
 			else
 			{
+#if PRINT_APPLY_ESET
 				DPRINTF("adding edge to v2 [%i]->(%i)...\n", v2->id, v1->id);
+#endif
 				v2->tour[v2->size] = TOUR_B;
 				v2->edge[v2->size++] = v1;
+#if PRINT_APPLY_ESET
 				DPRINTF("adding edge to v1 [%i]->(%i)...\n", v1->id, v2->id);
+#endif
 				v1->tour[v1->size] = TOUR_B;
 				v1->edge[v1->size++] = v2;
 			}// else we're adding an edge
 		}// for each city in the current cycle
 	}// for each cycle
 	
+#if PRINT_APPLY_ESET
+#if PRINT_GRAPHS
 	DPRINTF("\033[32mIntermediate Tour T\033[0m contains (after applying E-set, in applyEset()): \n");
 	int i2;
 	for (i2=0; i2 < T->size; i2++)
@@ -1021,6 +1102,8 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
 			DPRINTF((e>0) ? ", [%04i:t%01i]" : "[%04i:t%01i]", T->node[i2]->edge[e]->id, T->node[i2]->tour[e]);
 		DPRINTF("\n");
 	}
+#endif
+#endif
 	
 	// iterate over the graph, finding the disjoint cycles
 	int visited[MAX_CITIES];
@@ -1029,15 +1112,21 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
 	// start at the first node, traverse the graph, keeping track of which nodes belong to which cycles
 	int iteration = 1; // this is the current disjoint cycle number we're looking at
 	int i; // don't confuse with iteration, this is just a generic loop counter
+#if PRINT_APPLY_ESET
 	DPRINTF("tracking disjoint cycles...\n");
+#endif
 	do // keep creating sub-cycles until there aren't any unvisited nodes
 	{
 		// grab the first unvisited node, in the unvisited nodes tracking array
+#if PRINT_APPLY_ESET
 		DPRINTF("grabbing first unvisited node: ");
+#endif
 		for (i=0; i < T->size; i++)
 			if (!visited[i])
 				break;
+#if PRINT_APPLY_ESET
 		DPRINTF("%i\n", i);
+#endif
 		// grab the next empty sub-cycle for us to fill up
 		node_t* curNode, *startingNode, *lastNode, *tempNode;
 		curNode = startingNode = T->node[i]; // current vertex
@@ -1051,21 +1140,27 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
 			visited[curNode->id] = iteration;
 			tempNode = curNode;
 			curNode = curNode->edge[curNode->edge[0]==lastNode?1:0]; // make sure we don't back-track
+#if PRINT_APPLY_ESET
 			DPRINTF("next node : %i\n", curNode?curNode->id:-1);
+#endif
 			curCycle->city[curCycle->size++] = Cities->city[curNode->id]; // add this node onto the sub-cycle
 			lastNode = tempNode; // swap temps
 			INIT_EDGE(edges[curEdge++], lastNode, curNode, iteration); // add the edge to the list
 		} while (curNode != startingNode);
 #if PRINT_CYCLES
+#if PRINT_APPLY_ESET
 		DPRINTF("disjointCycle %i: [%i]", iteration-1, curCycle->city[0]->id);
 		int a;
 		for (a=1; a < curCycle->size; a++)
 			DPRINTF(", [%i]", curCycle->city[a]->id);
 		DPRINTF("\n");
 #endif
+#endif
 		// now curCycle has a complete sub-cycle in it
 		++iteration;
+#if PRINT_APPLY_ESET
 		DPRINTF("Checking visited array.\n");
+#endif
 		
 		///////////////////////////////////////////////////////////////////////
 		// check visited array for any unvisited vertices
@@ -1078,10 +1173,28 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
 		break;// if we made it this far, then all nodes were visited
 	} while (1);
 	
+#if PRINT_CYCLES
+#if PRINT_APPLY_ESET
+	// output the sub-disjointCycles
+	printf("Printing all %i cycles in the \033[32mIntermediate Tour\033[0m...\n", iteration-1);
+	for (i=0; i < iteration-1; i++)
+	{
+		printf("Cycle[%i]: [%i]", i, E[i]->city[0]->id);
+		int a;
+		for (a=1; a < E[i]->size; a++)
+			printf(", [%i]", E[i]->city[a]->id);
+		printf("\n");
+	}
+#endif
+#endif
+	
 	// sort the sub-cycles by size, I believe I implemented a basic selection sort here
+	//*
 	for (i=0; i < iteration-2; i++)
 	{
+#if PRINT_APPLY_ESET
 		DPRINTF("Sorting by cycle size (%i)...", i);
+#endif
 		int a;
 		int min = i;
 		// find the next minimum
@@ -1099,7 +1212,9 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
 			E[min] = t;
 			
 			// need to swap the iteration numbers in the edge structure
+#if PRINT_APPLY_ESET
 			DPRINTF("Swapping cycles (actual cycleNum, edge->cycle is this +1) %i and %i.\n", i, min);
+#endif
 			int e;
 			for (e=0; e < Cities->size; e++)
 			{
@@ -1109,11 +1224,14 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
 					edges[e]->cycle = i+1;
 			}// for swapping edge cycle numbers
 		}// if we needed to swap
+#if PRINT_APPLY_ESET
 		else
 		{
 			DPRINTF("noswap\n");
 		}
-	}// for outer selection loop //*/
+#endif
+	}// for outer selection loop
+	// */
 	
 	return iteration-1; // return number of disjoint cycles
 }// applyESet()
@@ -1147,20 +1265,19 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 		// create the initial candidate edges
 		v1 = T->node[curCycle->city[0]->id];
 		v2 = T->node[curCycle->city[1]->id];
+#if PRINT_FIX_INTERMEDIATE
 		DPRINTF("Choosing starting edges.\n");
-		DPRINTF("b1: ");
+#endif
 		INIT_EDGE(&b1, v1, v2, CUR_CYCLE);
 		// find the first edge that doesn't belong to this cycle
 		for (i=0; i < Cities->size; i++)
 		{
 			if (edges[i]->cycle != CUR_CYCLE)
 			{
-#if DEBUG
+#if PRINT_FIX_INTERMEDIATE
 				DPRINTF("in finding first edge not in this cycle: \n");
-				INIT_EDGE(&b2, edges[i]->v1, edges[i]->v2, edges[i]->cycle);
-#else
-				b2 = *edges[i];
 #endif
+				b2 = *edges[i];
 				break;
 			}
 		}// for find the first edge that doesn't belong to this cycle
@@ -1170,12 +1287,13 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 			printf("there are no cycles left?\n");
 			terminate_program(99);
 		}
-		DPRINTF("b3: ");
+		// init starting point "guess" for best edge (it's just an arbitrary edge, in this case the first one)
 		INIT_EDGE(&b3, v1, b2.v1, 0);
-		DPRINTF("b4: ");
 		INIT_EDGE(&b4, v2, b2.v2, 0);
 		bestCost = b3.cost + b4.cost - b1.cost - b2.cost; // set bestCost to the original candidates
+#if PRINT_FIX_INTERMEDIATE
 		DPRINTF("Starting bestCost: %i\n.", bestCost);
+#endif
 		
 		// for each city in the sub-cycle
 		for (c=0; c < curCycle->size-1; c++)
@@ -1185,7 +1303,6 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 			v2 = T->node[curCycle->city[c+1]->id];
 			
 			// create an edge from those two vertices, this is the first edge to examine for removal
-			DPRINTF("e1: \n");
 			INIT_EDGE(&e1, v1, v2, CUR_CYCLE);
 			
 			// now iterate over every edge in the graph that doesn't belong to curCycle
@@ -1233,47 +1350,64 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 		
 		// found the best candidates for merging, so merge them together
 		tour_t* otherCycle = cycles[b2.cycle-1];
+#if PRINT_FIX_INTERMEDIATE
 		DPRINTF("best candidates for merging cycle %i with %i will cost %02.02f\n", CUR_CYCLE, b2.cycle, bestCost);
 		DPRINTF("(\033[31mremoving\033[0m)b1: {%i->%i:c%f}\n", b1.v1->id, b1.v2->id, b1.cost);
 		DPRINTF("(\033[31mremoving\033[0m)b2: {%i->%i:c%f}\n", b2.v1->id, b2.v2->id, b2.cost);
 		DPRINTF("(\033[32m adding \033[0m)b3: {%i->%i:c%f}\n", b3.v1->id, b3.v2->id, b3.cost);
 		DPRINTF("(\033[32m adding \033[0m)b4: {%i->%i:c%f}\n", b4.v1->id, b4.v2->id, b4.cost);
-		DPRINTF("searching for b1 and b2 in edges array and replacing them with b3 and b4 respectively...\n");
-		for (i=0; i < Cities->size; i++)
-		{
-			edge_t* e1 = edges[i];
-			if ((e1->v1 == b1.v1 && e1->v2 == b1.v2)||(e1->v2 == b1.v1 && e1->v1 == b1.v2))
-			{// replace b1 with b3
-				INIT_EDGE(e1, b3.v1, b3.v2, 0);
-			}
-			else if ((e1->v1 == b2.v1 && e1->v2 == b2.v2)||(e1->v2 == b2.v1 && e1->v1 == b2.v2))
-			{// replace b2 with b4
-				INIT_EDGE(e1, b4.v1, b4.v2, 0);
-			}// else replace b2
-		}// for searching for edges to replace
-		
-		DPRINTF("curCycle: ");
+#endif
+		// debug output the cycles
+#if PRINT_FIX_INTERMEDIATE
+#if PRINT_CYCLES
+		DPRINTF("  Before merging, curCycle: ");
 		int n;
 		STRONG_TEXT;
 		for (n=0; n < curCycle->size; n++)
 			DPRINTF("--> [%i]", curCycle->city[n]->id);
 		DPRINTF("\n");
 		NORMAL_TEXT;
-		DPRINTF("otherCycle: ");
+		DPRINTF("Before merging, otherCycle: ");
 		STRONG_TEXT;
 		for (n=0; n < otherCycle->size; n++)
 			DPRINTF("--> [%i]", otherCycle->city[n]->id);
 		DPRINTF("\n");
 		NORMAL_TEXT;
+#endif
+#endif
 		
 		// merge the tour's together
 		mergeSubTours(T, curCycle, otherCycle, &b1, &b2, &b3, &b4);
+		
+#if PRINT_FIX_INTERMEDIATE
+		DPRINTF("searching for b1 and b2 in edges array and replacing them with b3 and b4 respectively...\n");
+#endif
+		// fix all of the edges that used to belong to otherCycle, making them now belong to curCycle, also
+		// replace the edges we removed with the ones we added
+		for (i=0; i < Cities->size; i++)
+		{
+			edge_t* e1 = edges[i];
+			if ((e1->v1 == b1.v1 && e1->v2 == b1.v2)||(e1->v2 == b1.v1 && e1->v1 == b1.v2))
+			{// replace b1 with b3
+				INIT_EDGE(e1, b3.v1, b3.v2, 1); // now belongs to curCycle
+			}
+			else if ((e1->v1 == b2.v1 && e1->v2 == b2.v2)||(e1->v2 == b2.v1 && e1->v1 == b2.v2))
+			{// replace b2 with b4
+				INIT_EDGE(e1, b4.v1, b4.v2, 1); // now belongs to curCycle
+			}// else replace b2
+			else if (e1->cycle == b2.cycle)
+			{
+				e1->cycle = 1;
+			}
+		}// for searching for edges to replace
 		
 		// remove otherCycle
 		cycles[b2.cycle-1] = cycles[--nCycles];
 		
 		//TODO: sort the subCycles by size
 		
+#if PRINT_FIX_INTERMEDIATE
+#if PRINT_GRAPHS
 		DPRINTF("\033[32mIntermediate Tour T\033[0m contains (inside fixIntermediate, after combining two cycles): \n");
 		int i2;
 		for (i2=0; i2 < T->size; i2++)
@@ -1284,8 +1418,12 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 				DPRINTF((e>0) ? ", [%04i:t%01i]" : "[%04i:t%01i]", T->node[i2]->edge[e]->id, T->node[i2]->tour[e]);
 			DPRINTF("\n");
 		}
+#endif
+#endif
 		
+#if PRINT_FIX_INTERMEDIATE
 		DPRINTF("Next cycle...\n");
+#endif
 	}// each cycle
 
 	return 1;
@@ -1356,7 +1494,9 @@ void mergeSubTours(graph_t* T, tour_t* A, tour_t* B, edge_t* e1, edge_t* e2, edg
 		DPRINTF("Failed to find e2 in B.\n");
 		terminate_program(191);
 	}// error
+#if PRINT_MERGE_SUB_TOURS
 	DPRINTF("a%i b%i : av%i bv%i\n", a, b, A->city[a]->id, B->city[b]->id);
+#endif
 	
 	// move B onto A
 	// depending on which of the two choices for merging was chosen, we need to start
@@ -1375,11 +1515,13 @@ void mergeSubTours(graph_t* T, tour_t* A, tour_t* B, edge_t* e1, edge_t* e2, edg
 	int v2e = (v2->edge[0] == v1) ? 0 : 1;
 	int v3e = (v3->edge[0] == v4) ? 0 : 1;
 	int v4e = (v4->edge[0] == v3) ? 0 : 1;
+#if PRINT_MERGE_SUB_TOURS
 	DPRINTF("BEFORE: v1[%i]e%i->[%i] -> v1[%i]e%i->[%i] AND v1[%i]e%i->[%i] -> v1[%i]e%i->[%i]\n", 
 			v1->id, v1e, v1->edge[v1e]->id, 
 			v2->id, v2e, v2->edge[v2e]->id,
 			v3->id, v3e, v3->edge[v3e]->id,
 			v4->id, v4e, v4->edge[v4e]->id);
+#endif
 	if (e3->v2 == v4) // counting from b+1 back around to b
 	{
 		// replace the edges
@@ -1387,11 +1529,13 @@ void mergeSubTours(graph_t* T, tour_t* A, tour_t* B, edge_t* e1, edge_t* e2, edg
 		v2->edge[v2e] = v3;
 		v3->edge[v3e] = v2;
 		v4->edge[v4e] = v1;
+#if PRINT_MERGE_SUB_TOURS
 		DPRINTF("AFTER(cx): v1[%i]e%i->[%i] -> v1[%i]e%i->[%i] AND v1[%i]e%i->[%i] -> v1[%i]e%i->[%i]\n", 
 			v1->id, v1e, v1->edge[v1e]->id, 
 			v2->id, v2e, v2->edge[v2e]->id,
 			v3->id, v3e, v3->edge[v3e]->id,
 			v4->id, v4e, v4->edge[v4e]->id);
+#endif
 		
 		// move B onto A
 		int t = b+1;
@@ -1410,11 +1554,13 @@ void mergeSubTours(graph_t* T, tour_t* A, tour_t* B, edge_t* e1, edge_t* e2, edg
 		v2->edge[v2e] = v4;
 		v3->edge[v3e] = v1;
 		v4->edge[v4e] = v2;
+#if PRINT_MERGE_SUB_TOURS
 		DPRINTF("AFTER(nm): v1[%i]e%i->[%i] -> v1[%i]e%i->[%i] AND v1[%i]e%i->[%i] -> v1[%i]e%i->[%i]\n", 
 			v1->id, v1e, v1->edge[v1e]->id, 
 			v2->id, v2e, v2->edge[v2e]->id,
 			v3->id, v3e, v3->edge[v3e]->id,
 			v4->id, v4e, v4->edge[v4e]->id);
+#endif
 		
 		// move B onto A
 		int t = b;
@@ -1433,6 +1579,7 @@ void mergeSubTours(graph_t* T, tour_t* A, tour_t* B, edge_t* e1, edge_t* e2, edg
 		A->city[A->size++] = tempA->city[a];
 	}
 	
+#if PRINT_MERGE_SUB_TOURS
 #if PRINT_INTERMEDIATE_INFO
 	DPRINTF("A: ");
 	int n;
@@ -1456,6 +1603,7 @@ void mergeSubTours(graph_t* T, tour_t* A, tour_t* B, edge_t* e1, edge_t* e2, edg
 	DPRINTF("\n");
 	NORMAL_TEXT;
 #endif
+#endif
 }// mergeSubTours()
 
 /**
@@ -1475,7 +1623,9 @@ void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC)
 	print_tour(tourB);
 #endif
 	
+	///////////////////////////////////////////////////////////////////////////
 	// merge the two tours
+	// TODO: MEMORY the graph needs to be created once somewhere and then saved
 	DPRINTF("\nMerging A with B...");
 	graph_t* R = mergeTours(tourA, tourB);
 	DPRINTF("done!\n");
@@ -1493,18 +1643,25 @@ void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC)
 	}
 #endif
 
+	///////////////////////////////////////////////////////////////////////////
 	// create A-B cycles on R
+	// TODO: MEMORY cycles memory needs to be allocated once and then saved somewhere
 	DPRINTF("Allocating cycles...");
 	tour_t** cycles;
-	cycles = (tour_t**)malloc(sizeof(tour_t *) * MAX_ABCYCLES);
+	cycles = malloc(sizeof(tour_t *) * MAX_ABCYCLES);
 	for (i=0; i < MAX_ABCYCLES; i++)
 	{
-		cycles[i] = (tour_t*)malloc(sizeof(tour_t));
+		cycles[i] = malloc(sizeof(tour_t));
 	}
 	DPRINTF("done!\n");
 	int nCycles;
 	DPRINTF("Generating AB Cycles....");
 	// REMEMBER! R gets defiled by this call, and the contents of cycles isn't important, it all gets overwritten
+#if PRINT_CYCLE_POINTERS
+	DPRINTF("\033[35mCycles (before generateABCycles)  : %i", cycles[0]);
+	for (i=1; i < 6; i++) DPRINTF(", %i", cycles[i]);
+	DPRINTF("\033[0m\n");
+#endif
 	nCycles = generateABCycles(Cities, R, cycles);
 	DPRINTF("done!\n");
 
@@ -1521,7 +1678,13 @@ void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC)
 	}
 #endif
 
+	///////////////////////////////////////////////////////////////////////////
 	// create E-sets from the cycles
+#if PRINT_CYCLE_POINTERS
+	DPRINTF("\033[35mCycles (before generateESet)  : %i", cycles[0]);
+	for (i=1; i < 6; i++) DPRINTF(", %i", cycles[i]);
+	DPRINTF("\033[0m\n");
+#endif
 	nCycles = generateESetRAND(Cities, cycles, nCycles);
 #if PRINT_CYCLES
 	// output the E-set
@@ -1536,7 +1699,9 @@ void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC)
 	}
 #endif
 
+	///////////////////////////////////////////////////////////////////////////
 	// apply E-sets to generate intermediates
+	// TODO: MEMORY Graph memory needs to be created once somehwere and then saved
 	graph_t* T = createGraph(tourA);
 #if PRINT_GRAPHS
 	// output the created graph from tourA
@@ -1550,7 +1715,8 @@ void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC)
 		printf("\n");
 	}
 #endif
-	// apply the eset to the graph
+	// create edges array
+	//TODO: MEMORY this needs to be done once somewhere and then saved
 	DPRINTF("allocating edges array...\n");
 	edge_t** edges = (edge_t**)malloc(sizeof(edge_t *) * Cities->size);
 	for (i=0; i < Cities->size; i++)
@@ -1558,9 +1724,20 @@ void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC)
 		edges[i] = (edge_t*)malloc(sizeof(edge_t));
 	}
 	DPRINTF("Applying the E-set.\n");
+#if PRINT_CYCLE_POINTERS
+	DPRINTF("\033[35mCycles (before applyESET) : %i", cycles[0]);
+	for (i=1; i < 6; i++) DPRINTF(", %i", cycles[i]);
+	DPRINTF("\033[0m\n");
+#endif
 	int disjointCycles = applyESet(Cities, T, cycles, nCycles, edges);
+#if PRINT_CYCLE_POINTERS
+	DPRINTF("\033[35mCycles (after applyESET)  : %i", cycles[0]);
+	for (i=1; i < 6; i++) DPRINTF(", %i", cycles[i]);
+	DPRINTF("\033[0m\n");
+#endif
 	DPRINTF("there were \033[32m%i\033[0m disjoint cycles.\n", disjointCycles);
 #if PRINT_INTERMEDIATE_INFO
+#if PRINT_GRAPHS
 	// output the intermediate
 	printf("\n\033[32mIntermediate Tour T\033[0m contains (after returning from applyESEt): \n");
 	for (i=0; i < Cities->size; i++)
@@ -1572,12 +1749,15 @@ void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC)
 		printf("\n");
 	}
 	dumpGraphToFile(T, "graphBefore.txt");
+#endif
 	// output the edges
+#if PRINT_EDGES
 	printf("Printing all %i edges in the graph: \n", Cities->size);
 	for (i=0; i < Cities->size; i++)
 	{
 		printf("Edge[%i] = {%i -> %i : i%i : c%f}\n", i, edges[i]->v1->id, edges[i]->v2->id, edges[i]->cycle, edges[i]->cost);
 	}
+#endif
 #if PRINT_CYCLES
 	// output the sub-disjointCycles
 	printf("Printing all %i cycles in the \033[32mIntermediate Tour\033[0m...\n", disjointCycles);
@@ -1592,9 +1772,11 @@ void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC)
 #endif
 #endif
 
+	///////////////////////////////////////////////////////////////////////////
 	// turn intermediates into valid tours
 	/*int code=*/fixIntermediate(Cities, T /* byref */, cycles, disjointCycles, edges);
 #if PRINT_INTERMEDIATE_INFO
+#if PRINT_GRAPHS
 	printf("\n\033[32mIntermediate Tour T\033[0m contains (after returning from fixIntermediate): \n");
 	for (i=0; i < Cities->size; i++)
 	{
@@ -1605,6 +1787,7 @@ void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC)
 		printf("\n");
 	}
 	dumpGraphToFile(T, "graphAfter.txt");
+#endif
 #endif
 	
 #if PRINT_CYCLES
@@ -1617,10 +1800,13 @@ void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC)
 	NORMAL_TEXT;
 #endif
 
+	///////////////////////////////////////////////////////////////////////////
+	// GA step?
 	// cycles[0] contains the only cycle, and should contain the new tour.
 	memcpy(tourC, cycles[0], sizeof(*cycles[0]));
 	
 	// clean up
+	// TODO: MEMORY when the memory stuff is fixed, this will be done somewhere else
 	DPRINTF("\nClean up...");
 	freeGraph(R);
 	freeGraph(T);

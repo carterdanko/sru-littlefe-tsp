@@ -6,10 +6,36 @@
 
 #include "include/tsp.h"
 
+// constants
+#define MAX_SUB_TOURS 10  // maximum number of sub-tours in an intermediate tour
+#define MAX_EDGES 4       // there can only be 4 maximum edges, two from each parent tour
+#define PANIC_EXIT 100  // some choosing algorithms are implemented by randomly choosing items that haven't been chosen yet, choosing again when encountering one that was already chosen. If this many iterations of that occur, we exit the loop to prevent hanging, print an error message, and halt execution
+#define MAX_ABCYCLES 100 // only for allocation purposes, no boundary checking assurances
+#define TOUR_A 0
+#define TOUR_B 1 // this is for code clarity
+
+// debugging
+// globals
+#define PRINT_PARENT_TOURS 1        // parent tours of current generation
+#define PRINT_INTERMEDIATE_INFO 1   // information about intermediate individuals generated
+#define PRINT_EDGES 0               // prints the list of edges
+#define PRINT_CHILD_TOURS 1         // information about child tours
+#define PRINT_GRAPHS 0              // information about graphs
+#define PRINT_CYCLES 1              // information about AB cycles, sub cycles, and other cycles
+// per method
+#define PRINT_GENERATE_AB_CYLES 0   // generateABCycles() output
+#define PRINT_FIX_INTERMEDIATE 0    // fixIntermediate() output
+#define PRINT_MERGE_SUB_TOURS 0     // mergeSubTours() output
+#define PRINT_APPLY_ESET 0          // applyESET() output
+#define PRINT_GENERATE_ESET 0       // generateESET functions (rand and heuristic)
+#define PRINT_EDGE_OPERATIONS 0     // prints information about edge operations (REMOVE_EDGE and RESTORE_EDGE)
+// other stuff I guess?
+#define PRINT_CYCLE_POINTERS 0      // prints what the cycle pointers are at various points, used for debugging the identical cycle pointers bug
+
 // inlines
 // removes edge E from vertex V 
 #define REMOVE_EDGE(V,E) do { \
-				DPRINTF("\033[33mremoving\033[0m edge(v[%i]->v[%i]t%i from graph...\n", \
+				if (PRINT_EDGE_OPERATIONS) DPRINTF("\033[33mremoving\033[0m edge(v[%i]->v[%i]t%i from graph...\n", \
 				(V?V->id:-1), \
 				(V && V->edge[E]?V->edge[E]->id:-1), \
 				(V?V->tour[E]:-1)); \
@@ -19,7 +45,7 @@
 			} while(0) 
 // restore a previously removed edge back to vertex V
 #define RESTORE_EDGE(V,E) do { \
-				DPRINTF("\033[32mrestoring\033[0m edge(v[%i]->v[%i]t%i to graph...\n", \
+				if (PRINT_EDGE_OPERATIONS) DPRINTF("\033[32mrestoring\033[0m edge(v[%i]->v[%i]t%i to graph...\n", \
 				(V?V->id:-1), \
 				(V && V->edge[E]?V->edge[E]->id:-1), \
 				(V?V->tour[E]:-1)); \
@@ -31,21 +57,6 @@
 /*
 //TODO: inline init_edge was here, so put it back?
 //*/
-
-// constants
-#define MAX_SUB_TOURS 10  // maximum number of sub-tours in an intermediate tour
-#define MAX_EDGES 4       // there can only be 4 maximum edges, two from each parent tour
-#define PANIC_EXIT 100  // some choosing algorithms are implemented by randomly choosing items that haven't been chosen yet, choosing again when encountering one that was already chosen. If this many iterations of that occur, we exit the loop to prevent hanging, print an error message, and halt execution
-#define MAX_ABCYCLES 100 // only for allocation purposes, no boundary checking assurances
-#define TOUR_A 0
-#define TOUR_B 1 // this is for code clarity
-
-// debugging
-#define PRINT_PARENT_TOURS 1
-#define PRINT_INTERMEDIATE_INFO 1
-#define PRINT_CHILD_TOURS 1
-#define PRINT_GRAPHS 1
-#define PRINT_CYCLES 1
 
 /**
  * a node in a graph

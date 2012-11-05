@@ -12,4 +12,4 @@ cuda: src/fitnesscuda.cu
 	nvcc -lm -g src/fitnesscuda.cu -o cuda -Iinclude/* -I.
 
 clean:
-	rm tsp genrandcity cuda
+	rm tsp genrandcity cuda graphBefore.txt graphAfter.txt

@@ -21,7 +21,7 @@
 #define MAX_ITERATIONS 100 // sets the maximum number of generations to iterate through in the GA
 #define DELTA 0.50 // A float threshold for the difference in the population's best fitness.
 		// When the difference is within this threshold, begin counting how frequently it occurs.
-#define MAX_DELTA 20 // set the maximum number of generations to iterate through when the difference in fitness was repetitively within DELTA.
+#define MAX_DELTA 40 // set the maximum number of generations to iterate through when the difference in fitness was repetitively within DELTA.
 
 /**
  * represents a city that must be visited to create a complete tour

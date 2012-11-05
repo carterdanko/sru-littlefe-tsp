@@ -357,7 +357,7 @@ int main(int argc, char** argv)
 			}
 		} else {
 			// otherwise, run the GA and perform the loop condition checks manually.
-			run_genalg(N,&lcv);
+			//run_genalg(N,&lcv);
 			serial_listener(&iter,&delta_iter,&lcv,Tours,N);
 		}
 	}
