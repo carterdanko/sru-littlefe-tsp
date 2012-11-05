@@ -77,10 +77,10 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
 	if (*iter<MAX_ITERATIONS && *delta_iter<MAX_DELTA) {
 		float delta_fit=0.0;
 		MPI_Status status;
-		tour_t** tempTours = malloc(MAX_CITIES * sizeof(tour_t*) * 5);
+		tour_t** tempTours = malloc(sizeof(tour_t*) * 5);
 
 		// MPI send (tours back to each island)
-		tour_t** bestTours = malloc(MAX_CITIES * sizeof(tour_t*) * 5);
+		tour_t** bestTours = malloc(sizeof(tour_t*) * 5);
 		getBestTours(5, arr_tours, bestTours);
 		int *intTours = malloc(MAX_CITIES * sizeof(int) * 5);
 		tour_tToInt(bestTours, 5, intTours);

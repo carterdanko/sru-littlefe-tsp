@@ -150,13 +150,87 @@ void dumpGraphToFile(graph_t* G, char* fn)
 }
 
 void getBestTours(int max, tour_t** tours, tour_t** bestTours) {
-	//TODO: Find the $(max) best tours from the tours array.
+//	bestTours = malloc(sizeof(tour_t*)*max);
+	int i;
+
+	for (i=0;i<max;i++) {
+		bestTours[i]=tours[i];
+	}
 }
 
-void mergeToursToPop(tour_t** tours, tour_t** toursToMerge, int numToursToMerge) {
-	//TODO: given a sorted list "tours", merge new tours based on their fitness.
+void mergeTourToPop(tour_t** tours, int num_tours, tour_t* mergetour) {
+	int i;
+	for (i=0;i<num_tours;i++) {
+		if (mergetour->fitness < tours[i]->fitness) {
+			int j;
+			// note: this makes the array lose value at tours[num_tours-1] (the last value).
+			for (j=1;j<num_tours-i;j++) {
+				tours[num_tours-j]=tours[num_tours-j-1];
+			}
+			tours[i]=mergetour;
+			return;
+		}
+	}
 }
 
-void sortTours() {
-	//TODO: given an array of tours, sort them based on their fitness in ascending order.
+void mergeToursToPop(tour_t** tours, tour_t** toursToMerge, int numToursToMerge, int num_tours) {
+	// given a sorted list "tours", merge new tours based on their fitness.
+	int i;
+	for (i=0;i<numToursToMerge;i++) {
+		mergeTourToPop(tours, num_tours, toursToMerge[i]);
+	}
+}
+
+void sortTours(tour_t** tours, int numTours) {
+	merge_sort(tours, 0, numTours-1);
+}
+
+/**
+ * Helper function; swaps two tour elements from an array.
+ */
+void merge_swap(tour_t** elem1, tour_t** elem2) {
+	tour_t* temp;
+	temp = *elem1;
+	*elem1 = *elem2;
+	*elem2 = temp;
+}
+
+/**
+ * Helper function.
+ *  PRECONDITION: a<=mid<=b
+ */
+void merge_recursive(tour_t** tours, int a, int mid, int b) {
+	int i,j;
+	for (i=a;i<=mid;i++) {
+		for (j=mid+1;j<=b;j++) {
+			if (tours[j]->fitness >= tours[i]->fitness) {
+				break;
+			} else {
+				merge_swap(&tours[i],&tours[j]);
+				merge_sort(tours,j,b);
+			}
+		}
+	}
+}
+
+/**
+ * Helper function that should only be called by sortTours().
+ *  PRECONDITION: a<b
+ */
+void merge_sort(tour_t** tours, int a, int b) {
+	if (b-a > 1) {
+		// recursive step
+		int middex = (a+b)/2;
+
+		merge_sort(tours, a, middex);
+		merge_sort(tours, middex+1, b);
+
+		// return the recursive merge
+		merge_recursive(tours,a,middex,b);
+	} else {
+		// base step
+		if (tours[b]->fitness < tours[a]->fitness) {
+			merge_swap(&tours[a],&tours[b]);
+		}
+	}
 }

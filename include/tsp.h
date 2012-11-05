@@ -3,7 +3,7 @@
  */
 #ifndef TSP_H // header guard
 #define TSP_H
-#define MPIFLAG 1 // this decides whether or not we are using MPI (for compiling purposes)
+#define MPIFLAG 0 // this decides whether or not we are using MPI (for compiling purposes)
 
 #include <stdlib.h>
 #include <time.h>
@@ -98,5 +98,17 @@ void serial_listener(int *iter,int *delta_iter,char *lcv,tour_t** arr_tours, int
 void run_genalg(int N, char* lcv, tour_t** arr_tours, int mpi_flag);
 
 void perform_eax(int N);
+
+void sortTours(tour_t** tours, int numTours);
+
+void merge_sort(tour_t** tours, int a, int b);
+
+void merge_recursive(tour_t** tours, int a, int mid, int b);
+
+void merge_swap(tour_t** elem1, tour_t** elem2);
+
+void getBestTours(int max, tour_t** tours, tour_t** bestTours);
+
+void mergeToursToPop(tour_t** tours, tour_t** toursToMerge, int numToursToMerge, int num_tours);
 
 #endif // header guard
