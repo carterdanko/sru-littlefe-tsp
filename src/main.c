@@ -12,13 +12,14 @@ tour_t** Tours; // all of the current tours in the population
 void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities) {
 	int i=0;
 	while (i<MAX_POPULATION) {
-		arr_tours[i] = create_tour_nn(arr_cities->city[i%N], N, arr_cities);
+		//arr_tours[i] = create_tour_nn(arr_cities->city[i%N], N, arr_cities);
+		arr_tours[i] = create_tour_rand(arr_cities);
 		set_tour_fitness(arr_tours[i], N);
 		i++;
 	}
 }
 
-#ifdef DEBUG
+#if DEBUG
 void testTourConversion()
 {
 	tour_t cities;
@@ -52,6 +53,59 @@ void testTourArrayConversion(tour_t** t)
 
 }
 #endif
+
+#if BEST_TOUR_TRACKING
+tour_t** BestTours;          // array containing the best tours
+int sizeBestTours; // how many best tours there are
+tour_t* lastBestTour;        // the previous best tour, last iteration
+
+void initBestTourTracking()
+{
+	sizeBestTours = 0;
+	lastBestTour = 0;
+	BestTours = malloc(MAX_BEST_TOURS * sizeof(tour_t*));
+	int i;
+	for (i=0; i < MAX_BEST_TOURS; i++)
+		BestTours[i] = malloc(sizeof(tour_t));
+}
+
+void dumpBestTours()
+{
+	FILE* out = fopen(BTT_FILE, "w");
+	
+	// header info
+	fprintf(out, "%s\n%i\n", citiesFile, randSeed); // filename \n randSeed
+	fprintf(out, "%i\n", sizeBestTours); // number of best tours
+	
+	// each tour in the list
+	int i, k;
+	tour_t* tour;
+	for (i=0; i < sizeBestTours; i++)
+	{
+		tour = BestTours[i];
+		fprintf(out, "%i: f%f %i", i, tour->fitness, tour->city[0]->id);
+		for (k=1; k < tour->size; k++)
+			fprintf(out, ",%i", tour->city[k]->id);
+		fprintf(out, "\n");
+	}
+	
+	fprintf(out, "\n");
+	fclose(out);
+}
+
+/**
+ * pass in current best tour for tracking
+ */
+void trackTours(tour_t* bestTour)
+{
+	if (bestTour != lastBestTour)
+	{
+		BestTours[sizeBestTours] = malloc(sizeof(tour_t));
+		memcpy(BestTours[sizeBestTours++], bestTour, sizeof(tour_t));
+		lastBestTour = bestTour;
+	}
+}
+#endif // best tour tracking
 
 void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs, int *argc, char ***argv) {
 	if (*mpi_flag>0) {
@@ -150,6 +204,17 @@ void serial_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
 
 		// run the GA (also updates population)
 		run_genalg(N, lcv, arr_tours, 0);
+		
+		// print the best tour
+#if PRINT_BEST_TOUR_EACH_ITERATION
+		STRONG_TEXT;
+		printf("Best Tour: ");
+		print_tour(arr_tours[0]);
+		NORMAL_TEXT;
+#endif
+#if BEST_TOUR_TRACKING
+		trackTours(arr_tours[0]);
+#endif
 
 		// Next, subtract by the new best tour's fitness
 		delta_fit-=arr_tours[0]->fitness;
@@ -203,6 +268,7 @@ void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities) {
 	int N = Cities->size;
 	construct_distTable(Cities,N);// compute distances as soon as we can (now)
 	// output the distance table
+#if PRINT_DISTANCE_TABLE
 	int x,y;
 	printf(" -- DISTANCE TABLE --\n");
 	printf("    ");
@@ -216,6 +282,7 @@ void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities) {
 			printf("%4.2f ", (y!=x)?lookup_distance(x, y):0);
 		printf("\n");
 	}
+#endif
 
 	// output the city information to the console
 	DPRINTF("\nNum Cities: %04i\n", Cities->size);
@@ -469,6 +536,10 @@ int main(int argc, char** argv)
 	// populate tours (on all processes)
 	populate_tours(N,mpi_rank,Tours,Cities);
 	//----------------------------------------------------
+	
+#if BEST_TOUR_TRACKING
+	initBestTourTracking();
+#endif
 
 
 	//####################################################

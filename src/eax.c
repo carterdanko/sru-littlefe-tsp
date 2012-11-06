@@ -213,7 +213,9 @@ graph_t* mergeTours(const tour_t* const tA, const tour_t* const tB)
 	tourSize = tA->size; // size of the tour
 	
 	// create an empty graph
+#if PRINT_MISC
 	DPRINTF("\ncreating empty graph (of size %i)...", tourSize);
+#endif
 	R = (graph_t*)malloc(sizeof(graph_t)); // TODO: FREE_MEM: don't forget to free(R) when you're done using it
 	R->size = tourSize;
 	for (i=0; i < tourSize; i++)
@@ -223,11 +225,15 @@ graph_t* mergeTours(const tour_t* const tA, const tour_t* const tB)
 		
 		R->node[i]->id = i; // Each node in the graph is numbered the same as the master city list
 	}
+#if PRINT_MISC
 	DPRINTF("done!\n");
+#endif
 	
 	// visit each city in both tours, adding the edges to R
 	// node[i] is the same city as tA->city[i], but feel free to look at the id's to be sure
+#if PRINT_MISC
 	DPRINTF("populating the graph (merging the edges)...");
+#endif
 	for (i=1; i < tourSize-1; i++)
 	{
 		// tourA's cities
@@ -242,7 +248,9 @@ graph_t* mergeTours(const tour_t* const tA, const tour_t* const tB)
 		curNode->edge[curNode->size++] = R->node[tB->city[(i-1+tourSize)%tourSize]->id]; // previous node in tourB
 		curNode->edge[curNode->size++] = R->node[tB->city[(i+1)%tourSize]->id]; // next node in tourB
 	}
-	DPRINTF("Special cases..."); //TODO debug remove
+#if PRINT_MISC
+	DPRINTF("Special cases..."); 
+#endif
 	// now handle the special case of the first and last nodes in the tour, which link back around (each tour is a cycle)
 	// first city in each tour
 	curNode = R->node[tA->city[0]->id]; // grab the node representing tour A's city[0]
@@ -265,7 +273,9 @@ graph_t* mergeTours(const tour_t* const tA, const tour_t* const tB)
 	curNode->tour[curNode->size] = curNode->tour[curNode->size+1] = 1; // these edges belong to B
 	curNode->edge[curNode->size++] = R->node[tB->city[tourSize-2]->id]; // previous node in tourB
 	curNode->edge[curNode->size++] = R->node[tB->city[0]->id]; // next node in tourB
-	DPRINTF("done!\n"); //TODO debug remove
+#if PRINT_MISC
+	DPRINTF("done!\n"); // debug 
+#endif
 	
 	// at this point R should be fully populated with all of the edges in tA and tB, so we can return what we calculated
 	return R;
@@ -289,7 +299,9 @@ graph_t* createGraph(const tour_t* const tA)
 	tourSize = tA->size; // size of the tour
 	
 	// create an empty graph
+#if PRINT_MISC
 	DPRINTF("\ncreating empty graph (of size %i)...", tourSize);
+#endif
 	R = (graph_t*)malloc(sizeof(graph_t)); // TODO: FREE_MEM: don't forget to free(R) when you're done using it
 	R->size = tourSize;
 	for (i=0; i < tourSize; i++)
@@ -299,11 +311,15 @@ graph_t* createGraph(const tour_t* const tA)
 		
 		R->node[i]->id = i; // Each node in the graph is numbered the same as the master city list
 	}
+#if PRINT_MISC
 	DPRINTF("done!\n");
+#endif
 	
 	// visit each city in both tours, adding the edges to R
 	// node[i] is the same city as tA->city[i], but feel free to look at the id's to be sure
+#if PRINT_MISC
 	DPRINTF("populating the graph (merging the edges)...");
+#endif
 	for (i=1; i < tourSize-1; i++)
 	{
 		// tourA's cities
@@ -312,7 +328,9 @@ graph_t* createGraph(const tour_t* const tA)
 		curNode->edge[curNode->size++] = R->node[tA->city[i-1]->id]; // previous node in tourA
 		curNode->edge[curNode->size++] = R->node[tA->city[i+1]->id]; // next node in tourA
 	}
-	DPRINTF("Special cases..."); //TODO debug remove
+#if PRINT_MISC
+	DPRINTF("Special cases..."); // debug 
+#endif
 	// now handle the special case of the first and last nodes in the tour, which link back around (each tour is a cycle)
 	// first city in each tour
 	curNode = R->node[tA->city[0]->id]; // grab the node representing tour A's city[0]
@@ -325,7 +343,9 @@ graph_t* createGraph(const tour_t* const tA)
 	curNode->tour[curNode->size] = curNode->tour[curNode->size+1] = 0; // these edges belong to A
 	curNode->edge[curNode->size++] = R->node[tA->city[tourSize-2]->id]; // previous node in tourA
 	curNode->edge[curNode->size++] = R->node[tA->city[0]->id]; // next node in tourA
-	DPRINTF("done!\n"); //TODO debug remove
+#if PRINT_MISC
+	DPRINTF("done!\n"); // debug 
+#endif
 	
 	// at this point R should be fully populated with all of the edges in tA, so we can return what we calculated
 	return R;
@@ -1639,9 +1659,13 @@ void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC)
 	///////////////////////////////////////////////////////////////////////////
 	// merge the two tours
 	// TODO: MEMORY the graph needs to be created once somewhere and then saved
+#if PRINT_STEPS
 	DPRINTF("\nMerging A with B...");
+#endif
 	graph_t* R = mergeTours(tourA, tourB);
+#if PRINT_STEPS
 	DPRINTF("done!\n");
+#endif
 
 	// output the merged graph
 #if PRINT_GRAPHS
@@ -1659,16 +1683,22 @@ void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC)
 	///////////////////////////////////////////////////////////////////////////
 	// create A-B cycles on R
 	// TODO: MEMORY cycles memory needs to be allocated once and then saved somewhere
+#if PRINT_STEPS
 	DPRINTF("Allocating cycles...");
+#endif
 	tour_t** cycles;
 	cycles = malloc(sizeof(tour_t *) * MAX_ABCYCLES);
 	for (i=0; i < MAX_ABCYCLES; i++)
 	{
 		cycles[i] = malloc(sizeof(tour_t));
 	}
+#if PRINT_STEPS
 	DPRINTF("done!\n");
+#endif
 	int nCycles;
+#if PRINT_STEPS
 	DPRINTF("Generating AB Cycles....");
+#endif
 	// REMEMBER! R gets defiled by this call, and the contents of cycles isn't important, it all gets overwritten
 #if PRINT_CYCLE_POINTERS
 	DPRINTF("\033[35mCycles (before generateABCycles)  : %i", cycles[0]);
@@ -1676,7 +1706,9 @@ void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC)
 	DPRINTF("\033[0m\n");
 #endif
 	nCycles = generateABCycles(Cities, R, cycles);
+#if PRINT_MISC
 	DPRINTF("done!\n");
+#endif
 
 #if PRINT_CYCLES
 	// output the cycles
@@ -1730,13 +1762,17 @@ void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC)
 #endif
 	// create edges array
 	//TODO: MEMORY this needs to be done once somewhere and then saved
+#if PRINT_STEPS
 	DPRINTF("allocating edges array...\n");
+#endif
 	edge_t** edges = (edge_t**)malloc(sizeof(edge_t *) * Cities->size);
 	for (i=0; i < Cities->size; i++)
 	{
 		edges[i] = (edge_t*)malloc(sizeof(edge_t));
 	}
+#if PRINT_STEPS
 	DPRINTF("Applying the E-set.\n");
+#endif
 #if PRINT_CYCLE_POINTERS
 	DPRINTF("\033[35mCycles (before applyESET) : %i", cycles[0]);
 	for (i=1; i < 6; i++) DPRINTF(", %i", cycles[i]);
@@ -1748,7 +1784,9 @@ void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC)
 	for (i=1; i < 6; i++) DPRINTF(", %i", cycles[i]);
 	DPRINTF("\033[0m\n");
 #endif
+#if PRINT_STEPS
 	DPRINTF("there were \033[32m%i\033[0m disjoint cycles.\n", disjointCycles);
+#endif
 #if PRINT_INTERMEDIATE_INFO
 #if PRINT_GRAPHS
 	// output the intermediate
@@ -1823,7 +1861,9 @@ void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC)
 	
 	// clean up
 	// TODO: MEMORY when the memory stuff is fixed, this will be done somewhere else
+#if PRINT_STEPS
 	DPRINTF("\nClean up...");
+#endif
 	freeGraph(R);
 	freeGraph(T);
 

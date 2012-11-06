@@ -57,3 +57,63 @@
 		
 	free(cities);
  }
+ 
+/**
+ * Generates the nearest neighbor tour based on a random city.
+ * city : city to start with
+ * num_cities : number of cities there are
+ * cities : the master array of city objects
+ */
+tour_t* create_tour_nn(city_t* city, int num_cities, tour_t* cities) {
+	// Set up the cities_visited array; 0 for not visited, 1 for visited.
+	char cities_visited[MAX_CITIES]; // keeps track of which cities we've visited so far
+	tour_t* tour; // The tour to be returned.
+	city_t* next_city; // The next city to place in the tour.
+	int i; // loop control
+	
+	
+	memset(cities_visited, 0, MAX_CITIES * sizeof(char)); // set all to false
+	tour = malloc( sizeof(tour_t) ); // instantiate tour
+	
+	// Init to be the city passed into the function
+	next_city = city;
+	// The first city is city passed.
+	tour->city[0] = city;
+	cities_visited[city->id] = 1;
+
+	// Iterate through the cities, adding new ones and marking them off.
+	for (i=1;i<num_cities;i++) {
+		next_city = find_nearest_neighbor(next_city, num_cities, cities, cities_visited);
+		tour->city[i] = next_city;
+		cities_visited[next_city->id] = 1;
+	}
+
+	// Before returning, set the tour's size.
+	tour->size = num_cities;
+	return tour;
+}
+
+/**
+ * creates a tour by randomly iteration over the cities
+ * Cities : the master cities structure
+ * returns : pointer to a tour created on the heap (will have to manually free it to avoid memory leaks)
+ */
+tour_t* create_tour_rand(tour_t* cities)
+{
+	tour_t* tour = malloc(sizeof(tour_t)); // return value
+	memcpy(tour, cities, sizeof(tour_t));
+	city_t* swap; // temp for swapping
+	
+	// iterate over tour, swapping a random city with the last city in the array
+	int a, b;
+	for (a=tour->size; a > 1; a--)
+	{
+		b = rand() % a;
+		
+		swap = tour->city[a-1];
+		tour->city[a-1] = tour->city[b];
+		tour->city[b] = swap;
+	}
+	
+	return tour;
+}

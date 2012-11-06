@@ -13,27 +13,36 @@
 float* distTable;// initialized in fitness.c inside construct_distTable
 
 
+float dist(float x1, float y1, float x2, float y2)
+{
+	float x,y;
+	x = x2-x1;
+	y = y2-y1;
+	return sqrt(x*x+y*y);
+}
+
 /**
  * Using The Pythagorean's Theorem, calculate the distance from p1 to p2.
  */
 float get_distance_between(int p1, int p2, tour_t* cities) {
-	float x,y;
-	x = cities->city[p1]->x - cities->city[p2]->x;
-	y = cities->city[p1]->y - cities->city[p2]->y;
-	return sqrtf(x*x+y*y);
+	return dist(cities->city[p1]->x, cities->city[p1]->y, cities->city[p2]->x, cities->city[p2]->y);
 }
 
 /**
  *  Constructs the distTable.
  */
+tour_t* Cities;
 void construct_distTable(tour_t* cities, int num_cities) {
+	Cities = cities;
 	distTable = malloc(sizeof(*distTable) * ((num_cities * (num_cities-1)) / 2));
 	int i,j,index;
 	index=0;
 	for (i=0;i<num_cities;i++) {
 		for (j=0;j<i;j++) {
 			distTable[index] = get_distance_between(i,j,cities);
+#if PRINT_DISTANCE
 			DPRINTF("(%i,%i)->%f\t",i,j,distTable[index]);
+#endif
 			index++;
 		}
 		printf("\n");
@@ -49,11 +58,29 @@ float lookup_distance(int p1, int p2) {
 		//DPRINTF("p1<p2 inside lookup_distance: distTable[(%i*(%i-1)/2)+%i==%i]=%f\n", p2, p2, p1, (p2*(p2-1)/2)+p1, distTable[(p2*(p2-1)/2)+p1]);
 		//float f = distTable[(p2*(p2-1)/2)+p1];
 		//DPRINTF("f=%f\n", f);
+#if ENFORCE_LOOKUP_TABLE_CORRECTNESS
+		if (distTable[(p2*(p2-1)/2)+p1] != get_distance_between(p1, p2, Cities))
+		{
+			ERROR_TEXT;
+			printf("INVALID VALUE IN DISTANCE TABLE OR INVALID LOOKUP: p1=%i p2=%i\n", p1, p2);
+			NORMAL_TEXT;
+			terminate_program(783);
+		}
+#endif
 		return distTable[(p2*(p2-1)/2)+p1];
 	} else if (p1>p2) {
 		//DPRINTF("p1>p2 inside lookup_distance: distTable[(%i*(%i-1)/2)+%i==%i]=%f\n", p1, p1, p2, (p1*(p1-1)/2)+p2, distTable[(p1*(p1-1)/2)+p2]);
 		//float f = distTable[(p1*(p1-1)/2)+p2];
 		//DPRINTF("f=%f\n", f);
+#if ENFORCE_LOOKUP_TABLE_CORRECTNESS
+		if (distTable[(p1*(p1-1)/2)+p2] != get_distance_between(p1, p2, Cities))
+		{
+			ERROR_TEXT;
+			printf("INVALID VALUE IN DISTANCE TABLE OR INVALID LOOKUP: p1=%i p2=%i\n", p1, p2);
+			NORMAL_TEXT;
+			terminate_program(784);
+		}
+#endif
 		return distTable[(p1*(p1-1)/2)+p2];
 	} else {
 		ERROR_TEXT;
@@ -71,49 +98,31 @@ float lookup_distance(int p1, int p2) {
  */
 void set_tour_fitness(tour_t* tour, int num_cities) {
 	int i;
-	float fitness=0.0;
-	for (i=0;i<num_cities-1;i++) {
-		fitness+=lookup_distance(tour->city[i]->id,tour->city[i+1]->id);
+	tour->fitness=0.0;
+#if DEBUG_SET_TOUR_FITNESS
+	DPRINTF("Debugging fitness for tour: ");
+	dprint_tour(tour);
+#endif
+	for (i=0; i < num_cities-1; i++) 
+	{
+#if DEBUG_SET_TOUR_FITNESS
+		float lookup = lookup_distance(tour->city[i]->id, tour->city[i+1]->id);
+		float calc = dist(tour->city[i]->x, tour->city[i]->y, tour->city[i+1]->x, tour->city[i+1]->y);
+		tour->fitness+=lookup;
+		DPRINTF("[%i]->[%i] : lookup: %f  calc: %f   total: %f\n", tour->city[i]->id, tour->city[i+1]->id, lookup, calc, tour->fitness);
+#else
+		tour->fitness+=lookup_distance(tour->city[i]->id,tour->city[i+1]->id);
+#endif
 	}
 	// and, we count arr[n] --> arr[0]
-	fitness+=lookup_distance(tour->city[0]->id,tour->city[num_cities-1]->id);
-
-	tour->fitness=fitness;
-}
-
-/**
- * Generates the nearest neighbor tour based on a random city.
- * city : city to start with
- * num_cities : number of cities there are
- * cities : the master array of city objects
- */
-tour_t* create_tour_nn(city_t* city, int num_cities, tour_t* cities) {
-	// Set up the cities_visited array; 0 for not visited, 1 for visited.
-	char cities_visited[MAX_CITIES]; // keeps track of which cities we've visited so far
-	tour_t* tour; // The tour to be returned.
-	city_t* next_city; // The next city to place in the tour.
-	int i; // loop control
-	
-	
-	memset(cities_visited, 0, MAX_CITIES * sizeof(char)); // set all to false
-	tour = malloc( sizeof(tour_t) ); // instantiate tour
-	
-	// Init to be the city passed into the function
-	next_city = city;
-	// The first city is city passed.
-	tour->city[0] = city;
-	cities_visited[city->id] = 1;
-
-	// Iterate through the cities, adding new ones and marking them off.
-	for (i=1;i<num_cities;i++) {
-		next_city = find_nearest_neighbor(next_city, num_cities, cities, cities_visited);
-		tour->city[i] = next_city;
-		cities_visited[next_city->id] = 1;
-	}
-
-	// Before returning, set the tour's size.
-	tour->size = num_cities;
-	return tour;
+#if DEBUG_SET_TOUR_FITNESS
+	float lookup = lookup_distance(tour->city[num_cities-1]->id, tour->city[0]->id);
+	float calc = dist(tour->city[num_cities-1]->x, tour->city[num_cities-1]->y, tour->city[0]->x, tour->city[0]->y);
+	tour->fitness+=lookup;
+	DPRINTF("[%i]->[%i] : lookup: %f  calc: %f   total: %f\n", tour->city[num_cities-1]->id, tour->city[0]->id, lookup, calc, tour->fitness);
+#else
+	tour->fitness+=lookup_distance(tour->city[num_cities-1]->id, tour->city[0]->id);
+#endif
 }
 
 /**
