@@ -147,14 +147,14 @@ city_t* find_nearest_neighbor(city_t* city, int num_cities, tour_t* cities, char
  * of the function, inversely. In other words, for fitness F1 for tour T1,
  * your probability of receiving tour T1 is (1/F1) / sum( 1/Fi ).
  */
-tour_t* roulette_select(tour_t tours[], int num_tours) {
+tour_t* roulette_select(tour_t** tours, int num_tours) {
 	int i;
 	float rand,rand_fit,sum_fitness,temp;
 	sum_fitness=0.0;
 
 	// sum up the inverted total fitnesses
 	for (i=0;i<num_tours;i++) {
-		temp = tours[i].fitness;
+		temp = tours[i]->fitness;
 		temp = 1.0 / temp;
 		sum_fitness+= temp;
 	}
@@ -166,10 +166,10 @@ tour_t* roulette_select(tour_t tours[], int num_tours) {
 	rand_fit = sum_fitness * rand;
 
 	for (i=0;i<num_tours;i++) {
-		temp = 1.0 / tours[i].fitness;
+		temp = 1.0 / tours[i]->fitness;
 		if (rand_fit < temp) {
 			// If your fitness is in this tour, return it.
-			return &tours[i];
+			return tours[i];
 		} else {
 			// Otherwise, subtract this tour's fitness from sum_fitness and try again.
 			rand_fit-=temp;

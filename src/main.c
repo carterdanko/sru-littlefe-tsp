@@ -9,14 +9,12 @@
 tour_t* Cities; // the "tour" that contains every city in their provided order. Not really a tour, just used as the master array of cities.
 tour_t** Tours; // all of the current tours in the population
 
-//TODO: Some variable to keep track of the current size of the Population
-
 void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities) {
-	int i;
-
-	for (i=0;i<N;i++) {
-		arr_tours[i] = create_tour_nn(arr_cities->city[i], N, arr_cities);
+	int i=0;
+	while (i<MAX_POPULATION) {
+		arr_tours[i] = create_tour_nn(arr_cities->city[i%N], N, arr_cities);
 		set_tour_fitness(arr_tours[i], N);
+		i++;
 	}
 }
 
@@ -147,13 +145,11 @@ void serial_listener(int *iter,int *delta_iter,char *lcv,tour_t** arr_tours, int
 	if (((*iter)<MAX_ITERATIONS) && ((*delta_iter)<MAX_DELTA)) {
 		float delta_fit=0.0;
 
-		// run the GA
-		run_genalg(N,lcv,Tours,0);
-
 		// First, grab the original best tour's fitness.
 		delta_fit=arr_tours[0]->fitness;
 
-		//TODO: udpate master population
+		// run the GA (also updates population)
+		run_genalg(N,lcv,Tours,0);
 
 		// Next, subtract by the new best tour's fitness
 		delta_fit-=arr_tours[0]->fitness;
@@ -201,11 +197,6 @@ void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities) {
 			terminate_program(5); // ERROR: error while loading cities
 		}
 		DPRINTF("done! (loaded %i cities from the file)\n", Cities->size);
-		//TODO: MPI send cities
-	}
-	// otherwise...
-	else {
-		//TODO: MPI receive cities
 	}
 	DPRINTF("done! (loaded %i cities from the file)\n", Cities->size);
 	// process the cities
@@ -226,12 +217,6 @@ void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities) {
 		printf("\n");
 	}
 
-#if DEBUG
-	// run conversion tests
-	//~~!
-//	testTourConversion();
-#endif
-
 	// output the city information to the console
 	DPRINTF("\nNum Cities: %04i\n", Cities->size);
 	DPRINTF("---------------------------\n");
@@ -243,11 +228,27 @@ void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities) {
 }
 
 void run_genalg(int N, char *lcv, tour_t** arr_tours, int mpi_flag) {
-	if (mpi_flag==0) {
-		//TODO: Select parents for child creation (roulette wheel)
+	tour_t *parentTourPop[3][MAX_PAIR_TOURS];
+	tour_t temp[MAX_PAIR_TOURS];
+	int i;
+	for (i=0;i<MAX_PAIR_TOURS;i++) {
+		parentTourPop[0][i]=roulette_select(arr_tours, MAX_POPULATION);
+		// PRECONDITION: This should always leave.
+		do {
+			DPRINTF("cluttering code for kyle\n");
+			parentTourPop[1][i]=roulette_select(arr_tours, MAX_POPULATION);
+		} while (parentTourPop[0][i]==parentTourPop[1][i]);
+		parentTourPop[2][i]=&temp[i];
+	}
 
+	if (mpi_flag==0) {
 		// Create children
-		performEAX(Cities, arr_tours[0], arr_tours[1], arr_tours[2]);
+		for (i=0;i<MAX_PAIR_TOURS;i++) {
+			performEAX(Cities, parentTourPop[0][i], parentTourPop[1][i], parentTourPop[2][i]);
+		}
+		mergeToursToPop(arr_tours,parentTourPop[2],MAX_PAIR_TOURS,MAX_POPULATION);
+
+		// TODO: fix all of kyle's suggestions for MPI
 	} else {
 #if MPIFLAG
 		int *intTours = malloc(Cities->size * 5);
@@ -274,6 +275,7 @@ void run_genalg(int N, char *lcv, tour_t** arr_tours, int mpi_flag) {
 			printf(">> NOW RUNNING EAX <<\n");
 			performEAX(Cities, Tours[0], Tours[1], Tours[2]);
 			printf(">> EXIT EAX <<\n");
+			mergeTourToPop(Tours, MAX_TOUR, Tours[2]);
 
 			// MPI send (tours to master)
 			getBestTours(5, arr_tours, tempTours);

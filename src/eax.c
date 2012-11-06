@@ -1803,6 +1803,9 @@ void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC)
 	///////////////////////////////////////////////////////////////////////////
 	// GA step?
 	// cycles[0] contains the only cycle, and should contain the new tour.
+	// fix the tour by removing the last vertex
+	--cycles[0]->size;
+	set_tour_fitness(cycles[0], cycles[0]->size);
 	memcpy(tourC, cycles[0], sizeof(*cycles[0]));
 	
 	// clean up

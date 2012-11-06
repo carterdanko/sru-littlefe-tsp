@@ -3,7 +3,7 @@
  */
 #ifndef TSP_H // header guard
 #define TSP_H
-#define MPIFLAG 1 // this decides whether or not we are using MPI (for compiling purposes)
+#define MPIFLAG 0 // this decides whether or not we are using MPI (for compiling purposes)
 
 #include <stdlib.h>
 #include <time.h>
@@ -27,6 +27,7 @@
 		// When the difference is within this threshold, begin counting how frequently it occurs.
 #define MAX_DELTA 20 // set the maximum number of generations to iterate through when the difference in fitness was repetitively within DELTA.
 #define MPI_TAG 2
+#define MAX_PAIR_TOURS MAX_POPULATION
 
 /**
  * represents a city that must be visited to create a complete tour
@@ -51,6 +52,7 @@ typedef struct {
 // main.c
 extern int randSeed; // random seed to use
 extern char* citiesFile; // cities file name
+extern tour_t** Tours; // Tours array
 ////////////////
 
 // util.c
@@ -81,7 +83,7 @@ void freeCities(tour_t* cities); // frees the memory used by the structure
 
 
 
-tour_t* roulette_select(tour_t tours[], int num_tours); // selects a random tour weighted by its fitness.
+tour_t* roulette_select(tour_t** tours, int num_tours); // selects a random tour weighted by its fitness.
 
 void terminate_program(int ecode);
 

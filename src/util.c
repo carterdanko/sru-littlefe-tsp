@@ -7,7 +7,7 @@ float frand() {
 
 void print_tour(tour_t* tour) {
 	int i;
-	printf("Tour: [%i]", tour->city[0]->id);
+	printf("Tour [f:%f]: [%i]", tour->fitness, tour->city[0]->id);
 	for (i=1; i < tour->size; i++)
 		printf(", [%i]", tour->city[i]->id);
 	printf("\n");
@@ -34,6 +34,19 @@ void terminate_program(int ecode)
 	OOPS_TEXT;
 	printf("randSeed: %i, citiesFile: '%s'\n", randSeed, citiesFile);
 	NORMAL_TEXT;
+	if (Tours[0])
+	{
+		STRONG_TEXT;
+		printf(" -- BEST TOUR --\n");
+		print_tour(Tours[0]);
+		NORMAL_TEXT;
+	}
+	else
+	{
+		ERROR_TEXT;
+		printf("Invalid best tour!\n");
+		NORMAL_TEXT;
+	}
 	if (ecode==0) 
 	{
 
