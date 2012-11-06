@@ -61,6 +61,10 @@ void terminate_program(int ecode)
 		printf("PROGRAM ABNORMALLY TERMINATED, ECODE: %i\n", ecode);
 		NORMAL_TEXT;
 	}
+	
+#if BEST_TOUR_TRACKING
+	dumpBestTours();
+#endif
 
 	// exit the program.
 	exit(ecode);

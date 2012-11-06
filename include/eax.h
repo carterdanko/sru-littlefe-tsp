@@ -7,10 +7,10 @@
 #include "include/tsp.h"
 
 // constants
-#define MAX_SUB_TOURS 10  // maximum number of sub-tours in an intermediate tour
+#define MAX_SUB_TOURS 50  // maximum number of sub-tours in an intermediate tour
 #define MAX_EDGES 4       // there can only be 4 maximum edges, two from each parent tour
-#define PANIC_EXIT 100  // some choosing algorithms are implemented by randomly choosing items that haven't been chosen yet, choosing again when encountering one that was already chosen. If this many iterations of that occur, we exit the loop to prevent hanging, print an error message, and halt execution
-#define MAX_ABCYCLES 100 // only for allocation purposes, no boundary checking assurances
+#define PANIC_EXIT MAX_CITIES+3  // some choosing algorithms are implemented by randomly choosing items that haven't been chosen yet, choosing again when encountering one that was already chosen. If this many iterations of that occur, we exit the loop to prevent hanging, print an error message, and halt execution
+#define MAX_ABCYCLES MAX_CITIES/4 // only for allocation purposes, no boundary checking assurances
 #define TOUR_A 0
 #define TOUR_B 1 // this is for code clarity
 
