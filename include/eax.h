@@ -14,24 +14,6 @@
 #define TOUR_A 0
 #define TOUR_B 1 // this is for code clarity
 
-// debugging
-// globals
-#define PRINT_PARENT_TOURS 1        // parent tours of current generation
-#define PRINT_INTERMEDIATE_INFO 1   // information about intermediate individuals generated
-#define PRINT_EDGES 1               // prints the list of edges
-#define PRINT_CHILD_TOURS 1         // information about child tours
-#define PRINT_GRAPHS 1              // information about graphs
-#define PRINT_CYCLES 1              // information about AB cycles, sub cycles, and other cycles
-// per method
-#define PRINT_GENERATE_AB_CYLES 1   // generateABCycles() output
-#define PRINT_FIX_INTERMEDIATE 1    // fixIntermediate() output
-#define PRINT_MERGE_SUB_TOURS 1     // mergeSubTours() output
-#define PRINT_APPLY_ESET 1          // applyESET() output
-#define PRINT_GENERATE_ESET 1       // generateESET functions (rand and heuristic)
-#define PRINT_EDGE_OPERATIONS 1     // prints information about edge operations (REMOVE_EDGE and RESTORE_EDGE)
-// other stuff I guess?
-#define PRINT_CYCLE_POINTERS 1      // prints what the cycle pointers are at various points, used for debugging the identical cycle pointers bug
-
 // inlines
 // removes edge E from vertex V 
 #define REMOVE_EDGE(V,E) do { \

@@ -57,8 +57,10 @@ float lookup_distance(int p1, int p2) {
 		return distTable[(p1*(p1-1)/2)+p2];
 	} else {
 		ERROR_TEXT;
-		DPRINTF("WARNING -- THIS SHOULD NEVER HAPPEN (p1==p2); returning 0...\n");
+		DPRINTF("WARNING -- THIS SHOULD NEVER HAPPEN (p1[%i]==p2[%i]); terminating...\n", p1, p2);
 		NORMAL_TEXT;
+		
+		terminate_program(787);
 		return 0.0;
 	}
 }
@@ -81,34 +83,36 @@ void set_tour_fitness(tour_t* tour, int num_cities) {
 
 /**
  * Generates the nearest neighbor tour based on a random city.
+ * city : city to start with
+ * num_cities : number of cities there are
+ * cities : the master array of city objects
  */
 tour_t* create_tour_nn(city_t* city, int num_cities, tour_t* cities) {
 	// Set up the cities_visited array; 0 for not visited, 1 for visited.
-	char *cities_visited;
-	cities_visited = (char *)malloc( num_cities * sizeof(char) );
-	memset((void*)cities_visited, 0, sizeof(cities_visited));
-	// The tour to be returned.
-	tour_t* tour;
-	tour = malloc( sizeof(tour_t) );
-	// The next city to place in the tour.
-	city_t* next_city;
+	char cities_visited[MAX_CITIES]; // keeps track of which cities we've visited so far
+	tour_t* tour; // The tour to be returned.
+	city_t* next_city; // The next city to place in the tour.
+	int i; // loop control
+	
+	
+	memset(cities_visited, 0, MAX_CITIES * sizeof(char)); // set all to false
+	tour = malloc( sizeof(tour_t) ); // instantiate tour
+	
 	// Init to be the city passed into the function
 	next_city = city;
 	// The first city is city passed.
 	tour->city[0] = city;
-	cities_visited[ city->id ]=1;
-
-	int i;
+	cities_visited[city->id] = 1;
 
 	// Iterate through the cities, adding new ones and marking them off.
 	for (i=1;i<num_cities;i++) {
-		next_city = find_nearest_neighbor(next_city,num_cities,cities,cities_visited);
-		tour->city[i]=next_city;
-		cities_visited[ next_city->id ]=1;
+		next_city = find_nearest_neighbor(next_city, num_cities, cities, cities_visited);
+		tour->city[i] = next_city;
+		cities_visited[next_city->id] = 1;
 	}
 
 	// Before returning, set the tour's size.
-	tour->size=num_cities;
+	tour->size = num_cities;
 	return tour;
 }
 
@@ -120,20 +124,16 @@ city_t* find_nearest_neighbor(city_t* city, int num_cities, tour_t* cities, char
 	city_t* short_city;
 	short_city=malloc( sizeof(city_t) );
 	float temp_dist,short_dist;
-	temp_dist=short_dist=0.0;
+	short_dist=10000000.0; // some big value //TODO: replace with float max?
 	int i;
 
 	for (i=0;i<num_cities;i++) {
-		if (cities->city[i]->id == city->id) {
+		if (cities->city[i]->id == city->id || cities_visited[i]) {
 			continue;
 		}
 		temp_dist = get_distance_between(cities->city[i]->id,city->id,cities);
-		if (  temp_dist < short_dist && cities_visited[i]==0) {
+		if (  temp_dist < short_dist) {
 			// If your distance was shorter than the shortest, use this instead.
-			short_city = cities->city[i];
-			short_dist = temp_dist;
-		} else if (short_dist==0 && cities_visited[i]==0) {
-			// Otherwise, if not already set, get the first distance as your shortest.
 			short_city = cities->city[i];
 			short_dist = temp_dist;
 		}
@@ -146,14 +146,19 @@ city_t* find_nearest_neighbor(city_t* city, int num_cities, tour_t* cities, char
  * choose one of the tours. The choice is weighted based on the fitness
  * of the function, inversely. In other words, for fitness F1 for tour T1,
  * your probability of receiving tour T1 is (1/F1) / sum( 1/Fi ).
+ * tours : the array of tours to choose from
+ * num_tours : the number of tours to choose from
+ * ignore_tour [optional] : a tour to ignore for choosing, set to null (0) to not ignore any tours
  */
-tour_t* roulette_select(tour_t** tours, int num_tours) {
+tour_t* roulette_select(tour_t** tours, int num_tours, tour_t* ignore_tour) {
 	int i;
 	float rand,rand_fit,sum_fitness,temp;
 	sum_fitness=0.0;
 
 	// sum up the inverted total fitnesses
 	for (i=0;i<num_tours;i++) {
+		if (tours[i] == ignore_tour)
+			continue; // don't count ignore_tour in the fitness sum
 		temp = tours[i]->fitness;
 		temp = 1.0 / temp;
 		sum_fitness+= temp;
@@ -166,16 +171,25 @@ tour_t* roulette_select(tour_t** tours, int num_tours) {
 	rand_fit = sum_fitness * rand;
 
 	for (i=0;i<num_tours;i++) {
+		if (tours[i] == ignore_tour)
+			continue; // don't check the ignore tour, it wasn't counted in the fitness sum
 		temp = 1.0 / tours[i]->fitness;
 		if (rand_fit < temp) {
 			// If your fitness is in this tour, return it.
 			return tours[i];
-		} else {
+		} 
+		else {
 			// Otherwise, subtract this tour's fitness from sum_fitness and try again.
 			rand_fit-=temp;
 		}
 	}
+	
 	// never executes.
+	ERROR_TEXT;
+	DPRINTF("Reached 'unreachable' code in roullette_select.\n");
+	NORMAL_TEXT;
+	DPRINTF("rand: %f, rand_fit: %f, sum_fitness: %f, temp: %f, ignore_tour: m(\033[31m%i\033[0m)\n", rand, rand_fit, sum_fitness, temp, ignore_tour);
+	terminate_program(543);
 	return;
 }
 
