@@ -6,7 +6,7 @@
 #define OPC_H
 
 ////////////////////////////////////////////////////////////////
-#define OPC_ENABLE 1 // set to 0 to disable all of them
+#define OPC_ENABLE 0 // set to 0 to disable all of them
 #if OPC_ENABLE
 // debugging
 // globals
@@ -17,7 +17,7 @@
 #define PRINT_GRAPHS 1              // information about graphs
 #define PRINT_CYCLES 1              // information about AB cycles, sub cycles, and other cycles
 // per method
-#define PRINT_GENERATE_AB_CYLES 1   // generateABCycles() output
+#define PRINT_GENERATE_AB_CYCLES 0   // generateABCycles() output
 #define PRINT_FIX_INTERMEDIATE 0    // fixIntermediate() output
 #define PRINT_MERGE_SUB_TOURS 0     // mergeSubTours() output
 #define PRINT_APPLY_ESET 0          // applyESET() output

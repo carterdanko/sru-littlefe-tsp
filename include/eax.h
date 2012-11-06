@@ -16,21 +16,30 @@
 
 // inlines
 // removes edge E from vertex V 
+#if PRINT_EDGE_OPERATIONS
+	#define REMOVING_PRINT \
+		DPRINTF("\033[33mremoving\033[0m edge(v[%i]->v[%i]t%i from graph...\n", \
+						(V?V->id:-1), \
+						(V && V->edge[E]?V->edge[E]->id:-1), \
+						(V?V->tour[E]:-1))
+	#define RESTORING_PRINT \
+		DPRINTF("\033[32mrestoring\033[0m edge(v[%i]->v[%i]t%i to graph...\n", \
+					(V?V->id:-1), \
+					(V && V->edge[E]?V->edge[E]->id:-1), \
+					(V?V->tour[E]:-1)) 
+#else
+	#define REMOVING_PRINT
+	#define RESTORING_PRINT
+#endif
 #define REMOVE_EDGE(V,E) do { \
-				if (PRINT_EDGE_OPERATIONS) DPRINTF("\033[33mremoving\033[0m edge(v[%i]->v[%i]t%i from graph...\n", \
-				(V?V->id:-1), \
-				(V && V->edge[E]?V->edge[E]->id:-1), \
-				(V?V->tour[E]:-1)); \
+				REMOVING_PRINT; \
                 node_t* _tv; int _tt; _tv=V->edge[--V->size]; _tt=V->tour[V->size]; \
                 V->edge[V->size] = V->edge[E]; V->tour[V->size] = V->tour[E]; \
 			  	V->edge[E] = _tv; V->tour[E] = _tt; \
 			} while(0) 
 // restore a previously removed edge back to vertex V
 #define RESTORE_EDGE(V,E) do { \
-				if (PRINT_EDGE_OPERATIONS) DPRINTF("\033[32mrestoring\033[0m edge(v[%i]->v[%i]t%i to graph...\n", \
-				(V?V->id:-1), \
-				(V && V->edge[E]?V->edge[E]->id:-1), \
-				(V?V->tour[E]:-1)); \
+				RESTORING_PRINT; \
 			  	node_t* _tv; int _tt; _tv=V->edge[V->size]; _tt=V->tour[V->size]; \
                 V->edge[V->size] = V->edge[E]; V->tour[V->size++] = V->tour[E]; \
 			  	V->edge[E] = _tv; V->tour[E] = _tt; \

@@ -407,19 +407,20 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 		DPRINTF("Choosing a random vertex...\n");//TODO: debug remove
 #endif
 		// choose a vertex with at least 2 edges (to create a loop)
-		v2 = R->node[rand() % R->size];
+		v2i = rand() % R->size;
 		panic = 0;
 #if PRINT_GENERATE_AB_CYCLES
-		DPRINTF("first pick: [%i]->s:%i\n", v2->id, v2->size);
+		DPRINTF("first pick: [%i]->s:%i\n", v2i, R->node[v2i]->size);
 #endif
-		for (;v2->size == 0 && panic<PANIC_EXIT; panic++)
-			v2 = R->node[rand() % R->size];
+		for (;R->node[v2i]->size < 2 && panic<PANIC_EXIT; panic++)
+			v2i = (v2i+1) % R->size;
 		if (panic >= PANIC_EXIT)
 		{
 			ERROR_TEXT;
 			printf("generateABCycles() :: ERROR : panic_exit : too many iterations (%i >= %i) when trying to pick a vertex that has remaining edges. halting...\n", panic, PANIC_EXIT);
 			terminate_program(32);
 		}
+		v2 = R->node[v2i];
 #if PRINT_GENERATE_AB_CYCLES
 		DPRINTF("v2:%i...\n", v2->id);//TODO: debug remove
 #endif
