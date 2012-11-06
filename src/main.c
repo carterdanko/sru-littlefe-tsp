@@ -101,7 +101,7 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
 			MPI_Recv(intTours, Cities->size * 5, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD, &status);
 			intToTour_t(Cities, intTours, 5, tempTours);
 			// udpate master population (sort it)
-			mergeToursToPop(arr_tours, tempTours, 5, MAX_TOUR);
+			mergeToursToPop(arr_tours, MAX_TOUR, tempTours, 5);
 		}
 
 		// Next, subtract by the new best tour's fitness
@@ -140,7 +140,7 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
 }
 #endif
 
-void serial_listener(int *iter,int *delta_iter,char *lcv,tour_t** arr_tours, int N) {
+void serial_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, int N) {
 	// if you are within the constraints, perform actions
 	if (((*iter)<MAX_ITERATIONS) && ((*delta_iter)<MAX_DELTA)) {
 		float delta_fit=0.0;
@@ -149,7 +149,7 @@ void serial_listener(int *iter,int *delta_iter,char *lcv,tour_t** arr_tours, int
 		delta_fit=arr_tours[0]->fitness;
 
 		// run the GA (also updates population)
-		run_genalg(N,lcv,Tours,0);
+		run_genalg(N, lcv, arr_tours, 0);
 
 		// Next, subtract by the new best tour's fitness
 		delta_fit-=arr_tours[0]->fitness;
@@ -228,25 +228,52 @@ void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities) {
 }
 
 void run_genalg(int N, char *lcv, tour_t** arr_tours, int mpi_flag) {
-	tour_t *parentTourPop[3][MAX_PAIR_TOURS];
-	tour_t temp[MAX_PAIR_TOURS];
+	/////////////////////////////////////////////
+	// pick 100 pairs of parent tours
 	int i;
+	tour_t *parentTourPop[MAX_PAIR_TOURS][2]; // the array of parent pairs [0] = parentA, [1] = parentB
+	tour_t *children[MAX_PAIR_TOURS]; // use pointers to keep everything consistent (I know it's tacky, but it should be faster than malloc)
+	tour_t temp2[MAX_PAIR_TOURS]; // allocate a bunch of tours on the stack to store the generated tours
+#if PRINT_TOURS_DURING_MERGING
+	DPRINTF("-- printing tours BEFORE anything -- \n");
+	for (i=0; i < MAX_PAIR_TOURS; i++)
+	{
+		DPRINTF("m(\033[31m%i\033[0m)Tours[%i]: ", Tours[i], i);
+		print_tour(Tours[i]);
+	}
+#endif
 	for (i=0;i<MAX_PAIR_TOURS;i++) {
-		parentTourPop[0][i]=roulette_select(arr_tours, MAX_POPULATION);
-		// PRECONDITION: This should always leave.
-		do {
-			DPRINTF("cluttering code for kyle\n");
-			parentTourPop[1][i]=roulette_select(arr_tours, MAX_POPULATION);
-		} while (parentTourPop[0][i]==parentTourPop[1][i]);
-		parentTourPop[2][i]=&temp[i];
+		parentTourPop[i][0]=roulette_select(arr_tours, MAX_POPULATION, 0);
+		parentTourPop[i][1]=roulette_select(arr_tours, MAX_POPULATION, parentTourPop[i][0]);
+		children[i] = &temp2[i]; // fill up the array of pointers
 	}
 
 	if (mpi_flag==0) {
-		// Create children
+		///////////////////////////////////////
+		// run EAX on each pair of parents
 		for (i=0;i<MAX_PAIR_TOURS;i++) {
-			performEAX(Cities, parentTourPop[0][i], parentTourPop[1][i], parentTourPop[2][i]);
+			performEAX(Cities, parentTourPop[i][0], parentTourPop[i][1], children[i]);
 		}
-		mergeToursToPop(arr_tours,parentTourPop[2],MAX_PAIR_TOURS,MAX_POPULATION);
+		
+		/////////////////////////////////////////
+		// Merge the generated tours back into the population
+#if PRINT_TOURS_DURING_MERGING
+		DPRINTF("-- printing tours BEFORE merging -- \n");
+		for (i=0; i < MAX_PAIR_TOURS; i++)
+		{
+			DPRINTF("m(\033[31m%i\033[0m)children[%i]: ", children[i], i);
+			print_tour(children[i]);
+		}
+#endif
+		mergeToursToPop(arr_tours, MAX_POPULATION, children, MAX_PAIR_TOURS);
+#if PRINT_TOURS_DURING_MERGING
+		DPRINTF("-- printing tours AFTER merging -- \n");
+		for (i=0; i < MAX_PAIR_TOURS; i++)
+		{
+			DPRINTF("m(\033[31m%i\033[0m)arr_tours[%i]: ", arr_tours[i], i);
+			print_tour(arr_tours[i]);
+		}
+#endif
 
 		// TODO: fix all of kyle's suggestions for MPI
 	} else {
@@ -267,7 +294,7 @@ void run_genalg(int N, char *lcv, tour_t** arr_tours, int mpi_flag) {
 			printf("OK! Island received non-empty tour.\n");
 			// Udpate the island's population (sort it)
 			intToTour_t(Cities, intTours, 5, tempTours);
-			mergeToursToPop(arr_tours, tempTours, 5, MAX_TOUR);
+			mergeToursToPop(arr_tours, MAX_POPULATION, tempTours, 5);
 
 			//TODO: Select parents for child creation (roulette wheel)
 
@@ -294,8 +321,8 @@ void run_genalg(int N, char *lcv, tour_t** arr_tours, int mpi_flag) {
 		free(tempTours);
 		free(intTours);
 #endif
-	}
-}
+	}// else MPI
+}// run_genalg()
 
 // global variables about the running state of the program
 int randSeed = 0;
@@ -320,7 +347,7 @@ int main(int argc, char** argv)
 	{
 		printf("Usage: %s [flags] <filename of cities text document>\n", argv[0]);
 		printf("Try -h or --help for more information.\n");
-		exit(1); // ERROR: must supply a filename for the cities
+		terminate_program(1); // ERROR: must supply a filename for the cities
 	}
 	else // process params
 	{
@@ -355,7 +382,7 @@ int main(int argc, char** argv)
 	if (!citiesFile)
 	{
 		printf("no city file present. halting\n");
-		exit(3); // ERROR: no city file present
+		terminate_program(3); // ERROR: no city file present
 	}
 
 	// initialize srand

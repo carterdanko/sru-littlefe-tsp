@@ -15,6 +15,185 @@ void INIT_EDGE(edge_t* E, node_t* V1, node_t* V2, int C)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+/**
+ * merges two tours together,
+ * replacing e1 and e2 with new edges e3 and e4
+ * and then updates the graph
+ * T : IN: graph structure with all edges OUT: updated graph structure
+ * A : IN: tourA OUT: the merged tour
+ * B : IN: tourB OUT: the merged tour
+ * e1 : edge 1 belongs to tourA, will be removed
+ * e2 : edge 2 belongs to tourB, will be removed, e2.v1 is e3.v2 or e4.v2, and e2.v2 is the other
+ * e3 : edge 3, e3.v1 belongs to A (e3.v1 == e1.v1), e3.v2 belongs to B, will be added
+ * e4 : edge 4, e4.v1 belongs to A (e4.v1 == e1.v2), e4.v2 belongs to B, will be added
+ */
+void mergeSubTours(graph_t* T, tour_t* A, tour_t* B, edge_t* e1, edge_t* e2, edge_t* e3, edge_t* e4)
+{
+	int a, b; // positions in cycles A and B of where e3 or e4 connect
+	int e3first; // whether e3 was the connecting edge (first new edge found) or closing edge (last)
+	tour_t tempT; // a temporary tour structure to hold A
+	tour_t* tempA = &tempT; // made into a pointer for easier code
+	memcpy(tempA, A, sizeof(*A)); // copy over A
+	
+	 // find e1 in A
+	for(a=0; a < tempA->size; a++)
+	{
+		city_t* curCity = tempA->city[a];
+		node_t* v1 = T->node[curCity->id];
+		if (v1 == e1->v1)
+		{ // found the edge
+			if (T->node[tempA->city[a+1]->id] != e1->v2)
+			{
+				ERROR_TEXT;
+				DPRINTF("Found v1 but not v2 in A. a:%i, v1:%i\n", a, v1->id);
+				terminate_program(190);
+			}// error
+			break;
+		}// found e1
+	}// while looking for e1
+	if (a>=tempA->size)
+	{
+		ERROR_TEXT;
+		DPRINTF("Failed to find e1 in A.\n");
+		terminate_program(191);
+	}// error
+	
+	// now we need to find e2 in B
+	for(b=0; b < B->size; b++)
+	{
+		city_t* curCity = B->city[b];
+		node_t* v1 = T->node[curCity->id];
+		if (v1 == e2->v1)
+		{ // found the edge
+			if (T->node[B->city[b+1]->id] != e2->v2)
+			{
+				ERROR_TEXT;
+				DPRINTF("Found v1 but not v2 in B. b:%i, v1:%i\n", b, v1->id);
+				terminate_program(190);
+			}// error
+			break;
+		}// found e2
+	}// while looking for e2
+	if (b>=B->size)
+	{
+		ERROR_TEXT;
+		DPRINTF("Failed to find e2 in B.\n");
+		terminate_program(191);
+	}// error
+#if PRINT_MERGE_SUB_TOURS
+	DPRINTF("a%i b%i : av%i bv%i\n", a, b, A->city[a]->id, B->city[b]->id);
+#endif
+	
+	// move B onto A
+	// depending on which of the two choices for merging was chosen, we need to start
+	// at b+1 and go all the way to b (looping around the end) addign all those nodes, or
+	// start at b and go backwards all the way to b+1 (looping around) adding the nodes
+	A->size = a+1; // make A stop at a (remember oldA is preserved in tempA) 
+	b%=B->size-1; // we ignore the last node in B for our purposes, so if b was this node, make it the first one instead
+	// graph fixing
+	// connect v1 to v3 and v2 to v4
+	node_t* v1 = e1->v1; // A v1
+	node_t* v2 = e1->v2; // A v2
+	node_t* v3 = e2->v1; // B v1
+	node_t* v4 = e2->v2; // B v2
+	// calculate the edge we'll be replacing
+	int v1e = (v1->edge[0] == v2) ? 0 : 1;
+	int v2e = (v2->edge[0] == v1) ? 0 : 1;
+	int v3e = (v3->edge[0] == v4) ? 0 : 1;
+	int v4e = (v4->edge[0] == v3) ? 0 : 1;
+#if PRINT_MERGE_SUB_TOURS
+	DPRINTF("BEFORE: v1[%i]e%i->[%i] -> v2[%i]e%i->[%i] AND v3[%i]e%i->[%i] -> v4[%i]e%i->[%i]\n", 
+			v1->id, v1e, v1->edge[v1e]->id, 
+			v2->id, v2e, v2->edge[v2e]->id,
+			v3->id, v3e, v3->edge[v3e]->id,
+			v4->id, v4e, v4->edge[v4e]->id);
+#endif
+	if (e3->v2 == v4) // counting from b+1 back around to b
+	{
+		// replace the edges
+		v1->edge[v1e] = v4;
+		v2->edge[v2e] = v3;
+		v3->edge[v3e] = v2;
+		v4->edge[v4e] = v1;
+#if PRINT_MERGE_SUB_TOURS
+		DPRINTF("AFTER(cx): v1[%i]e%i->[%i] -> v4[%i]e%i->[%i] AND v2[%i]e%i->[%i] -> v3[%i]e%i->[%i]\n", 
+			v1->id, v1e, v1->edge[v1e]->id, 
+			v4->id, v4e, v4->edge[v4e]->id,
+			v2->id, v2e, v2->edge[v2e]->id,
+			v3->id, v3e, v3->edge[v3e]->id);
+#endif
+		
+		// move B onto A
+		int t = b+1;
+		A->city[A->size++] = B->city[t];
+		while (t != b)
+		{
+			++t;
+			t %= B->size-1; // loop back around, ignoring the last node in the cycle because it is the first
+			A->city[A->size++] = B->city[t];
+		}// while we haven't looped back to b
+	}// if counting from b+1 back around to b
+	else // counting from b down around to b+1
+	{
+		// replace the edges
+		v1->edge[v1e] = v3;
+		v2->edge[v2e] = v4;
+		v3->edge[v3e] = v1;
+		v4->edge[v4e] = v2;
+#if PRINT_MERGE_SUB_TOURS
+		DPRINTF("AFTER(nm): v1[%i]e%i->[%i] -> v3[%i]e%i->[%i] AND v2[%i]e%i->[%i] -> v4[%i]e%i->[%i]\n", 
+			v1->id, v1e, v1->edge[v1e]->id, 
+			v3->id, v3e, v3->edge[v3e]->id,
+			v2->id, v2e, v2->edge[v2e]->id,
+			v4->id, v4e, v4->edge[v4e]->id);
+#endif
+		
+		// move B onto A
+		int t = b;
+		if (t < 1) t = B->size-1;
+		A->city[A->size++] = B->city[t];
+		while (t != b+1)
+		{
+			--t;
+			if (t < 1) t = B->size-1; // remember to ignore the last node
+			A->city[A->size++] = B->city[t];
+		}// while we haven't looped back to b+1
+	}// else counting from b down around to b+1
+	
+	// move the rest of A back onto A (from tempA)
+	for (++a; a < tempA->size; a++)
+	{
+		A->city[A->size++] = tempA->city[a];
+	}
+	
+#if PRINT_MERGE_SUB_TOURS
+#if PRINT_INTERMEDIATE_INFO
+	DPRINTF("A: ");
+	int n;
+	STRONG_TEXT;
+	for (n=0; n < tempA->size; n++)
+		DPRINTF("--> [%i]", tempA->city[n]->id);
+	DPRINTF("\n");
+	NORMAL_TEXT;
+	
+	DPRINTF("B: ");
+	STRONG_TEXT;
+	for (n=0; n < B->size; n++)
+		DPRINTF("--> [%i]", B->city[n]->id);
+	DPRINTF("\n");
+	NORMAL_TEXT;
+	
+	DPRINTF("Merged cycle: ");
+	STRONG_TEXT;
+	for (n=0; n < A->size; n++)
+		DPRINTF("--> [%i]", A->city[n]->id);
+	DPRINTF("\n");
+	NORMAL_TEXT;
+#endif
+#endif
+}// mergeSubTours()
+
 /**
  * creates a graph that consists of all of the edges in tour A and all of the edges in tour B
  * tA : pointer to tour A
@@ -228,19 +407,20 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 		DPRINTF("Choosing a random vertex...\n");//TODO: debug remove
 #endif
 		// choose a vertex with at least 2 edges (to create a loop)
-		v2 = R->node[rand() % R->size];
+		v2i = rand() % R->size;
 		panic = 0;
 #if PRINT_GENERATE_AB_CYCLES
-		DPRINTF("first pick: [%i]->s:%i\n", v2->id, v2->size);
+		DPRINTF("first pick: [%i]->s:%i\n", v2i, R->node[v2i]->size);
 #endif
-		for (;v2->size == 0 && panic<PANIC_EXIT; panic++)
-			v2 = R->node[rand() % R->size];
+		for (;R->node[v2i]->size < 2 && panic<PANIC_EXIT; panic++)
+			v2i = (v2i+1) % R->size;
 		if (panic >= PANIC_EXIT)
 		{
 			ERROR_TEXT;
 			printf("generateABCycles() :: ERROR : panic_exit : too many iterations (%i >= %i) when trying to pick a vertex that has remaining edges. halting...\n", panic, PANIC_EXIT);
 			terminate_program(32);
 		}
+		v2 = R->node[v2i];
 #if PRINT_GENERATE_AB_CYCLES
 		DPRINTF("v2:%i...\n", v2->id);//TODO: debug remove
 #endif
@@ -302,14 +482,14 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			default:
 				ERROR_TEXT;
 				printf("ERROR44: invalid # of edges on vertex[%i] (%i) halting...\n", v1->id, v1->size);
-				exit(44);
+				terminate_program(44);
 				break;
 			}// calculating choices for the next edge
 			if (!c[0])
 			{
 				ERROR_TEXT;
 				printf("ERROR45: no choices for next vertex found v[%i] (%i) HALT\n", v1->id, v1->size);
-				exit(45);
+				terminate_program(45);
 			}
 			// pick one of the choices if there are more than one, otherwise the only choice
 			v2i = c[1] ? c[rand() % 2]-1 : c[0]-1; // subtract one, since they're OBO, see above
@@ -371,7 +551,7 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			default:
 				ERROR_TEXT;
 				printf("ERROR43: invalid # of edges on vertex[%i] (%i) halting...\n", v2->id, v2->size);
-				exit(43);
+				terminate_program(43);
 				break;
 			}// removing the edge from v2
 			
@@ -417,14 +597,14 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			default:
 				ERROR_TEXT;
 				printf("ERROR244: invalid # of edges on vertex[%i] (%i) halting...\n", v1->id, v1->size);
-				exit(244);
+				terminate_program(244);
 				break;
 			}// calculating choices for the next edge
 			if (!c[0])
 			{
 				ERROR_TEXT;
 				printf("ERROR245: no choices for next vertex found v[%i] (%i) HALT\n", v1->id, v1->size);
-				exit(245);
+				terminate_program(245);
 			}
 			// pick one of the choices if there are more than one, otherwise the only choice
 			v2i = c[1] ? c[rand() % 2]-1 : c[0]-1; // subtract one, since they're OBO, see above
@@ -485,7 +665,7 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 			default:
 				ERROR_TEXT;
 				printf("ERROR243: invalid # of edges on vertex[%i] (%i) halting...\n", v2->id, v2->size);
-				exit(243);
+				terminate_program(243);
 				break;
 			}// removing the edge from v2
 		} while ((visited[v2->id]==0 || ((currentIteration-iteration[v2->id])%2==1)) && edges > 0); // while creating a cycle
@@ -600,7 +780,7 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 				default:
 					ERROR_TEXT;
 					printf("ERROR53: invalid # of edges on vertex[%i] (%i) halting...\n", v1->id, v1->size);
-					exit(53);
+					terminate_program(53);
 					break;
 				}// removing edge from v1 */
 				// undirected graph, so now we must remove the edge from v2
@@ -634,7 +814,7 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 				default:
 					ERROR_TEXT;
 					printf("ERROR54: invalid # of edges on vertex[%i] (%i) halting...\n", v2->id, v2->size);
-					exit(54);
+					terminate_program(54);
 					break;
 				}// restoring edge to v2
 
@@ -1255,7 +1435,7 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 	edge_t e1, e2, e3, e4, e5, e6; // e1 and e2 are the two edges being examined for removal, e3-e6 are the 4 candidate edges, 2 of which to replace e1/e2
 	edge_t b1, b2, b3, b4; // our current best choices, b1&b2 get removed, b3&b4 get added
 	float bestCost; // cost of the current best edges found
-	node_t* v0, *v1, *v2;
+	node_t *v1, *v2; // temporary nodes
 	
 	while (nCycles > 1)
 	{
@@ -1292,7 +1472,7 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 		INIT_EDGE(&b4, v2, b2.v2, 0);
 		bestCost = b3.cost + b4.cost - b1.cost - b2.cost; // set bestCost to the original candidates
 #if PRINT_FIX_INTERMEDIATE
-		DPRINTF("Starting bestCost: %i\n.", bestCost);
+		DPRINTF("Starting bestCost: %i\n", bestCost);
 #endif
 		
 		// for each city in the sub-cycle
@@ -1360,7 +1540,7 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 		// debug output the cycles
 #if PRINT_FIX_INTERMEDIATE
 #if PRINT_CYCLES
-		DPRINTF("  Before merging, curCycle: ");
+		DPRINTF("Before merging,   curCycle: ");
 		int n;
 		STRONG_TEXT;
 		for (n=0; n < curCycle->size; n++)
@@ -1378,6 +1558,16 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 		
 		// merge the tour's together
 		mergeSubTours(T, curCycle, otherCycle, &b1, &b2, &b3, &b4);
+#if PRINT_FIX_INTERMEDIATE
+#if PRINT_CYCLES
+		DPRINTF("after merging, curCycle: ");
+		STRONG_TEXT;
+		for (n=0; n < curCycle->size; n++)
+			DPRINTF("--> [%i]", curCycle->city[n]->id);
+		DPRINTF("\n");
+		NORMAL_TEXT;
+#endif
+#endif
 		
 #if PRINT_FIX_INTERMEDIATE
 		DPRINTF("searching for b1 and b2 in edges array and replacing them with b3 and b4 respectively...\n");
@@ -1428,183 +1618,6 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 
 	return 1;
 }
-
-/**
- * merges two tours together,
- * replacing e1 and e2 with new edges e3 and e4
- * and then updates the graph
- * T : IN: graph structure with all edges OUT: updated graph structure
- * A : IN: tourA OUT: the merged tour
- * B : IN: tourB OUT: the merged tour
- * e1 : edge 1 belongs to tourA, will be removed
- * e2 : edge 2 belongs to tourB, will be removed, e2.v1 is e3.v2 or e4.v2, and e2.v2 is the other
- * e3 : edge 3, e3.v1 belongs to A (e3.v1 == e1.v1), e3.v2 belongs to B, will be added
- * e4 : edge 4, e4.v1 belongs to A (e4.v1 == e1.v2), e4.v2 belongs to B, will be added
- */
-void mergeSubTours(graph_t* T, tour_t* A, tour_t* B, edge_t* e1, edge_t* e2, edge_t* e3, edge_t* e4)
-{
-	int a, b; // positions in cycles A and B of where e3 or e4 connect
-	int e3first; // whether e3 was the connecting edge (first new edge found) or closing edge (last)
-	tour_t tempT; // a temporary tour structure to hold A
-	tour_t* tempA = &tempT; // made into a pointer for easier code
-	memcpy(tempA, A, sizeof(*A)); // copy over A
-	
-	 // find e1 in A
-	for(a=0; a < tempA->size; a++)
-	{
-		city_t* curCity = tempA->city[a];
-		node_t* v1 = T->node[curCity->id];
-		if (v1 == e1->v1)
-		{ // found the edge
-			if (T->node[tempA->city[a+1]->id] != e1->v2)
-			{
-				ERROR_TEXT;
-				DPRINTF("Found v1 but not v2 in A. a:%i, v1:%i\n", a, v1->id);
-				terminate_program(190);
-			}// error
-			break;
-		}// found e1
-	}// while looking for e1
-	if (a>=tempA->size)
-	{
-		ERROR_TEXT;
-		DPRINTF("Failed to find e1 in A.\n");
-		terminate_program(191);
-	}// error
-	
-	// now we need to find e2 in B
-	for(b=0; b < B->size; b++)
-	{
-		city_t* curCity = B->city[b];
-		node_t* v1 = T->node[curCity->id];
-		if (v1 == e2->v1)
-		{ // found the edge
-			if (T->node[B->city[b+1]->id] != e2->v2)
-			{
-				ERROR_TEXT;
-				DPRINTF("Found v1 but not v2 in B. b:%i, v1:%i\n", b, v1->id);
-				terminate_program(190);
-			}// error
-			break;
-		}// found e2
-	}// while looking for e2
-	if (b>=B->size)
-	{
-		ERROR_TEXT;
-		DPRINTF("Failed to find e2 in B.\n");
-		terminate_program(191);
-	}// error
-#if PRINT_MERGE_SUB_TOURS
-	DPRINTF("a%i b%i : av%i bv%i\n", a, b, A->city[a]->id, B->city[b]->id);
-#endif
-	
-	// move B onto A
-	// depending on which of the two choices for merging was chosen, we need to start
-	// at b+1 and go all the way to b (looping around the end) addign all those nodes, or
-	// start at b and go backwards all the way to b+1 (looping around) adding the nodes
-	A->size = a+1; // make A stop at a (remember oldA is preserved in tempA) 
-	b%=B->size-1; // we ignore the last node in B for our purposes, so if b was this node, make it the first one instead
-	// graph fixing
-	// connect v1 to v3 and v2 to v4
-	node_t* v1 = e1->v1; // A v1
-	node_t* v2 = e1->v2; // A v2
-	node_t* v3 = e2->v1; // B v1
-	node_t* v4 = e2->v2; // B v2
-	// calculate the edge we'll be replacing
-	int v1e = (v1->edge[0] == v2) ? 0 : 1;
-	int v2e = (v2->edge[0] == v1) ? 0 : 1;
-	int v3e = (v3->edge[0] == v4) ? 0 : 1;
-	int v4e = (v4->edge[0] == v3) ? 0 : 1;
-#if PRINT_MERGE_SUB_TOURS
-	DPRINTF("BEFORE: v1[%i]e%i->[%i] -> v1[%i]e%i->[%i] AND v1[%i]e%i->[%i] -> v1[%i]e%i->[%i]\n", 
-			v1->id, v1e, v1->edge[v1e]->id, 
-			v2->id, v2e, v2->edge[v2e]->id,
-			v3->id, v3e, v3->edge[v3e]->id,
-			v4->id, v4e, v4->edge[v4e]->id);
-#endif
-	if (e3->v2 == v4) // counting from b+1 back around to b
-	{
-		// replace the edges
-		v1->edge[v1e] = v4;
-		v2->edge[v2e] = v3;
-		v3->edge[v3e] = v2;
-		v4->edge[v4e] = v1;
-#if PRINT_MERGE_SUB_TOURS
-		DPRINTF("AFTER(cx): v1[%i]e%i->[%i] -> v1[%i]e%i->[%i] AND v1[%i]e%i->[%i] -> v1[%i]e%i->[%i]\n", 
-			v1->id, v1e, v1->edge[v1e]->id, 
-			v2->id, v2e, v2->edge[v2e]->id,
-			v3->id, v3e, v3->edge[v3e]->id,
-			v4->id, v4e, v4->edge[v4e]->id);
-#endif
-		
-		// move B onto A
-		int t = b+1;
-		A->city[A->size++] = B->city[t];
-		while (t != b)
-		{
-			++t;
-			t %= B->size-1; // loop back around, ignoring the last node in the cycle because it is the first
-			A->city[A->size++] = B->city[t];
-		}// while we haven't looped back to b
-	}// if counting from b+1 back around to b
-	else // counting from b down around to b+1
-	{
-		// replace the edges
-		v1->edge[v1e] = v3;
-		v2->edge[v2e] = v4;
-		v3->edge[v3e] = v1;
-		v4->edge[v4e] = v2;
-#if PRINT_MERGE_SUB_TOURS
-		DPRINTF("AFTER(nm): v1[%i]e%i->[%i] -> v1[%i]e%i->[%i] AND v1[%i]e%i->[%i] -> v1[%i]e%i->[%i]\n", 
-			v1->id, v1e, v1->edge[v1e]->id, 
-			v2->id, v2e, v2->edge[v2e]->id,
-			v3->id, v3e, v3->edge[v3e]->id,
-			v4->id, v4e, v4->edge[v4e]->id);
-#endif
-		
-		// move B onto A
-		int t = b;
-		A->city[A->size++] = B->city[t];
-		while (t != b+1)
-		{
-			--t;
-			if (t < 1) t = B->size-1; // remember to ignore the last node
-			A->city[A->size++] = B->city[t];
-		}// while we haven't looped back to b+1
-	}// else counting from b down around to b+1
-	
-	// move the rest of A back onto A (from tempA)
-	for (++a; a < tempA->size; a++)
-	{
-		A->city[A->size++] = tempA->city[a];
-	}
-	
-#if PRINT_MERGE_SUB_TOURS
-#if PRINT_INTERMEDIATE_INFO
-	DPRINTF("A: ");
-	int n;
-	STRONG_TEXT;
-	for (n=0; n < tempA->size; n++)
-		DPRINTF("--> [%i]", tempA->city[n]->id);
-	DPRINTF("\n");
-	NORMAL_TEXT;
-	
-	DPRINTF("B: ");
-	STRONG_TEXT;
-	for (n=0; n < B->size; n++)
-		DPRINTF("--> [%i]", B->city[n]->id);
-	DPRINTF("\n");
-	NORMAL_TEXT;
-	
-	DPRINTF("Merged cycle: ");
-	STRONG_TEXT;
-	for (n=0; n < A->size; n++)
-		DPRINTF("--> [%i]", A->city[n]->id);
-	DPRINTF("\n");
-	NORMAL_TEXT;
-#endif
-#endif
-}// mergeSubTours()
 
 /**
  * Perform the EAX algorithm on tour's A and B, storing the resulting tour into C

@@ -7,7 +7,7 @@ float frand() {
 
 void print_tour(tour_t* tour) {
 	int i;
-	printf("Tour [f:%f]: [%i]", tour->fitness, tour->city[0]->id);
+	printf("Tour [f:\033[33m%f\033[0m]: [%i]", tour->fitness, tour->city[0]->id);
 	for (i=1; i < tour->size; i++)
 		printf(", [%i]", tour->city[i]->id);
 	printf("\n");
@@ -15,7 +15,7 @@ void print_tour(tour_t* tour) {
 
 void dprint_tour(tour_t* tour) {
 	int i;
-	DPRINTF("Tour: [%i]", tour->city[0]->id);
+	DPRINTF("(DPRINTF)Tour [f:\033[33m%f\033[0m]: [%i]", tour->fitness, tour->city[0]->id);
 	for (i=1; i < tour->size; i++)
 		DPRINTF(", [%i]", tour->city[i]->id);
 	DPRINTF("\n");
@@ -191,22 +191,49 @@ void getBestTours(int max, tour_t** tours, tour_t** bestTours) {
 	}
 }
 
-void mergeTourToPop(tour_t** tours, int num_tours, tour_t* mergetour) {
-	int i;
-	for (i=0;i<num_tours;i++) {
-		if (mergetour->fitness < tours[i]->fitness) {
-			int j;
+/**
+ * merge mergetour into the list of tours by COPYING THE MEMORY
+ * that is, every pointer in tours may be moved around, but tours will contain the same list of pointers,
+ * and if mergetour belongs in tours, a memcpy will be performed.
+ * tours : IN: array of tours OUT: array of tours modified to contain mergetour if mergetour belongs
+ * num_tours : number of tours in tours
+ * mergetour : the tour to merge
+ */
+void mergeTourToPop(tour_t** tours, int num_tours, tour_t* mergetour) 
+{
+	// fast exit if we're ignoring this tour
+	if (mergetour->fitness >= tours[num_tours-1]->fitness)
+		return;
+		
+	int i, j; // loop control
+	tour_t* temp; // for swapping
+	for (i=0;i<num_tours;i++) // keep stepping through tours until we find a tour that has higher cost than mergetour
+	{
+		if (mergetour->fitness < tours[i]->fitness) // we found a tour that has a higher cost than mergetour, so insert mergetour here
+		{
+			// since the last spot in the array is gonna be over-written, swap it for the current spot
+			temp = tours[num_tours-1];
 			// note: this makes the array lose value at tours[num_tours-1] (the last value).
-			for (j=1;j<num_tours-i;j++) {
-				tours[num_tours-j]=tours[num_tours-j-1];
+			for (j=num_tours-1; j > i; j--) 
+			{
+				tours[j] = tours[j-1]; // shift every cell up one
 			}
-			tours[i]=mergetour;
+			// insert merge tour
+			tours[i]=temp;
+			memcpy(temp, mergetour, sizeof(*mergetour));
 			return;
-		}
-	}
-}
+		}// if found a tour with higher cost than merge tour
+	}// for each tour
+}// mergeTourToPop()
 
-void mergeToursToPop(tour_t** tours, tour_t** toursToMerge, int numToursToMerge, int num_tours) {
+/**
+ * merges an array of tours into the master array
+ * tours : IN: master array of tours OUT: combined array
+ * num_tours : number of tours in the master array (both before and after)
+ * toursToMerge : IN: the tours coming in
+ * numToursToMerge : the number of tours coming in
+ */
+void mergeToursToPop(tour_t** tours, int num_tours, tour_t** toursToMerge, int numToursToMerge) {
 	// given a sorted list "tours", merge new tours based on their fitness.
 	DPRINTF("Merging tours to population . . .\n");
 	int i;
