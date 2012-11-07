@@ -20,7 +20,7 @@
 #define DEBUG 1     // set to zero to remove a lot of debugging output and speed up the code 
 #define DPRINTF if (DEBUG) printf
 #define MAX_CITIES 1000
-#define MAX_TOUR 1001     // this should basically be the same as MAX_CITIES
+#define MAX_TOUR MAX_CITIES+1     // this should basically be the same as MAX_CITIES
 #define MAX_POPULATION 100
 #define TABLE_SIZE (MAX_CITIES*(MAX_CITIES-1))/2 // size based on a counting argument
 #define MAX_ITERATIONS 100 // sets the maximum number of generations to iterate through in the GA
@@ -39,18 +39,19 @@
 typedef struct {
 	int x,y; // x and y position of the city
 	int id; // a unique number for each city in the map. It should be equal to the city's index in the cities array.
+	//int tour; // keeps track of which tour this "edge" was from. An "edge"[n] is defined as: tour.city[n-1] -> tour.city[n], then tour.tour[n] == which tour that edge was from
+			  // NOTE: this field is only really relevant when dealing with cycles 
 } city_t;
 
 /**
  * represents a possible tour of the cities
  */
 typedef struct {
-	city_t* city[MAX_TOUR]; // a pointer to each city in the tour
-	int tour[MAX_TOUR]; // keeps track of which tour this "edge" was from. An "edge"[n] is defined as: tour.city[n-1] -> tour.city[n], then tour.tour[n] == which tour that edge was from
-					    // NOTE: this field is only really relevant when dealing with cycles
 	int size; // size of the tour
 	// ~~!
 	float fitness; // the fitness of the entire tour.
+	city_t* city[MAX_TOUR]; // a pointer to each city in the tour
+	int tour[MAX_TOUR];
 } tour_t;
 
 // main.c

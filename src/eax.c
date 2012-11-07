@@ -453,8 +453,8 @@ int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** 
 #if PRINT_GENERATE_AB_CYCLES
 		DPRINTF("Initializing cycle...\n");
 #endif
-		memset((void*)visited, 0, sizeof(visited)); // reset visited nodes for this cycle
-		memset((void*)iteration, 0, sizeof(iteration)); // reset the iteration tracking array for this cycle
+		memset(visited, 0, sizeof(visited)); // reset visited nodes for this cycle
+		memset(iteration, 0, sizeof(iteration)); // reset the iteration tracking array for this cycle
 		currentIteration = 0;
 		v0 = v2; // save the starting vertex
 #if PRINT_GENERATE_AB_CYCLES
@@ -966,7 +966,7 @@ int generateESetRAND(const tour_t* const Cities, tour_t** cycles /*byref*/, int 
  *         do need to be allocated. OUT: All the edges of the graph will be placed into this array.
  * returns : the number of disjoint cycles in the graph
  */
-int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byref*/, int nCycles, edge_t** edges /*byref*/)
+int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byref*/, int nCycles, edge_t* edges /*byref*/)
 {
 	int e = 0; // current ab cycle
 	int vi = 0; // current vertex in the current cycle
@@ -1345,7 +1345,7 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
 #endif
 			curCycle->city[curCycle->size++] = Cities->city[curNode->id]; // add this node onto the sub-cycle
 			lastNode = tempNode; // swap temps
-			INIT_EDGE(edges[curEdge++], lastNode, curNode, iteration); // add the edge to the list
+			INIT_EDGE(&edges[curEdge++], lastNode, curNode, iteration); // add the edge to the list
 		} while (curNode != startingNode);
 #if PRINT_CYCLES
 #if PRINT_APPLY_ESET
@@ -1418,10 +1418,10 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
 			int e;
 			for (e=0; e < Cities->size; e++)
 			{
-				if (edges[e]->cycle == i+1)
-					edges[e]->cycle = min+1;
-				else if (edges[e]->cycle == min+1)
-					edges[e]->cycle = i+1;
+				if (edges[e].cycle == i+1)
+					edges[e].cycle = min+1;
+				else if (edges[e].cycle == min+1)
+					edges[e].cycle = i+1;
 			}// for swapping edge cycle numbers
 		}// if we needed to swap
 #if PRINT_APPLY_ESET
@@ -1446,7 +1446,7 @@ int applyESet(const tour_t* const Cities, graph_t* T /*byref*/, tour_t** E /*byr
  * returns : 1
  */
 #define CUR_CYCLE 1  // current cycle is always the first cycle
-int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t** cycles, int nCycles, edge_t** edges)
+int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t** cycles, int nCycles, edge_t* edges)
 {
 	int i; // loop counter
 	int c; // loop counter for each city in the current subcycle
@@ -1472,12 +1472,12 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 		// find the first edge that doesn't belong to this cycle
 		for (i=0; i < Cities->size; i++)
 		{
-			if (edges[i]->cycle != CUR_CYCLE)
+			if (edges[i].cycle != CUR_CYCLE)
 			{
 #if PRINT_FIX_INTERMEDIATE
 				DPRINTF("in finding first edge not in this cycle: \n");
 #endif
-				b2 = *edges[i];
+				b2 = edges[i];
 				break;
 			}
 		}// for find the first edge that doesn't belong to this cycle
@@ -1508,7 +1508,7 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 			// now iterate over every edge in the graph that doesn't belong to curCycle
 			for (e=0; e < Cities->size; e++)
 			{
-				e2 = *edges[e]; // e2 is the second edge to examine for removal
+				e2 = edges[e]; // e2 is the second edge to examine for removal
 				if (e2.cycle != CUR_CYCLE) // if this edge isn't part of the current cycle, examine it for possible removal
 				{
 					// construct the four candidate edges which would be created when removing e1 and e2
@@ -1596,7 +1596,7 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 		// replace the edges we removed with the ones we added
 		for (i=0; i < Cities->size; i++)
 		{
-			edge_t* e1 = edges[i];
+			edge_t* e1 = &edges[i];
 			if ((e1->v1 == b1.v1 && e1->v2 == b1.v2)||(e1->v2 == b1.v1 && e1->v1 == b1.v2))
 			{// replace b1 with b3
 				INIT_EDGE(e1, b3.v1, b3.v2, 1); // now belongs to curCycle
@@ -1778,17 +1778,16 @@ void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC)
 	}
 #endif
 	// create edges array
-	//TODO: MEMORY this needs to be done once somewhere and then saved
 #if PRINT_STEPS
 	DPRINTF("allocating edges array...\n");
 #endif
 	//edge_t** edges = (edge_t**)malloc(sizeof(edge_t *) * Cities->size);
-	edge_t* edges[MAX_CITIES];
-	edge_t alloc_edges[MAX_CITIES];
-	for (i=0; i < Cities->size; i++)
-	{
-		edges[i] = &alloc_edges[i];
-	}
+	edge_t edges[MAX_CITIES];
+	//edge_t alloc_edges[MAX_CITIES];
+	//for (i=0; i < Cities->size; i++)
+	//{
+	//	edges[i] = &alloc_edges[i];
+	//}
 #if PRINT_STEPS
 	DPRINTF("Applying the E-set.\n");
 #endif
@@ -1825,7 +1824,7 @@ void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC)
 	printf("Printing all %i edges in the graph: \n", Cities->size);
 	for (i=0; i < Cities->size; i++)
 	{
-		printf("Edge[%i] = {%i -> %i : i%i : c%f}\n", i, edges[i]->v1->id, edges[i]->v2->id, edges[i]->cycle, edges[i]->cost);
+		printf("Edge[%i] = {%i -> %i : i%i : c%f}\n", i, edges[i].v1->id, edges[i].v2->id, edges[i].cycle, edges[i].cost);
 	}
 #endif
 #if PRINT_CYCLES
