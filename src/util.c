@@ -7,17 +7,67 @@ float frand() {
 
 void print_tour(tour_t* tour) {
 	int i;
-	printf("Tour [f:\033[33m%f\033[0m]: [%i]", tour->fitness, tour->city[0]->id);
+#if PRINT_VISITED_LIST
+	// calculate which cities are visited in the tour
+	int visited[MAX_CITIES];
+	memset(visited, 0, sizeof(int)*MAX_CITIES);
+	visited[tour->city[0]->id]++;
+#endif
+	printf("Tour [f:\033[33m%f\033[0m s:\033[32m%i\033[0m]: [%i]", tour->fitness, tour->size, tour->city[0]->id);
 	for (i=1; i < tour->size; i++)
+	{
 		printf(", [%i]", tour->city[i]->id);
+#if PRINT_VISITED_LIST
+		if (visited[tour->city[i]->id] > 0)
+			printf("\033[31m!\033[0m");
+		visited[tour->city[i]->id]++;
+#endif
+	}
+	
+#if PRINT_VISITED_LIST
+	printf("\n   visited: ");
+	for (i=0; i < tour->size; i++)
+	{
+		printf("%s%i", visited[i] != 1 ? "\033[31m" : "\033[0m", visited[i]);
+		if (i % 10 == 0)
+			printf("\033[33m%i", i / 10);
+	}
+	NORMAL_TEXT;
+#endif
+		
 	printf("\n");
 }
 
 void dprint_tour(tour_t* tour) {
 	int i;
-	DPRINTF("(DPRINTF)Tour [f:\033[33m%f\033[0m]: [%i]", tour->fitness, tour->city[0]->id);
+#if PRINT_VISITED_LIST
+	// calculate which cities are visited in the tour
+	int visited[MAX_CITIES];
+	memset(visited, 0, sizeof(int)*MAX_CITIES);
+	visited[tour->city[0]->id]++;
+#endif
+	DPRINTF("(DPRINTF)Tour [f:\033[33m%f\033[0m s:\033[32m%i\033[0m]: [%i]", tour->fitness, tour->size, tour->city[0]->id);
 	for (i=1; i < tour->size; i++)
+	{
 		DPRINTF(", [%i]", tour->city[i]->id);
+#if PRINT_VISITED_LIST
+		if (visited[tour->city[i]->id] > 0)
+			DPRINTF("\033[31m!\033[0m");
+		visited[tour->city[i]->id]++;
+#endif
+	}
+	
+#if PRINT_VISITED_LIST
+	DPRINTF("\n   visited: ");
+	for (i=0; i < tour->size; i++)
+	{
+		DPRINTF("%s%i", visited[i] != 1 ? "\033[31m" : "\033[0m", visited[i]);
+		if (i % 10 == 0)
+			DPRINTF("\033[33m%i", i / 10);
+	}
+	NORMAL_TEXT;
+#endif
+
 	DPRINTF("\n");
 }
 
