@@ -53,15 +53,26 @@ int main(int argc, char** argv)
 		}
 	}// else process the arguments
 	
+	// track locations of cities into an array
+	char* tracking = malloc(sizeof(char) * maxDist * maxDist);
+	memset(tracking, 0, sizeof(*tracking));
+	
 	// generate the file
 	printf("saving %i cities maximally %i distance away to '%s'.\n", numCities, maxDist, fn); // TODO: DEBUG remove
 	FILE* F = fopen(fn, "w");
 	printf("writing");
 	fprintf(F, "%i\n", numCities);
+	int x,y;
 	for (i=0; i< numCities; i++)
 	{
 		printf(".");
-		fprintf(F, "%i %i\n", rand() % maxDist, rand() % maxDist);
+		do
+		{
+			x = rand() % maxDist;
+			y = rand() % maxDist;
+		} while (tracking[x*maxDist+y]);
+		tracking[x*maxDist+y] = 1;
+		fprintf(F, "%i %i\n", x, y);
 	}
 	printf("done!\n");
 	fclose(F);

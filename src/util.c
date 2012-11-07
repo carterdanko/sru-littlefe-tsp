@@ -7,17 +7,67 @@ float frand() {
 
 void print_tour(tour_t* tour) {
 	int i;
-	printf("Tour [f:\033[33m%f\033[0m]: [%i]", tour->fitness, tour->city[0]->id);
+#if PRINT_VISITED_LIST
+	// calculate which cities are visited in the tour
+	int visited[MAX_CITIES];
+	memset(visited, 0, sizeof(int)*MAX_CITIES);
+	visited[tour->city[0]->id]++;
+#endif
+	printf("Tour [f:\033[33m%f\033[0m s:\033[32m%i\033[0m]: [%i]", tour->fitness, tour->size, tour->city[0]->id);
 	for (i=1; i < tour->size; i++)
+	{
 		printf(", [%i]", tour->city[i]->id);
+#if PRINT_VISITED_LIST
+		if (visited[tour->city[i]->id] > 0)
+			printf("\033[31m!\033[0m");
+		visited[tour->city[i]->id]++;
+#endif
+	}
+	
+#if PRINT_VISITED_LIST
+	printf("\n   visited: ");
+	for (i=0; i < tour->size; i++)
+	{
+		printf("%s%i", visited[i] != 1 ? "\033[31m" : "\033[0m", visited[i]);
+		if (i % 10 == 0)
+			printf("\033[33m%i", i / 10);
+	}
+	NORMAL_TEXT;
+#endif
+		
 	printf("\n");
 }
 
 void dprint_tour(tour_t* tour) {
 	int i;
-	DPRINTF("(DPRINTF)Tour [f:\033[33m%f\033[0m]: [%i]", tour->fitness, tour->city[0]->id);
+#if PRINT_VISITED_LIST
+	// calculate which cities are visited in the tour
+	int visited[MAX_CITIES];
+	memset(visited, 0, sizeof(int)*MAX_CITIES);
+	visited[tour->city[0]->id]++;
+#endif
+	DPRINTF("(DPRINTF)Tour [f:\033[33m%f\033[0m s:\033[32m%i\033[0m]: [%i]", tour->fitness, tour->size, tour->city[0]->id);
 	for (i=1; i < tour->size; i++)
+	{
 		DPRINTF(", [%i]", tour->city[i]->id);
+#if PRINT_VISITED_LIST
+		if (visited[tour->city[i]->id] > 0)
+			DPRINTF("\033[31m!\033[0m");
+		visited[tour->city[i]->id]++;
+#endif
+	}
+	
+#if PRINT_VISITED_LIST
+	DPRINTF("\n   visited: ");
+	for (i=0; i < tour->size; i++)
+	{
+		DPRINTF("%s%i", visited[i] != 1 ? "\033[31m" : "\033[0m", visited[i]);
+		if (i % 10 == 0)
+			DPRINTF("\033[33m%i", i / 10);
+	}
+	NORMAL_TEXT;
+#endif
+
 	DPRINTF("\n");
 }
 
@@ -94,7 +144,7 @@ void city_tToInt(tour_t* C, int nCities, int* I)
 /**
  * converts an array of cities into an array of ints
  * in order to be transferred by mpi
- * C : an array of cities (as a tour structure)
+ * C : an array of cities (as a tour structure, and already allocated)
  * nCities : how many cities
  * I : by-ref IN: pre-allocated array of ints OUT: converted array
  */
@@ -105,7 +155,7 @@ void intToCity_t(int* I, int nCities, tour_t* C)
 	DPRINTF("INT_TO_CITY::  ");
 	for (i=0; i < nCities; i++)
 	{
-		C->city[i]=(city_t*)malloc(sizeof(city_t));
+		//C->city[i]=(city_t*)malloc(sizeof(city_t)); // cities should be pre-allocated so why is this here
 		C->city[i]->x = I[i*3];
 		C->city[i]->y = I[i*3+1];
 		C->city[i]->id = I[i*3+2];
@@ -154,7 +204,7 @@ void intToTour_t(tour_t* Cities, int* I, int nTours, tour_t** tours)
 	for (i=0; i < nTours; i++)
 	{
 		int a;
-		tours[i] = (tour_t*)malloc(sizeof(tour_t));
+		//tours[i] = (tour_t*)malloc(sizeof(tour_t)); // tours should be pre-allocated so why is this here
 		DPRINTF("INT_TO_TOUR::  ");
 //		for (a=0; a < tours[i]->size; a++) {
 		for (a=0; a < Cities->size; a++) {

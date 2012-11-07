@@ -32,6 +32,7 @@
 #define PRINT_CYCLE_POINTERS 0      // prints what the cycle pointers are at various points, used for debugging the identical cycle pointers bug
 #define PRINT_DISTANCE 0            // prints distance while generating the table, kind of cluttered, not really used
 #define PRINT_DISTANCE_TABLE  1     // prints the distance table in main
+#define PRINT_VISITED_LIST 1        // when outputting tours, shows a list of which cities were visited
 
 #endif // OPC_ENABLE
 /////////////////////////////////////////////////////////////////////
