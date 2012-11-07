@@ -30,8 +30,8 @@
 #define MPI_TAG 2
 #define MAX_PAIR_TOURS MAX_POPULATION
 
-#define ENFORCE_LOOKUP_TABLE_CORRECTNESS 1    // extra checks in the lookup table for debugging purposes
-#define DEBUG_SET_TOUR_FITNESS 1              // inserts extra lines while calculating a tour's fitness for debugging
+#define ENFORCE_LOOKUP_TABLE_CORRECTNESS 0    // extra checks in the lookup table for debugging purposes
+#define DEBUG_SET_TOUR_FITNESS 0              // inserts extra lines while calculating a tour's fitness for debugging
 
 /**
  * represents a city that must be visited to create a complete tour
