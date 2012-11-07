@@ -77,6 +77,7 @@ typedef struct edge_struct {
  */
 typedef struct {
 	node_t* node[MAX_CITIES]; // each node is a city, so the maximum number of nodes and cities is equal
+	node_t alloc_node[MAX_CITIES]; // allocated node objects
 	int size; // number of nodes in this graph
 } graph_t;
 
@@ -88,15 +89,6 @@ typedef struct {
 	tour_t* subTour[MAX_SUB_TOURS]; // the subtours contained in this intermediate (iteratively combined in the algorithm)
 	int size; // number of sub tours currently in the intermediate
 } intermediate_t;
-
-// tour merging and graph generation/deletion
-graph_t* mergeTours(const tour_t* const tA, const tour_t* const tB); // creates a graph that consists of all of the edges in tour A and all of the edges in tour B
-void freeGraph(graph_t* R); // frees all of the memory used by graph R
-
-// A-B cycles
-int generateABCycles(const tour_t* const Cities, graph_t* R /*byref*/, tour_t** cycles /*byref*/); // generates A-B cycles and stores them in cycles, returns size of the array of sub-tours
-
-// E-sets
 
 // intermediates generation and modification into valid tours
 void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC);

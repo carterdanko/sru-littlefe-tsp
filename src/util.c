@@ -94,7 +94,7 @@ void city_tToInt(tour_t* C, int nCities, int* I)
 /**
  * converts an array of cities into an array of ints
  * in order to be transferred by mpi
- * C : an array of cities (as a tour structure)
+ * C : an array of cities (as a tour structure, and already allocated)
  * nCities : how many cities
  * I : by-ref IN: pre-allocated array of ints OUT: converted array
  */
@@ -105,7 +105,7 @@ void intToCity_t(int* I, int nCities, tour_t* C)
 	DPRINTF("INT_TO_CITY::  ");
 	for (i=0; i < nCities; i++)
 	{
-		C->city[i]=(city_t*)malloc(sizeof(city_t));
+		//C->city[i]=(city_t*)malloc(sizeof(city_t)); // cities should be pre-allocated so why is this here
 		C->city[i]->x = I[i*3];
 		C->city[i]->y = I[i*3+1];
 		C->city[i]->id = I[i*3+2];
@@ -154,7 +154,7 @@ void intToTour_t(tour_t* Cities, int* I, int nTours, tour_t** tours)
 	for (i=0; i < nTours; i++)
 	{
 		int a;
-		tours[i] = (tour_t*)malloc(sizeof(tour_t));
+		//tours[i] = (tour_t*)malloc(sizeof(tour_t)); // tours should be pre-allocated so why is this here
 		DPRINTF("INT_TO_TOUR::  ");
 //		for (a=0; a < tours[i]->size; a++) {
 		for (a=0; a < Cities->size; a++) {
