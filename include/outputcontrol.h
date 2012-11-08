@@ -10,26 +10,26 @@
 #if OPC_ENABLE
 // debugging
 // globals
-#define PRINT_PARENT_TOURS 0        // parent tours of current generation
-#define PRINT_INTERMEDIATE_INFO 0   // information about intermediate individuals generated
-#define PRINT_EDGES 0               // prints the list of edges
-#define PRINT_CHILD_TOURS 0         // information about child tours
-#define PRINT_GRAPHS 0              // information about graphs
-#define PRINT_CYCLES 0              // information about AB cycles, sub cycles, and other cycles
-#define PRINT_MISC 0                // everything else I was too lazy to granularize. Mostly allocations, and mergeGraph/freeGraph stuff
+#define PRINT_PARENT_TOURS 1        // parent tours of current generation
+#define PRINT_INTERMEDIATE_INFO 1   // information about intermediate individuals generated
+#define PRINT_EDGES 1               // prints the list of edges
+#define PRINT_CHILD_TOURS 1         // information about child tours
+#define PRINT_GRAPHS 1              // information about graphs
+#define PRINT_CYCLES 1              // information about AB cycles, sub cycles, and other cycles
+#define PRINT_MISC 1                // everything else I was too lazy to granularize. Mostly allocations, and mergeGraph/freeGraph stuff
 // per method
-#define PRINT_STEPS 0               // prints a line in performEAX before each step, thereby identifying each step
-#define PRINT_GENERATE_AB_CYCLES 0  // generateABCycles() output
-#define PRINT_FIX_INTERMEDIATE 0    // fixIntermediate() output
-#define PRINT_MERGE_SUB_TOURS 0     // mergeSubTours() output
-#define PRINT_APPLY_ESET 0          // applyESET() output
-#define PRINT_GENERATE_ESET 0       // generateESET functions (rand and heuristic)
-#define PRINT_EDGE_OPERATIONS 0     // prints information about edge operations (REMOVE_EDGE and RESTORE_EDGE)
+#define PRINT_STEPS 1               // prints a line in performEAX before each step, thereby identifying each step
+#define PRINT_GENERATE_AB_CYCLES 1  // generateABCycles() output
+#define PRINT_FIX_INTERMEDIATE 1    // fixIntermediate() output
+#define PRINT_MERGE_SUB_TOURS 1     // mergeSubTours() output
+#define PRINT_APPLY_ESET 1          // applyESET() output
+#define PRINT_GENERATE_ESET 1       // generateESET functions (rand and heuristic)
+#define PRINT_EDGE_OPERATIONS 1     // prints information about edge operations (REMOVE_EDGE and RESTORE_EDGE)
 // main control
-#define PRINT_TOURS_DURING_MERGING 0 // before and after doing merge operations, prints the list of tours
+#define PRINT_TOURS_DURING_MERGING 1 // before and after doing merge operations, prints the list of tours
 #define PRINT_BEST_TOUR_EACH_ITERATION 1 // prints the best tour each iteration
 // other stuff I guess?
-#define PRINT_CYCLE_POINTERS 0      // prints what the cycle pointers are at various points, used for debugging the identical cycle pointers bug
+#define PRINT_CYCLE_POINTERS 1      // prints what the cycle pointers are at various points, used for debugging the identical cycle pointers bug
 #define PRINT_DISTANCE 0            // prints distance while generating the table, kind of cluttered, not really used
 #define PRINT_DISTANCE_TABLE  1     // prints the distance table in main
 #define PRINT_VISITED_LIST 1        // when outputting tours, shows a list of which cities were visited

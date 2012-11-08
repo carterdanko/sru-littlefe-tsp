@@ -3,16 +3,20 @@
  */
 #ifndef TSP_H // header guard
 #define TSP_H
-#define MPIFLAG 0 // this decides whether or not we are using MPI (for compiling purposes)
+#define MPI_FLAG 0 // this decides whether or not we are using MPI (for compiling purposes)
 
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#if MPIFLAG
+
+//////////////////////// MPI STUFF /////////////////////////
+#if MPI_FLAG
 #include <mpi.h>
+#define MPI_TAG 2
 #endif
+////////////////////////////////////////////////////////////
 
 #include "include/printcolors.h"     // for coloring the console output
 #include "include/outputcontrol.h"   // controls debug output
@@ -27,7 +31,6 @@
 #define DELTA 0.50 // A float threshold for the difference in the population's best fitness.
 		// When the difference is within this threshold, begin counting how frequently it occurs.
 #define MAX_DELTA 20 // set the maximum number of generations to iterate through when the difference in fitness was repetitively within DELTA.
-#define MPI_TAG 2
 #define MAX_PAIR_TOURS MAX_POPULATION
 
 #define ENFORCE_LOOKUP_TABLE_CORRECTNESS 0    // extra checks in the lookup table for debugging purposes
@@ -39,7 +42,7 @@
 typedef struct {
 	int x,y; // x and y position of the city
 	int id; // a unique number for each city in the map. It should be equal to the city's index in the cities array.
-	//int tour; // keeps track of which tour this "edge" was from. An "edge"[n] is defined as: tour.city[n-1] -> tour.city[n], then tour.tour[n] == which tour that edge was from
+	int tour; // keeps track of which tour this "edge" was from. An "edge"[n] is defined as: tour.city[n-1] -> tour.city[n], then tour.tour[n] == which tour that edge was from
 			  // NOTE: this field is only really relevant when dealing with cycles 
 } city_t;
 
@@ -51,7 +54,6 @@ typedef struct {
 	// ~~!
 	float fitness; // the fitness of the entire tour.
 	city_t* city[MAX_TOUR]; // a pointer to each city in the tour
-	int tour[MAX_TOUR];
 } tour_t;
 
 // main.c
@@ -95,16 +97,6 @@ void construct_distTable(tour_t* cities, int num_cities); // constructs distTabl
 void terminate_program(int ecode);
 
 void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities);
-
-void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs, int *argc, char ***argv);
-
-void load_cities(int mpi_rank, char *citiesFile, tour_t *arr_cities);
-
-void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, int mpi_procs);
-
-void serial_listener(int *iter,int *delta_iter,char *lcv,tour_t** arr_tours, int N);
-
-void run_genalg(int N, char* lcv, tour_t** arr_tours, int mpi_flag);
 
 void sortTours(tour_t** tours, int numTours);
 

@@ -352,3 +352,12 @@ void merge_sort(tour_t** tours, int a, int b) {
 		}
 	}
 }
+
+/**
+ * returns the "true size" of a tour, that is the minimum amount of memory to contain the entire tour (ignoring unused space in the city array of the tuor)
+ * returns : int, the the true "sizeof" of the tour
+ */
+int sizeOfTour(tour_t* tour)
+{
+	return (sizeof(int) + sizeof(float)) + (tour->size*sizeof(city_t*));
+}

@@ -81,7 +81,7 @@ typedef struct {
 	int size; // number of nodes in this graph
 } graph_t;
 
-// intermediates generation and modification into valid tours
-void performEAX(tour_t* Cities, tour_t* tourA, tour_t* tourB, tour_t* tourC);
+// performs the entire EAX algorithm, returning a new valid tour created from the two parent tours
+void performEAX(char* memory_chunk, tour_t* CitiesA, tour_t* CitiesB, tour_t* tourA, tour_t* tourB, tour_t* tourC);
 
 #endif // header guard
