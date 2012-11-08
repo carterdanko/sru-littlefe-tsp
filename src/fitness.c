@@ -12,7 +12,6 @@
 /** Stores distances from every point to another. */
 float* distTable;// initialized in fitness.c inside construct_distTable
 
-
 float dist(float x1, float y1, float x2, float y2)
 {
 	float x,y;
@@ -169,6 +168,9 @@ tour_t* roulette_select(tour_t** tours, int num_tours, tour_t* ignore_tour) {
 		if (tours[i] == ignore_tour)
 			continue; // don't count ignore_tour in the fitness sum
 		temp = tours[i]->fitness;
+		if (temp==0) {
+			printf("tour %i has fitness zero. hex: %x\n",i,tours[i]);
+		}
 		temp = 1.0 / temp;
 		sum_fitness+= temp;
 	}

@@ -8,57 +8,40 @@
 // "global" variables. I try to start these with capital letters
 tour_t *CitiesA, *CitiesB; // the "tour" that contains every city in their provided order. Not really a tour, just used as the master array of cities.
 tour_t** Tours; // all of the current tours in the population
+// global variables about the running state of the program
+int randSeed = 0;
+char* citiesFile = 0;
+int mpi_rank = -1;
 
+int intTours[MAX_CITIES*NUM_TOP_TOURS];
+int intCities[MAX_CITIES*3];
+tour_t** tempTours;
+tour_t** bestTours;
+#if BEST_TOUR_TRACKING
+tour_t** BestTours;          // array containing the best tours
+int sizeBestTours; // how many best tours there are
+tour_t* lastBestTour;        // the previous best tour, last iteration
+#endif
+
+/**
+ * fills the population of tours with an initial set of tours
+ * N : ?
+ * mpi_rank : rank of the mpi process
+ * arr_tours : an array of pointers to tours (the array must be allocated, each tour should not)
+ * arr_cities : the master Cities structure
+ */
 void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities) {
 	int i=0;
 	while (i<MAX_POPULATION) {
+		// the old tour generation
 		//arr_tours[i] = create_tour_nn(arr_cities->city[i%N], N, arr_cities);
 		arr_tours[i] = create_tour_rand(arr_cities);
 		set_tour_fitness(arr_tours[i], N);
 		i++;
 	}
-}
-
-#if DEBUG
-void testTourConversion()
-{
-	tour_t cities;
-	memcpy(&cities, CitiesA, sizeof(*CitiesA));
-	int citiesInts[MAX_CITIES*3];
-
-	printf("Converting to ints\n");
-	city_tToInt(&cities, cities.size, citiesInts);
-	// verify that they're all equal
-	int i;
-	for (i=0; i < cities.size; i++)
-	{
-		city_t* city = cities.city[i];
-		if (city->x != citiesInts[i*3] || city->y != citiesInts[i*3+1] || city->id != citiesInts[i*3+2])
-			printf("(converting to):City invalid city: {%i, %i, %i} cityInt: {%i, %i, %i}\n", city->x, city->y, city->id, citiesInts[i*3], citiesInts[i*3+1], citiesInts[i*3+2]);
-	}
-
-	printf("Converting to cities\n");
-	intToCity_t(citiesInts, cities.size, &cities);
-	// verify that they're all equal
-	for (i=0; i < cities.size; i++)
-	{
-		city_t* city = cities.city[i];
-		if (city->x != citiesInts[i*3] || city->y != citiesInts[i*3+1] || city->id != citiesInts[i*3+2])
-			printf("(converting back): City invalid city: {%i, %i, %i} cityInt: {%i, %i, %i}\n", city->x, city->y, city->id, citiesInts[i*3], citiesInts[i*3+1], citiesInts[i*3+2]);
-	}
-}
-
-void testTourArrayConversion(tour_t** t)
-{
-
-}
-#endif
+}// populate_tours()
 
 #if BEST_TOUR_TRACKING
-tour_t** BestTours;          // array containing the best tours
-int sizeBestTours; // how many best tours there are
-tour_t* lastBestTour;        // the previous best tour, last iteration
-
 void initBestTourTracking()
 {
 	sizeBestTours = 0;
@@ -107,10 +90,13 @@ void trackTours(tour_t* bestTour)
 }
 #endif // best tour tracking
 
-void MPI_init(char mpi_flag, int *mpi_rank, int *mpi_procs, int *argc, char ***argv) {
-	if (mpi_flag>0) {
+/**
+ * initializes the MPI system and stuff
+ */
+void MPI_init(int *mpi_rank, int *mpi_procs, int *argc, char ***argv) {
+	if (MPIFLAG>0) {
 		// If running MPI, then use the MPI commands.
-#if MPI_FLAG
+#if MPIFLAG
 		MPI_Init(argc,argv);
 		MPI_Comm_rank(MPI_COMM_WORLD,mpi_rank);
 		MPI_Comm_size(MPI_COMM_WORLD,mpi_procs);
@@ -122,7 +108,14 @@ void MPI_init(char mpi_flag, int *mpi_rank, int *mpi_procs, int *argc, char ***a
 	}
 }// MPI_init()
 
-void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours, int mpi_flag) {
+/**
+ * runs the actual algorithm, including the GA steps and the performEAX on pairs of parents
+ * memory_chunk : giant chunk of memory used for sub cycles
+ * N : number of cities? or tours? I have no idea
+ * lcv : no clue
+ * arr_tours : array of pointers to the tours in the population
+ */
+void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours) {
 	/////////////////////////////////////////////
 	// pick 100 pairs of parent tours
 	int i;
@@ -137,16 +130,16 @@ void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours, int mp
 		print_tour(Tours[i]);
 	}
 #endif
+	// Select parents for child creation (roulette wheel)
 	for (i=0;i<MAX_PAIR_TOURS;i++) {
 		parentTourPop[i][0]=roulette_select(arr_tours, MAX_POPULATION, 0);
 		parentTourPop[i][1]=roulette_select(arr_tours, MAX_POPULATION, parentTourPop[i][0]);
 		children[i] = &temp2[i]; // fill up the array of pointers
 	}
 
-	if (mpi_flag==0) {
+	if (MPIFLAG==0) {
 		///////////////////////////////////////
 		// run EAX on each pair of parents
-		//TODO: instantiate memory_chunk
 		for (i=0;i<MAX_PAIR_TOURS;i++) {
 			performEAX(memory_chunk, CitiesA, CitiesB, parentTourPop[i][0], parentTourPop[i][1], children[i]);
 		}
@@ -170,76 +163,65 @@ void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours, int mp
 			print_tour(arr_tours[i]);
 		}
 #endif
-
-		// TODO: fix all of kyle's suggestions for MPI
 	} else {
 #if MPIFLAG
-		int *intTours = malloc(CitiesA->size * 5);
 		MPI_Status status;
-		tour_t** tempTours = malloc(sizeof(tour_t*) * 5); //~~!
 
 		// notice -- the slaves will start by reciving tours.
 		// this way, if we are to stop, master will send an empty tour.
 
 		// MPI Recv new tours from master
 		DPRINTF("Island waiting to receive tours from master...\n");
-		MPI_Recv(intTours, CitiesA->size * 5, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status);
+		MPI_Recv(intTours, CitiesA->size * NUM_TOP_TOURS, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status);
 
 		// if the tour is not empty...
 		if (intTours[0]!=-1) {
 			printf("OK! Island received non-empty tour.\n");
 			// Udpate the island's population (sort it)
-			intToTour_t(CitiesA, intTours, 5, tempTours);
-			mergeToursToPop(arr_tours, MAX_POPULATION, tempTours, 5);
-
-			//TODO: Select parents for child creation (roulette wheel)
-
-			// Create children
+			intToTour_t(CitiesA, intTours, NUM_TOP_TOURS, tempTours);
+			mergeToursToPop(arr_tours, MAX_POPULATION, tempTours, NUM_TOP_TOURS);
+			
+			// Generate children
 			printf(">> NOW RUNNING EAX <<\n");
-			performEAX(CitiesA, Tours[0], Tours[1], Tours[2]);
+			///////////////////////////////////////
+			// run EAX on each pair of parents
+			for (i=0;i<MAX_PAIR_TOURS;i++) {
+				performEAX(CitiesA, parentTourPop[i][0], parentTourPop[i][1], children[i]);
+				mergeTourToPop(Tours, MAX_POPULATION, children[i]);
+			}
+			/////////////////////////////////////////
 			printf(">> EXIT EAX <<\n");
-			mergeTourToPop(Tours, MAX_TOUR, Tours[2]);
 
 			// MPI send (tours to master)
-			getBestTours(5, arr_tours, tempTours);
-			int *intTours = malloc(CitiesA->size * sizeof(int) * 5);
-			tour_tToInt(tempTours, 5, intTours);
-			int arraysize = CitiesA->size * 5;
+			getBestTours(NUM_TOP_TOURS, arr_tours, tempTours);
+			tour_tToInt(tempTours, NUM_TOP_TOURS, intTours);
 			DPRINTF("Island is sending its tours to master.\n");
-			MPI_Send(intTours, CitiesA->size*5, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD);
+			MPI_Send(intTours, CitiesA->size*NUM_TOP_TOURS, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD);
 		} else {
 			// else, set lcv->0
 			DPRINTF("Island recognizes order and commences halt procedure.\n");
 			*lcv=0;
 		}
-
-		// free memory
-		free(tempTours);
-		free(intTours);
 #endif
 	}// else MPI
 }// run_genalg()
 
-#if MPI_FLAG
+#if MPIFLAG
+// This function should only run when MPI is turned on!
 void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, int mpi_procs) {
 	// if you are within the constraints, perform actions
-	if (*iter<MAX_ITERATIONS && *delta_iter<MAX_DELTA) {
+	if ((*iter)<MAX_ITERATIONS && (*delta_iter)<MAX_DELTA) {
 		float delta_fit=0.0;
 		int i;
 		MPI_Status status;
-		tour_t** tempTours = malloc(sizeof(tour_t*) * 5);
 
 		// MPI send (tours back to each island)
-		tour_t** bestTours = malloc(sizeof(tour_t*) * 5);
-		getBestTours(5, arr_tours, bestTours);
-		int *intTours = malloc(CitiesA->size * sizeof(int) * 5);
-		tour_tToInt(bestTours, 5, intTours);
-		int arraysize = CitiesA->size * 5;
-//		DPRINTF("Master broadcasts tours\n");
-//		MPI_Bcast(intTours, MAX_CITIES*5, MPI_INT, 0, MPI_COMM_WORLD);
+		getBestTours(NUM_TOP_TOURS, arr_tours, bestTours);
+		tour_tToInt(bestTours, NUM_TOP_TOURS, intTours);
 		for (i=1;i<mpi_procs;i++) {
 			DPRINTF("Master sends tours to %i\n",i);
-			MPI_Send(intTours, CitiesA->size*5, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD);
+			MPI_Send(intTours, CitiesA->size*NUM_TOP_TOURS, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD);
+
 		}
 
 		// First, grab the original best tour's fitness.
@@ -248,50 +230,53 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
 		//TODO: note -- this will have to listen for ANY island & not just the sequence 1..num_procs
 		// MPI receive (tours from each island)
 		for (i=1;i<mpi_procs;i++) {
-			//TODO: does master always receive 5 tours?
 			DPRINTF("Master waiting to receive tours from islands...\n");
-			MPI_Recv(intTours, CitiesA->size * 5, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD, &status);
-			intToTour_t(CitiesA, intTours, 5, tempTours);
+
+			MPI_Recv(intTours, CitiesA->size * NUM_TOP_TOURS, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD, &status);
+			intToTour_t(CitiesA, intTours, NUM_TOP_TOURS, tempTours);
+
 			// udpate master population (sort it)
-			mergeToursToPop(arr_tours, MAX_TOUR, tempTours, 5);
+			mergeToursToPop(arr_tours, MAX_POPULATION, tempTours, NUM_TOP_TOURS);
 		}
+		DPRINTF("Master has received all updates from all islands!\n");
 
 		// Next, subtract by the new best tour's fitness
 		delta_fit-=arr_tours[0]->fitness;
 		if (delta_fit<=DELTA) {
 			// If you are within DELTA, increment counter
-			*delta_iter++;
+			(*delta_iter)++;
 		} else {
 			//Otherwise, reset counter
 			*delta_iter=0;
 		}
 
 		// increment the iteration number.
-		*iter++;
-
-		// free memory
-		free(tempTours);
-		free(bestTours);
-		free(intTours);
+		(*iter)++;
 	}
 	// Otherwise, order other processes to halt
 	else {
 		DPRINTF("OK, master is ordering the halt.\n");
 		*lcv = 0;
-		int *stoparray;
-		stoparray = malloc(sizeof(int));
-		stoparray[0]=-1;
-//		MPI_Bcast(stoparray, sizeof(int), MPI_INT, 0, MPI_COMM_WORLD); // 0 is the rank of master
+		int stoparray=-1;
+		
 		int i;
 		for (i=1;i<mpi_procs;i++) {
 			DPRINTF("Master sends tours to %i\n",i);
-			MPI_Send(stoparray, 1, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD);
+			MPI_Send(&stoparray, 1, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD);
 		}
-		free(stoparray);
 	}
 }// master_listener()
 #endif
 
+/**
+ * used when the program is running on a single core, not using mpi
+ * memory_chunk : that giant allocation of memory used for sub cycles
+ * iter : current iteration, passed by reference
+ * delta_iter : change in best fitness, passed by reference
+ * lcv : I have no fucking clue, passed by reference
+ * arr_tours : array of pointers to the master list of tours
+ * N : number of tours?
+ */
 void serial_listener(char* memory_chunk, int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, int N) {
 	// if you are within the constraints, perform actions
 	if (((*iter)<MAX_ITERATIONS) && ((*delta_iter)<MAX_DELTA)) {
@@ -301,7 +286,7 @@ void serial_listener(char* memory_chunk, int *iter, int *delta_iter, char *lcv, 
 		delta_fit=arr_tours[0]->fitness;
 
 		// run the GA (also updates population)
-		run_genalg(memory_chunk, N, lcv, arr_tours, 0);
+		run_genalg(memory_chunk, N, lcv, arr_tours);
 		
 		// print the best tour
 #if PRINT_BEST_TOUR_EACH_ITERATION
@@ -347,7 +332,12 @@ void serial_listener(char* memory_chunk, int *iter, int *delta_iter, char *lcv, 
 	}
 }// serial_listener()
 
-
+/**
+ * loads cities from a file
+ * mpi_rank : the rank of the mpi process
+ * citiesFile : the string that is the file name
+ * arr_cities : a pointer, passed by reference (so whatever pointer was passed in will now point to the cities loaded)
+ */
 void load_cities(int mpi_rank, char *citiesFile, tour_t **arr_cities) {
 	// if master...
 	if (mpi_rank==0) {
@@ -392,14 +382,10 @@ void load_cities(int mpi_rank, char *citiesFile, tour_t **arr_cities) {
 	}
 }// load_cities()
 
-// global variables about the running state of the program
-int randSeed = 0;
-char* citiesFile = 0;
-
 int main(int argc, char** argv)
 {
 	int i; // loop counter
-	int mpi_rank,mpi_procs; // mpi rank (for each process) and number of processes
+	int mpi_procs; // mpi rank (for each process) and number of processes
 	char lcv = 1; // loop control variable for the while loop (run until lcv->0)
 	
 	// oh boy, where to begin:
@@ -439,6 +425,7 @@ int main(int argc, char** argv)
 
 	//TODO: make argument handler set the number of procedures (mpi_procs) and mpi_flag.
 	mpi_procs = 1;
+	
 
 	//####################################################
 	// Argument Handler
@@ -465,7 +452,6 @@ int main(int argc, char** argv)
 				printf(" -- optional flags --\n");
 				printf("-h, --help : this screen.\n");
 				printf("-s <random seed> : random seed to initialize srand with.\n");
-				//printf("-d <maximum distance> : max x or y.\n");
 			}
 			else if (strcmp(p, "-s") == 0)
 			{
@@ -478,14 +464,12 @@ int main(int argc, char** argv)
 			}// else filename
 		}// for each argument
 	}// else process the arguments
-
 	// check to make sure we got a city file
 	if (!citiesFile)
 	{
 		printf("no city file present. halting\n");
 		terminate_program(3); // ERROR: no city file present
 	}
-
 	// initialize srand
 	if (randSeed)
 	{
@@ -500,24 +484,28 @@ int main(int argc, char** argv)
 	}
 	//----------------------------------------------------
 
-
 	//####################################################
 	// MPI Initializations
 	//####################################################
 	// Handles MPI initializations and sets its variables.
-	MPI_init(MPI_FLAG,&mpi_rank,&mpi_procs,&argc,&argv);
+	MPI_init(&mpi_rank,&mpi_procs,&argc,&argv);
 	//----------------------------------------------------
-
-
+	
+	// Initialize the memory you will need for the entire program.
+	tempTours = malloc(sizeof(tour_t*)*NUM_TOP_TOURS);
+	for (i=0;i<NUM_TOP_TOURS;i++) {
+		tempTours[i]=malloc(sizeof(tour_t));
+	}
+	bestTours = malloc(sizeof(tour_t*)*NUM_TOP_TOURS);
+	
 	//####################################################
 	// Load Cities, Initialize Tables, Create Init tours
 	//####################################################
 	// load the cities
-	//CitiesA = malloc(sizeof(tour_t));
-	//CitiesB = malloc(sizeof(tour_t));
+
 	int *intCities = malloc(MAX_CITIES * sizeof(int) * 3);
-	if (MPI_FLAG==1) {
-#if MPI_FLAG
+	if (MPIFLAG==1) {
+#if MPIFLAG
 		MPI_Status status;
 
 		// If MPI active, then let the master load cities and broadcast
@@ -527,8 +515,7 @@ int main(int argc, char** argv)
 
 			// MPI Send cities
 			city_tToInt(CitiesA, CitiesA->size, intCities);
-//			DPRINTF("Master is broadcasting the cities...\n");
-//			MPI_Bcast(intCities, sizeof(intCities), MPI_INT, 0, MPI_COMM_WORLD);
+
 			for (i=1;i<mpi_procs;i++) {
 				DPRINTF("Master sends city size to %i\n",i);
 				MPI_Send(&(CitiesA->size), 1, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD);
@@ -540,12 +527,19 @@ int main(int argc, char** argv)
 			// MPI Receive cities
 			DPRINTF("Island receiving citysize...\n");
 			MPI_Recv(&(CitiesA->size), 1, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status);
-			DPRINTF("Got city size!\n");
+			DPRINTF("Got city size of %i!\n",CitiesA->size);
+			// receive actual array of cities as intarray
 			DPRINTF("Island waiting for cities...\n");
 			MPI_Recv(intCities, CitiesA->size*3, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status); // size of intCities has x, y, id values.
 			DPRINTF("Island got cities!\n");
+			// malloc the cities in the array
+			for (i=0;i<CitiesA->size;i++) {
+				CitiesA->city[i]=malloc(sizeof(city_t));
+			}
+			// convert the int array to a city array
 			intToCity_t(intCities, CitiesA->size, CitiesA);
 			intToCity_t(intCities, CitiesB->size, CitiesB);
+			DPRINTF("Cities converted. Now printing...\n");
 			print_tour(CitiesA);
 		}
 #endif
@@ -554,7 +548,6 @@ int main(int argc, char** argv)
 		load_cities(mpi_rank, citiesFile, &CitiesA);
 		load_cities(mpi_rank, citiesFile, &CitiesB);
 	}
-	free(intCities);
 	// process the cities
 	int N = CitiesA->size;
 	for (i=0; i < CitiesA->size; i++)
@@ -568,22 +561,15 @@ int main(int argc, char** argv)
 	// construct the distance table (on all processes)
 	construct_distTable(CitiesA,N);
 
-	// output the city information to the console
-	DPRINTF("\nNum Cities: %04i\n", CitiesA->size);
-	DPRINTF("---------------------------\n");
-	for (i=0; i < CitiesA->size; i++)
-	{
-		DPRINTF("City[%04i] at %04i, %04i   [id: %04i]\n", i, CitiesA->city[i]->x, CitiesA->city[i]->y, CitiesA->city[i]->id);
-	}
-
 	// populate tours (on all processes)
 	populate_tours(N,mpi_rank,Tours,CitiesA);
 	//----------------------------------------------------
+
 	
 #if BEST_TOUR_TRACKING
 	initBestTourTracking();
 #endif
-
+	//----------------------------------------------------
 
 	//####################################################
 	// Run Genetic Algorithm (Enter "The Islands")
@@ -592,8 +578,8 @@ int main(int argc, char** argv)
 	int delta_iter=0; // the number of iterations performed with fitness consecutively within DELTA.
 	while (lcv) {
 		DPRINTF("Loop from %i...\n",mpi_rank);
-		if (MPI_FLAG==1 && mpi_procs>1) {
-#if MPI_FLAG
+		if (MPIFLAG==1 && mpi_procs>1) {
+#if MPIFLAG
 			if (mpi_rank==0) {
 				// if you are the master AND mpi is on, start listening
 				DPRINTF("Running listener on %i...\n",mpi_rank);
@@ -602,23 +588,20 @@ int main(int argc, char** argv)
 			else {
 				// if you are a slave and MPI is on, run the GA
 				DPRINTF("Running GA on %i...\n",mpi_rank);
-				run_genalg(memory_chunk, N, &lcv, Tours, MPI_FLAG);
+				run_genalg(memory_chunk, N, &lcv, Tours);
 			}
 #endif
 		} else {
 			// otherwise, run the GA and perform the loop condition checks manually.
 
-			//run_genalg(N,&lcv);
+			serial_listener(memory_chunk, &iter, &delta_iter, &lcv, Tours, N);
 
-			serial_listener(memory_chunk, &iter,&delta_iter,&lcv,Tours,N);
 		}
 	}
 	//----------------------------------------------------
-
 
 	//####################################################
 	// Free Memory, Terminate Program
 	//####################################################
 	terminate_program(0);
 }
-

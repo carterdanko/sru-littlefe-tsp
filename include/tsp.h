@@ -3,7 +3,7 @@
  */
 #ifndef TSP_H // header guard
 #define TSP_H
-#define MPI_FLAG 0 // this decides whether or not we are using MPI (for compiling purposes)
+#define MPIFLAG 0 // this decides whether or not we are using MPI (for compiling purposes)
 
 #include <stdlib.h>
 #include <time.h>
@@ -12,7 +12,7 @@
 #include <unistd.h>
 
 //////////////////////// MPI STUFF /////////////////////////
-#if MPI_FLAG
+#if MPIFLAG
 #include <mpi.h>
 #define MPI_TAG 2
 #endif
@@ -28,8 +28,10 @@
 #include "include/outputcontrol.h"   // controls debug output
 
 #define DEBUG 1     // set to zero to remove a lot of debugging output and speed up the code 
-#define DPRINTF if (DEBUG) printf
-#define MAX_CITIES 13000
+
+#define DPRINTF if (DEBUG) printf("r%io%i", mpi_rank, outputCounter++); if (DEBUG) printf
+#define MAX_CITIES 1000
+
 #define MAX_TOUR MAX_CITIES+1     // this should basically be the same as MAX_CITIES
 #define MAX_POPULATION 100
 #define TABLE_SIZE (MAX_CITIES*(MAX_CITIES-1))/2 // size based on a counting argument
@@ -38,6 +40,7 @@
 		// When the difference is within this threshold, begin counting how frequently it occurs.
 #define MAX_DELTA 20 // set the maximum number of generations to iterate through when the difference in fitness was repetitively within DELTA.
 #define MAX_PAIR_TOURS MAX_POPULATION
+#define NUM_TOP_TOURS 5
 
 #define ENFORCE_LOOKUP_TABLE_CORRECTNESS 0    // extra checks in the lookup table for debugging purposes
 #define DEBUG_SET_TOUR_FITNESS 0              // inserts extra lines while calculating a tour's fitness for debugging
@@ -63,6 +66,7 @@ typedef struct {
 } tour_t;
 
 // main.c
+extern int mpi_rank;
 extern int randSeed; // random seed to use
 extern char* citiesFile; // cities file name
 extern tour_t** Tours; // Tours array
@@ -75,6 +79,7 @@ extern tour_t** Tours; // Tours array
 
 
 // util.c
+extern int outputCounter;
 void terminate_program(int ecode); // terminates the program and outputs some information
 void city_tToInt(tour_t* C, int nCities, int* I);
 void intToCity_t(int* I, int nCities, tour_t* C);
@@ -83,6 +88,10 @@ void intToTour_t(tour_t* Cities, int* I, int nTours, tour_t** tours);
 float frand(); // Returns a random float between 0.0 and 1.0.
 void print_tour(tour_t* tour); // Simple print procedure for a tour.
 void mergeToursToPop(tour_t** tours, int num_tours, tour_t** toursToMerge, int numToursToMerge); // merges tours into the master array of tours
+void sortTours(tour_t** tours, int numTours); // sorts an array of tours by ascending fitness values (lower fitness is better tour)
+void merge_swap(tour_t** elem1, tour_t** elem2); // swaps two tours by reference (that is, after this executes, elem1 == (previous value of elem2) and elem2 == (previous elem1)
+void terminate_program(int ecode); // terminates the program. ecode 0 is normal successful termination, anything else indicates an error (abnormal termination)
+void getBestTours(int max, tour_t** tours, tour_t** bestTours);
 ///////////////////////////////////////////////////////////////////////////////
 
 // tsp.c
@@ -99,19 +108,5 @@ void set_tour_fitness(tour_t* tour, int num_cities); // compute and set a tour's
 float lookup_distance(int p1, int p2); // distance between two points; retrieved in constant time.
 void construct_distTable(tour_t* cities, int num_cities); // constructs distTable variable.
 ///////////////////////////////////////////////////////////////////////////////
-
-void terminate_program(int ecode);
-
-void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities);
-
-void sortTours(tour_t** tours, int numTours);
-
-void merge_sort(tour_t** tours, int a, int b);
-
-void merge_recursive(tour_t** tours, int a, int mid, int b);
-
-void merge_swap(tour_t** elem1, tour_t** elem2);
-
-void getBestTours(int max, tour_t** tours, tour_t** bestTours);
 
 #endif // header guard
