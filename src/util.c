@@ -208,20 +208,14 @@ void tour_tToInt(tour_t** tours, int nTours, int* I)
  */
 void intToTour_t(tour_t* Cities, int* I, int nTours, tour_t** tours)
 {
-//	DPRINTF("in intToTour_t()\n");
 	int i;
 	int position = 0;
 	for (i=0; i < nTours; i++)
 	{
 		int a;
-		//tours[i] = (tour_t*)malloc(sizeof(tour_t)); // tours should be pre-allocated so why is this here
-//		DPRINTF("INT_TO_TOUR::  ");
-//		for (a=0; a < tours[i]->size; a++) {
 		for (a=0; a < Cities->size; a++) {
 			tours[i]->city[a] = Cities->city[I[position++]];
-//			DPRINTF("%i:%i->%i  ",i,a,tours[i]->city[a]->id);
 		}
-//		DPRINTF("\n");
 		tours[i]->size = Cities->size;
 		set_tour_fitness(tours[i],nTours);
 	}

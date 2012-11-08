@@ -3,7 +3,7 @@
  */
 #ifndef TSP_H // header guard
 #define TSP_H
-#define MPIFLAG 1 // this decides whether or not we are using MPI (for compiling purposes)
+#define MPIFLAG 0 // this decides whether or not we are using MPI (for compiling purposes)
 
 #include <stdlib.h>
 #include <time.h>
@@ -29,6 +29,7 @@
 #define MAX_DELTA 20 // set the maximum number of generations to iterate through when the difference in fitness was repetitively within DELTA.
 #define MPI_TAG 2
 #define MAX_PAIR_TOURS MAX_POPULATION
+#define NUM_TOP_TOURS 5
 
 #define ENFORCE_LOOKUP_TABLE_CORRECTNESS 0    // extra checks in the lookup table for debugging purposes
 #define DEBUG_SET_TOUR_FITNESS 0              // inserts extra lines while calculating a tour's fitness for debugging
