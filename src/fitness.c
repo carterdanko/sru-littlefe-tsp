@@ -44,7 +44,9 @@ void construct_distTable(tour_t* cities, int num_cities) {
 #endif
 			index++;
 		}
+#if PRINT_DISTANCE
 		printf("\n");
+#endif
 	}
 }
 

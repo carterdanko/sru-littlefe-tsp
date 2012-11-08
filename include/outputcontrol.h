@@ -28,10 +28,11 @@
 // main control
 #define PRINT_TOURS_DURING_MERGING 0 // before and after doing merge operations, prints the list of tours
 #define PRINT_BEST_TOUR_EACH_ITERATION 1 // prints the best tour each iteration
+#define PRINT_ITERATION_PROGRESS 1  // prints a multiple of 10% on the same line every 10% of iterations, useful for big data sets
 // other stuff I guess?
 #define PRINT_CYCLE_POINTERS 0      // prints what the cycle pointers are at various points, used for debugging the identical cycle pointers bug
 #define PRINT_DISTANCE 0            // prints distance while generating the table, kind of cluttered, not really used
-#define PRINT_DISTANCE_TABLE  1     // prints the distance table in main
+#define PRINT_DISTANCE_TABLE  0     // prints the distance table in main
 #define PRINT_VISITED_LIST 0        // when outputting tours, shows a list of which cities were visited
 
 #endif // OPC_ENABLE

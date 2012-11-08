@@ -29,8 +29,8 @@
 
 #define DEBUG 1     // set to zero to remove a lot of debugging output and speed up the code 
 
-#define DPRINTF if (DEBUG) printf("r%io%i", mpi_rank, outputCounter++); if (DEBUG) printf
-#define MAX_CITIES 1000
+#define DPRINTF if (DEBUG) printf("r%io%i::", mpi_rank, outputCounter++); if (DEBUG) printf
+#define MAX_CITIES 12000
 
 #define MAX_TOUR MAX_CITIES+1     // this should basically be the same as MAX_CITIES
 #define MAX_POPULATION 100

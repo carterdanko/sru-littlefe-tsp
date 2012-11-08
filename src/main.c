@@ -140,9 +140,19 @@ void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours) {
 	if (MPIFLAG==0) {
 		///////////////////////////////////////
 		// run EAX on each pair of parents
+#if PRINT_ITERATION_PROGRESS
+		int progressMultiple = MAX_PAIR_TOURS / 10;
+		DPRINTF("Progress: \n");
+#endif
 		for (i=0;i<MAX_PAIR_TOURS;i++) {
+#if PRINT_ITERATION_PROGRESS
+			if (i % progressMultiple == 0){ DPRINTF("%i\%\n", i / progressMultiple);}
+#endif
 			performEAX(memory_chunk, CitiesA, CitiesB, parentTourPop[i][0], parentTourPop[i][1], children[i]);
 		}
+#if PRINT_ITERATION_PROGRESS
+		DPRINTF("...done!\n");
+#endif
 		
 		/////////////////////////////////////////
 		// Merge the generated tours back into the population
@@ -279,6 +289,7 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
  */
 void serial_listener(char* memory_chunk, int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, int N) {
 	// if you are within the constraints, perform actions
+	DPRINTF("SERIAL LISTENER!");
 	if (((*iter)<MAX_ITERATIONS) && ((*delta_iter)<MAX_DELTA)) {
 		float delta_fit=0.0;
 
@@ -286,6 +297,7 @@ void serial_listener(char* memory_chunk, int *iter, int *delta_iter, char *lcv, 
 		delta_fit=arr_tours[0]->fitness;
 
 		// run the GA (also updates population)
+		DPRINTF("RUN GENALG");
 		run_genalg(memory_chunk, N, lcv, arr_tours);
 		
 		// print the best tour
