@@ -132,7 +132,7 @@ void MPI_init(char *mpi_flag, int *mpi_rank, int *mpi_procs, int *argc, char ***
 #if MPIFLAG
 void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, int mpi_procs) {
 	// if you are within the constraints, perform actions
-	if (*iter<MAX_ITERATIONS && *delta_iter<MAX_DELTA) {
+	if ((*iter)<MAX_ITERATIONS && (*delta_iter)<MAX_DELTA) {
 		float delta_fit=0.0;
 		int i;
 		MPI_Status status;
@@ -170,14 +170,14 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
 		delta_fit-=arr_tours[0]->fitness;
 		if (delta_fit<=DELTA) {
 			// If you are within DELTA, increment counter
-			*delta_iter++;
+			(*delta_iter)++;
 		} else {
 			//Otherwise, reset counter
 			*delta_iter=0;
 		}
 
 		// increment the iteration number.
-		*iter++;
+		(*iter)++;
 
 		// free memory
 //		free(tempTours);
@@ -340,7 +340,6 @@ void run_genalg(int N, char *lcv, tour_t** arr_tours, int mpi_flag) {
 		}
 #endif
 		mergeToursToPop(arr_tours, MAX_POPULATION, children, MAX_PAIR_TOURS);
-		DPRINTF("~~~~ WEIRD\n");
 #if PRINT_TOURS_DURING_MERGING
 		DPRINTF("-- printing tours AFTER merging -- \n");
 		for (i=0; i < MAX_PAIR_TOURS; i++)
@@ -375,17 +374,18 @@ void run_genalg(int N, char *lcv, tour_t** arr_tours, int mpi_flag) {
 
 			// Create children
 			printf(">> NOW RUNNING EAX <<\n");
-			performEAX(Cities, Tours[0], Tours[1], Tours[2]);
+			///////////////////////////////////////
+			// run EAX on each pair of parents
+			for (i=0;i<MAX_PAIR_TOURS;i++) {
+				performEAX(Cities, parentTourPop[i][0], parentTourPop[i][1], children[i]);
+				mergeTourToPop(Tours, MAX_POPULATION, children[i]);
+			}
+			/////////////////////////////////////////
 			printf(">> EXIT EAX <<\n");
-			DPRINTF("Merge new child tour to the population.\n");
-
-			mergeTourToPop(Tours, MAX_POPULATION, Tours[2]);
 
 			// MPI send (tours to master)
-			DPRINTF("Find top 5 tours off island...\n");
 			getBestTours(5, arr_tours, tempTours);
 //			int *intTours = malloc(Cities->size * sizeof(int) * 5);
-			DPRINTF("Conversion tour_t --> int\n");
 			tour_tToInt(tempTours, 5, intTours);
 //			int arraysize = Cities->size * 5;
 			DPRINTF("Island is sending its tours to master.\n");
@@ -595,15 +595,14 @@ int main(int argc, char** argv)
 		}
 	}
 	//----------------------------------------------------
+	DPRINTF("You're done on %i!\n",mpi_rank);
 
 
 	//####################################################
 	// Free Memory, Terminate Program
 	//####################################################
-	free(bestTours);
-	free(tempTours);
-	free(intCities);
-	free(intTours);
+//	free(bestTours);
+//	free(tempTours);
 	terminate_program(0);
 }
 
