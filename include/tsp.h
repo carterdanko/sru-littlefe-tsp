@@ -18,12 +18,18 @@
 #endif
 ////////////////////////////////////////////////////////////
 
+////////////////////// GA MODIFICATIONS ////////////////////
+#define CHOOSE_BEST_FROM_THREE 1     // if true, performEAX returns only the best tour from {parentA, parentB, child} instead of always the child
+#define PERFORM_2OPT_ON_CHILD 0      // if true, performs 2-opt optimization on child tour
+#define USE_HEURISTIC_ESET 0         // if true, instead of randomly choosing AB cycles for E-SETs, uses a heuristic
+////////////////////////////////////////////////////////////
+
 #include "include/printcolors.h"     // for coloring the console output
 #include "include/outputcontrol.h"   // controls debug output
 
 #define DEBUG 1     // set to zero to remove a lot of debugging output and speed up the code 
 #define DPRINTF if (DEBUG) printf
-#define MAX_CITIES 1000
+#define MAX_CITIES 13000
 #define MAX_TOUR MAX_CITIES+1     // this should basically be the same as MAX_CITIES
 #define MAX_POPULATION 100
 #define TABLE_SIZE (MAX_CITIES*(MAX_CITIES-1))/2 // size based on a counting argument

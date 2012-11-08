@@ -90,7 +90,7 @@ float lookup_distance(int p1, int p2) {
 		terminate_program(787);
 		return 0.0;
 	}
-}
+} // lookup_distance()
 
 /**
  * Given a tour and the number of cities, determine its fitness by

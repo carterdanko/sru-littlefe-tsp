@@ -16,7 +16,8 @@ void print_tour(tour_t* tour) {
 	printf("Tour [f:\033[33m%f\033[0m s:\033[32m%i\033[0m]: [%i]", tour->fitness, tour->size, tour->city[0]->id);
 	for (i=1; i < tour->size; i++)
 	{
-		printf(", [%i]", tour->city[i]->id);
+		//printf(", [%i]", tour->city[i]->id);
+		printf("-%s-> [%i]", (tour->city[i]->tour == TOUR_A ? "A" : "B"), tour->city[i]->id);
 #if PRINT_VISITED_LIST
 		if (visited[tour->city[i]->id] > 0)
 			printf("\033[31m!\033[0m");
@@ -49,7 +50,8 @@ void dprint_tour(tour_t* tour) {
 	DPRINTF("(DPRINTF)Tour [f:\033[33m%f\033[0m s:\033[32m%i\033[0m]: [%i]", tour->fitness, tour->size, tour->city[0]->id);
 	for (i=1; i < tour->size; i++)
 	{
-		DPRINTF(", [%i]", tour->city[i]->id);
+		//DPRINTF(", [%i]", tour->city[i]->id);
+		DPRINTF("-%s-> [%i]", (tour->city[i]->tour == TOUR_A ? "A" : "B"), tour->city[i]->id);
 #if PRINT_VISITED_LIST
 		if (visited[tour->city[i]->id] > 0)
 			DPRINTF("\033[31m!\033[0m");

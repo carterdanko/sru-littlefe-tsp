@@ -100,8 +100,8 @@ void trackTours(tour_t* bestTour)
 {
 	if (bestTour != lastBestTour)
 	{
-		BestTours[sizeBestTours] = malloc(sizeof(tour_t));
-		memcpy(BestTours[sizeBestTours++], bestTour, sizeof(tour_t));
+		BestTours[sizeBestTours] = malloc(sizeOfTour(bestTour));
+		memcpy(BestTours[sizeBestTours++], bestTour, sizeOfTour(bestTour));
 		lastBestTour = bestTour;
 	}
 }
@@ -120,7 +120,7 @@ void MPI_init(char mpi_flag, int *mpi_rank, int *mpi_procs, int *argc, char ***a
 		*mpi_rank = 0;
 		*mpi_procs = 1;
 	}
-}
+}// MPI_init()
 
 void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours, int mpi_flag) {
 	/////////////////////////////////////////////
@@ -431,7 +431,11 @@ int main(int argc, char** argv)
 	// I think this also assumes that a float is smaller or equal in size to an integer. (hopefully that's true!)
 	// it also assumes that the C compiler doesn't do anything weird like pad memory between structs (hopefully it doesn't!)
 	// it also assumes that Programmo, the god of programming, is with us and we can actually finish this code before the conference (hopefully he is!)
-	char* memory_chunk = malloc((MAX_CITIES/4) * (sizeof(int)+sizeof(float)+sizeof(city_t*)*4));
+	int memory_chunk_size = (MAX_CITIES/4) * (sizeof(int)+sizeof(float)+sizeof(city_t*)*5); // *5 for 4 cities in the cycle PLUS the extra loop-back node
+	DPRINTF("Allocating memory_chunk to be of size: %i\n", memory_chunk_size);
+	char* memory_chunk = malloc(memory_chunk_size);
+	DPRINTF("Allocated at memory_chunk = %x\n", memory_chunk);
+	DPRINTF("memory_chunk itself is at &memory_chunk = %x\n", &memory_chunk);
 
 	//TODO: make argument handler set the number of procedures (mpi_procs) and mpi_flag.
 	mpi_procs = 1;
@@ -509,8 +513,8 @@ int main(int argc, char** argv)
 	// Load Cities, Initialize Tables, Create Init tours
 	//####################################################
 	// load the cities
-	CitiesA = malloc(sizeof(tour_t));
-	CitiesB = malloc(sizeof(tour_t));
+	//CitiesA = malloc(sizeof(tour_t));
+	//CitiesB = malloc(sizeof(tour_t));
 	int *intCities = malloc(MAX_CITIES * sizeof(int) * 3);
 	if (MPI_FLAG==1) {
 #if MPI_FLAG
