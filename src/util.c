@@ -1,6 +1,8 @@
 #include "include/tsp.h"
 #include "include/eax.h"
 
+int outputCounter = -1;
+
 float frand() {
 	return ((float)rand())/((float)RAND_MAX);
 }
@@ -82,6 +84,9 @@ void terminate_program(int ecode)
 
 	// only runs for "successful" program termination.
 	OOPS_TEXT;
+#if MPIFLAG
+	if (mpi_rank==0)
+#endif
 	printf("randSeed: %i, citiesFile: '%s'\n", randSeed, citiesFile);
 	NORMAL_TEXT;
 	if (Tours[0])
@@ -152,6 +157,7 @@ void intToCity_t(int* I, int nCities, tour_t* C)
 {
 	int i;
 //	C->size = nCities;
+
 	DPRINTF("INT_TO_CITY::  ");
 	for (i=0; i < nCities; i++)
 	{
@@ -184,6 +190,7 @@ void tour_tToInt(tour_t** tours, int nTours, int* I)
 			I[size++] = tours[i]->city[a]->id;
 		}
 		DPRINTF("\n");
+		set_tour_fitness(tours[i],nTours);
 	}
 }
 
@@ -255,6 +262,7 @@ void getBestTours(int max, tour_t** tours, tour_t** bestTours) {
  */
 void mergeTourToPop(tour_t** tours, int num_tours, tour_t* mergetour) 
 {
+	printf("memory test:  %i,%i\n",(int)mergetour,(int)tours[num_tours-1]);
 	// fast exit if we're ignoring this tour
 	if (mergetour->fitness >= tours[num_tours-1]->fitness)
 		return;
@@ -265,6 +273,7 @@ void mergeTourToPop(tour_t** tours, int num_tours, tour_t* mergetour)
 	{
 		if (mergetour->fitness < tours[i]->fitness) // we found a tour that has a higher cost than mergetour, so insert mergetour here
 		{
+			DPRINTF("OK, found the index.\n");
 			// since the last spot in the array is gonna be over-written, swap it for the current spot
 			temp = tours[num_tours-1];
 			// note: this makes the array lose value at tours[num_tours-1] (the last value).

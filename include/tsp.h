@@ -3,7 +3,7 @@
  */
 #ifndef TSP_H // header guard
 #define TSP_H
-#define MPIFLAG 0 // this decides whether or not we are using MPI (for compiling purposes)
+#define MPIFLAG 1 // this decides whether or not we are using MPI (for compiling purposes)
 
 #include <stdlib.h>
 #include <time.h>
@@ -18,7 +18,7 @@
 #include "include/outputcontrol.h"   // controls debug output
 
 #define DEBUG 1     // set to zero to remove a lot of debugging output and speed up the code 
-#define DPRINTF if (DEBUG) printf
+#define DPRINTF if (DEBUG) printf("r%io%i", mpi_rank, outputCounter++); if (DEBUG) printf
 #define MAX_CITIES 1000
 #define MAX_TOUR MAX_CITIES+1     // this should basically be the same as MAX_CITIES
 #define MAX_POPULATION 100
@@ -55,6 +55,7 @@ typedef struct {
 } tour_t;
 
 // main.c
+extern int mpi_rank;
 extern int randSeed; // random seed to use
 extern char* citiesFile; // cities file name
 extern tour_t** Tours; // Tours array
@@ -67,6 +68,7 @@ extern tour_t** Tours; // Tours array
 
 
 // util.c
+extern int outputCounter;
 void terminate_program(int ecode); // terminates the program and outputs some information
 void city_tToInt(tour_t* C, int nCities, int* I);
 void intToCity_t(int* I, int nCities, tour_t* C);

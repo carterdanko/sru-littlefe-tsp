@@ -1,0 +1,125 @@
+r-1o-1Picked a random seed ([31m1352350494[0m).
+r-1o-1Picked a random seed ([31m1352350494[0m).
+r6388688o0Just set up MPI on rank 1!
+r1o1Island receiving citysize...
+r6388688o0Just set up MPI on rank 0!
+r0o1Loading cities...r0o2done! (loaded 5 cities from the file)
+r0o3done! (loaded 5 cities from the file)
+
+
+
+
+
+ -- DISTANCE TABLE --
+      00   01   02   03   04 
+00 :0.00 4.47 3.00 2.24 6.08 
+01 :4.47 0.00 4.12 3.61 8.54 
+02 :3.00 4.12 0.00 4.47 9.06 
+03 :2.24 3.61 4.47 0.00 5.10 
+04 :6.08 8.54 9.06 5.10 0.00 
+r0o4
+Num Cities: 0005
+r0o5---------------------------
+r0o6City[0000] at 0001, 0004   [id: 0000]
+r0o7City[0001] at 0005, 0002   [id: 0001]
+r0o8City[0002] at 0001, 0001   [id: 0002]
+r0o9City[0003] at 0003, 0005   [id: 0003]
+r0o10City[0004] at 0002, 0010   [id: 0004]
+r0o11CITY_TO_INT::  r0o120(1,4)  r0o131(5,2)  r0o142(1,1)  r0o153(3,5)  r0o164(2,10)  r0o17
+Tour [f:[33m0.000000[0m s:[32m5[0m]: [0], [1], [2], [3], [4]
+   visited: [0m1[33m0[0m1[0m1[0m1[0m1[0m
+r0o18Master sends city size to 1
+r0o19Master sends tours to 1
+
+
+
+
+
+r1o2Got city size of 5!
+r1o3Island waiting for cities...
+r1o4Island got cities!
+r1o5INT_TO_CITY::  r1o60(1,4)  r1o71(5,2)  r1o82(1,1)  r1o93(3,5)  r1o104(2,10)  r1o11
+r1o12Cities converted. Now printing...
+Tour [f:[33m0.000000[0m s:[32m5[0m]: [0], [1], [2], [3], [4]
+   visited: [0m1[33m0[0m1[0m1[0m1[0m1[0m
+
+
+
+
+
+r0o20Loop from 0...
+r0o21Running listener on 0...
+r0o22TOUR_TO_INT::  r0o230:0->2  r0o240:1->0  r0o250:2->3  r0o260:3->1  r0o270:4->4  r0o28
+r0o29TOUR_TO_INT::  r0o301:0->4  r0o311:1->2  r0o321:2->0  r0o331:3->3  r0o341:4->1  r0o35
+r0o36TOUR_TO_INT::  r0o372:0->3  r0o382:1->4  r0o392:2->1  r0o402:3->2  r0o412:4->0  r0o42
+r0o43TOUR_TO_INT::  r0o443:0->4  r0o453:1->0  r0o463:2->2  r0o473:3->1  r0o483:4->3  r0o49
+r0o50TOUR_TO_INT::  r0o514:0->1  r0o524:1->3  r0o534:2->0  r0o544:3->4  r0o554:4->2  r0o56
+r0o57Master sends tours to 1
+r0o58Master waiting to receive tours from islands...
+r1o13Loop from 1...
+r1o14Running GA on 1...
+r1o15Island waiting to receive tours from master...
+OK! Island received non-empty tour.
+r1o16in intToTour_t()
+r1o17INT_TO_TOUR::  r1o180:0->2  r1o190:1->0  r1o200:2->3  r1o210:3->1  r1o220:4->4  r1o23
+r1o24INT_TO_TOUR::  r1o251:0->4  r1o261:1->2  r1o271:2->0  r1o281:3->3  r1o291:4->1  r1o30
+r1o31INT_TO_TOUR::  r1o322:0->3  r1o332:1->4  r1o342:2->1  r1o352:3->2  r1o362:4->0  r1o37
+r1o38INT_TO_TOUR::  r1o393:0->4  r1o403:1->0  r1o413:2->2  r1o423:3->1  r1o433:4->3  r1o44
+r1o45INT_TO_TOUR::  r1o464:0->1  r1o474:1->3  r1o484:2->0  r1o494:3->4  r1o504:4->2  r1o51
+r1o52Merging tours to population . . .
+memory test:  8587888,9852064
+r1o53OK, found the index.
+memory test:  8599920,9840032
+r1o54OK, found the index.
+memory test:  8611952,9828000
+r1o55OK, found the index.
+memory test:  8623984,9815968
+r1o56OK, found the index.
+memory test:  8636016,9803936
+r1o57OK, found the index.
+r1o58OK! Merged tours to pop.
+>> NOW RUNNING EAX <<
+>> EXIT EAX <<
+r1o59Merge new child tour to the population.
+memory test:  9828000,9791904
+r1o60Find top 5 tours off island...
+r1o61Conversion tour_t --> int
+r1o62TOUR_TO_INT::  r1o630:0->2  r1o640:1->0  r1o650:2->3  r1o660:3->1  r1o670:4->4  r1o68
+r1o69TOUR_TO_INT::  r1o701:0->4  r1o711:1->2  r1o721:2->0  r1o731:3->3  r1o741:4->1  r1o75
+r1o76TOUR_TO_INT::  r1o772:0->0  r1o782:1->3  r1o792:2->1  r1o802:3->4  r1o812:4->2  r1o82
+r1o83TOUR_TO_INT::  r1o843:0->4  r1o853:1->0  r1o863:2->2  r1o873:3->1  r1o883:4->3  r1o89
+r1o90TOUR_TO_INT::  r1o914:0->1  r1o924:1->3  r1o934:2->0  r1o944:3->4  r1o954:4->2  r1o96
+r1o97Island is sending its tours to master.
+r1o98Loop from 1...
+r1o99Running GA on 1...
+[31mr1o100Reached 'unreachable' code in roullette_select.
+[0mr1o101rand: 0.922338, rand_fit: -nan, sum_fitness: inf, temp: 0.039632, ignore_tour: m([31m0[0m)
+r0o59in intToTour_t()
+r0o60INT_TO_TOUR::  r0o610:0->2  r0o620:1->0  r0o630:2->3  r0o640:3->1  r0o650:4->4  r0o66
+r0o67INT_TO_TOUR::  r0o681:0->4  r0o691:1->2  r0o701:2->0  r0o711:3->3  r0o721:4->1  r0o73
+r0o74INT_TO_TOUR::  r0o752:0->0  r0o762:1->3  r0o772:2->1  r0o782:3->4  r0o792:4->2  r0o80
+r0o81INT_TO_TOUR::  r0o823:0->4  r0o833:1->0  r0o843:2->2  r0o853:3->1  r0o863:4->3  r0o87
+r0o88INT_TO_TOUR::  r0o894:0->1  r0o904:1->3  r0o914:2->0  r0o924:3->4  r0o934:4->2  r0o94
+r0o95Merging tours to population . . .
+memory test:  8587920,9852096
+r0o96OK, found the index.
+memory test:  8599952,9840064
+r0o97OK, found the index.
+memory test:  8611984,9828032
+r0o98OK, found the index.
+memory test:  8624016,9816000
+r0o99OK, found the index.
+memory test:  8636048,9803968
+r0o100OK, found the index.
+r0o101OK! Merged tours to pop.
+r0o102Master has received all updates from all islands!
+r0o103Loop from 0...
+r0o104Running listener on 0...
+r0o105TOUR_TO_INT::  r0o1060:0->2  r0o1070:1->0  r0o1080:2->3  r0o1090:3->1  r0o1100:4->4  r0o111
+r0o112TOUR_TO_INT::  r0o1131:0->4  r0o1141:1->2  r0o1151:2->0  r0o1161:3->3  r0o1171:4->1  r0o118
+r0o119TOUR_TO_INT::  r0o1202:0->0  r0o1212:1->3  r0o1222:2->1  r0o1232:3->4  r0o1242:4->2  r0o125
+r0o126TOUR_TO_INT::  r0o1273:0->4  r0o1283:1->0  r0o1293:2->2  r0o1303:3->1  r0o1313:4->3  r0o132
+r0o133TOUR_TO_INT::  r0o1344:0->1  r0o1354:1->3  r0o1364:2->0  r0o1374:3->4  r0o1384:4->2  r0o139
+r0o140Master sends tours to 1
+r0o141Master waiting to receive tours from islands...
+2 total processes killed (some possibly by mpirun during cleanup)
