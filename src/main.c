@@ -52,9 +52,10 @@ void loadTours(const char* const fileName, int* I, int *nTours) {
 	// set up the tours
 	index=0;
 	for (i=0;i<numTours;i++) {
-		for (j=0;j<numCities;j++) {
-			fscanf(in, "%i ", &I[index++]);
+		for (j=0;j<numCities-1;j++) {
+			fscanf(in, "%i+", &I[index++]);
 		}
+		fscanf(in, "%i", &I[index++]);
 	}
 	*nTours = numTours;
 }
