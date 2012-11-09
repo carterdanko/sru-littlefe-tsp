@@ -192,14 +192,6 @@ void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours, tour_t
 			intToTour_t(CitiesA, intTours, NUM_TOP_TOURS, tempTours);
 			mergeToursToPop(arr_tours, MAX_POPULATION, tempTours, NUM_TOP_TOURS);
 			
-			// print the list
-			DPRINTF("Print tours: \n");
-			for (i=0; i < MAX_POPULATION; i++)
-			{
-				DPRINTF("tour[%i] : ", i);
-				print_tour(arr_tours[i]);
-			}
-
 			// Generate children
 			printf(">> NOW RUNNING EAX <<\n");
 			///////////////////////////////////////
@@ -234,6 +226,14 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
 		int i;
 		MPI_Status status;
 
+		// print the best tour
+#if PRINT_BEST_TOUR_EACH_ITERATION
+		STRONG_TEXT;
+		printf("Best Tour: ");
+		print_tour(arr_tours[0]);
+		NORMAL_TEXT;
+#endif
+
 		// MPI send (tours back to each island)
 		getBestTours(NUM_TOP_TOURS, arr_tours, bestTours);
 		tour_tToInt(bestTours, NUM_TOP_TOURS, intTours);
@@ -253,8 +253,17 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
 
 			MPI_Recv(intTours, CitiesA->size * NUM_TOP_TOURS, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD, &status);
 			intToTour_t(CitiesA, intTours, NUM_TOP_TOURS, tempTours);
+			
+			// print temp tours
+			int a;
+			DPRINTF("Tours from island[%i]:\n", i);
+			for (a=0; a < NUM_TOP_TOURS; a++)
+			{
+				DPRINTF("tour [%i]: ", a);
+				print_tour(tempTours[a]);
+			}
 
-			// udpate master population (sort it)
+			// update master population (sort it)
 			mergeToursToPop(arr_tours, MAX_POPULATION, tempTours, NUM_TOP_TOURS);
 		}
 		DPRINTF("Master has received all updates from all islands!\n");

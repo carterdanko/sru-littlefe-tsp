@@ -900,7 +900,7 @@ int generateABCycles(char* memory_chunk, const tour_t* const CitiesA, const tour
 		{
 			DPRINTF("%04i [id:\033[32m%04i\033[0m] -> %i edges: ", i, R->node[i]->id, R->node[i]->size);
 			for (e=0; e < R->node[i]->size; e++)
-				DPRINTF((e>0) ? ", [\033[32m%04i\033[0m:t%01i]" : "[%04i:t%01i]", R->node[i]->edge[e]->id, R->node[i]->tour[e]);
+				printf((e>0) ? ", [\033[32m%04i\033[0m:t%01i]" : "[%04i:t%01i]", R->node[i]->edge[e]->id, R->node[i]->tour[e]);
 			DPRINTF("\n");
 		}
 #endif
@@ -1282,7 +1282,9 @@ int applyESet(char* memory_chunk, const tour_t* const Cities, graph_t* T /*byref
 		DPRINTF("%04i [id:%04i] -> edges: ", i2, T->node[i2]->id);
 		int e;
 		for (e=0; e < T->node[i2]->size; e++)
+		{
 			DPRINTF((e>0) ? ", [%04i:t%01i]" : "[%04i:t%01i]", T->node[i2]->edge[e]->id, T->node[i2]->tour[e]);
+		}
 		DPRINTF("\n");
 	}
 #endif
@@ -1622,7 +1624,7 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 			DPRINTF("%04i [id:%04i] -> edges: ", i2, T->node[i2]->id);
 			int e;
 			for (e=0; e < T->node[i2]->size; e++)
-				DPRINTF((e>0) ? ", [%04i:t%01i]" : "[%04i:t%01i]", T->node[i2]->edge[e]->id, T->node[i2]->tour[e]);
+				printf((e>0) ? ", [%04i:t%01i]" : "[%04i:t%01i]", T->node[i2]->edge[e]->id, T->node[i2]->tour[e]);
 			DPRINTF("\n");
 		}
 #endif
