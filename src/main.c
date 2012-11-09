@@ -196,7 +196,7 @@ void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours) {
 			///////////////////////////////////////
 			// run EAX on each pair of parents
 			for (i=0;i<MAX_PAIR_TOURS;i++) {
-				performEAX(CitiesA, parentTourPop[i][0], parentTourPop[i][1], children[i]);
+				performEAX(memory_chunk, CitiesA, CitiesB, parentTourPop[i][0], parentTourPop[i][1], children[i]);
 				mergeTourToPop(Tours, MAX_POPULATION, children[i]);
 			}
 			/////////////////////////////////////////
