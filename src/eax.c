@@ -278,7 +278,7 @@ void mergeTours(graph_t* R, const tour_t* const tA, const tour_t* const tB)
 #endif
 	
 	// at this point R should be fully populated with all of the edges in tA and tB, so we can return what we calculated
-	return R;
+	//return R;
 } // mergeTours()
 
 /**

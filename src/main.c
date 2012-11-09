@@ -7,14 +7,14 @@
 
 // "global" variables. I try to start these with capital letters
 tour_t *CitiesA, *CitiesB; // the "tour" that contains every city in their provided order. Not really a tour, just used as the master array of cities.
-tour_t** Tours; // all of the current tours in the population
+tour_t** Tours, **childrenTours; // all of the current tours in the population
 // global variables about the running state of the program
 int randSeed = 0;
 char* citiesFile = 0;
 int mpi_rank = -1;
 
-int intTours[MAX_CITIES*NUM_TOP_TOURS];
-int intCities[MAX_CITIES*3];
+int* intTours;
+int* intCities;
 tour_t** tempTours;
 tour_t** bestTours;
 #if BEST_TOUR_TRACKING
@@ -115,13 +115,13 @@ void MPI_init(int *mpi_rank, int *mpi_procs, int *argc, char ***argv) {
  * lcv : no clue
  * arr_tours : array of pointers to the tours in the population
  */
-void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours) {
+void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours, tour_t** arr_children) {
 	/////////////////////////////////////////////
 	// pick 100 pairs of parent tours
 	int i;
 	tour_t *parentTourPop[MAX_PAIR_TOURS][2]; // the array of parent pairs [0] = parentA, [1] = parentB
-	tour_t *children[MAX_PAIR_TOURS]; // use pointers to keep everything consistent (I know it's tacky, but it should be faster than malloc)
-	tour_t temp2[MAX_PAIR_TOURS]; // allocate a bunch of tours on the stack to store the generated tours
+	//tour_t *children[MAX_PAIR_TOURS]; // use pointers to keep everything consistent (I know it's tacky, but it should be faster than malloc)
+	//tour_t temp2[MAX_PAIR_TOURS]; // allocate a bunch of tours on the stack to store the generated tours
 #if PRINT_TOURS_DURING_MERGING
 	DPRINTF("-- printing tours BEFORE anything -- \n");
 	for (i=0; i < MAX_PAIR_TOURS; i++)
@@ -134,7 +134,7 @@ void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours) {
 	for (i=0;i<MAX_PAIR_TOURS;i++) {
 		parentTourPop[i][0]=roulette_select(arr_tours, MAX_POPULATION, 0);
 		parentTourPop[i][1]=roulette_select(arr_tours, MAX_POPULATION, parentTourPop[i][0]);
-		children[i] = &temp2[i]; // fill up the array of pointers
+		//children[i] = &temp2[i]; // fill up the array of pointers
 	}
 
 	if (MPIFLAG==0) {
@@ -145,13 +145,13 @@ void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours) {
 		DPRINTF("Progress: \n");
 #endif
 		for (i=0;i<MAX_PAIR_TOURS;i++) {
+			performEAX(memory_chunk, CitiesA, CitiesB, parentTourPop[i][0], parentTourPop[i][1], arr_children[i]);
 #if PRINT_ITERATION_PROGRESS
 			if (i % progressMultiple == 0){ DPRINTF("%i\%\n", i / progressMultiple);}
-#endif
-			performEAX(memory_chunk, CitiesA, CitiesB, parentTourPop[i][0], parentTourPop[i][1], children[i]);
 		}
-#if PRINT_ITERATION_PROGRESS
 		DPRINTF("...done!\n");
+#else
+		}
 #endif
 		
 		/////////////////////////////////////////
@@ -160,11 +160,11 @@ void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours) {
 		DPRINTF("-- printing tours BEFORE merging -- \n");
 		for (i=0; i < MAX_PAIR_TOURS; i++)
 		{
-			DPRINTF("m(\033[31m%i\033[0m)children[%i]: ", children[i], i);
-			print_tour(children[i]);
+			DPRINTF("m(\033[31m%i\033[0m)children[%i]: ", arr_children[i], i);
+			print_tour(arr_children[i]);
 		}
 #endif
-		mergeToursToPop(arr_tours, MAX_POPULATION, children, MAX_PAIR_TOURS);
+		mergeToursToPop(arr_tours, MAX_POPULATION, arr_children, MAX_PAIR_TOURS);
 #if PRINT_TOURS_DURING_MERGING
 		DPRINTF("-- printing tours AFTER merging -- \n");
 		for (i=0; i < MAX_PAIR_TOURS; i++)
@@ -196,8 +196,8 @@ void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours) {
 			///////////////////////////////////////
 			// run EAX on each pair of parents
 			for (i=0;i<MAX_PAIR_TOURS;i++) {
-				performEAX(memory_chunk, CitiesA, CitiesB, parentTourPop[i][0], parentTourPop[i][1], children[i]);
-				mergeTourToPop(Tours, MAX_POPULATION, children[i]);
+				performEAX(memory_chunk, CitiesA, CitiesB, parentTourPop[i][0], parentTourPop[i][1], arr_children[i]);
+				mergeTourToPop(Tours, MAX_POPULATION, arr_children[i]);
 			}
 			/////////////////////////////////////////
 			printf(">> EXIT EAX <<\n");
@@ -218,7 +218,7 @@ void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours) {
 
 #if MPIFLAG
 // This function should only run when MPI is turned on!
-void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, int mpi_procs) {
+void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, int mpi_procs, childrenTours) {
 	// if you are within the constraints, perform actions
 	if ((*iter)<MAX_ITERATIONS && (*delta_iter)<MAX_DELTA) {
 		float delta_fit=0.0;
@@ -286,8 +286,9 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
  * lcv : I have no fucking clue, passed by reference
  * arr_tours : array of pointers to the master list of tours
  * N : number of tours?
+ * childrenTours : an array of pointers to already allocated tour structs we can use to store children inside
  */
-void serial_listener(char* memory_chunk, int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, int N) {
+void serial_listener(char* memory_chunk, int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, int N, tour_t** childrenTours) {
 	// if you are within the constraints, perform actions
 	DPRINTF("SERIAL LISTENER!");
 	if (((*iter)<MAX_ITERATIONS) && ((*delta_iter)<MAX_DELTA)) {
@@ -298,7 +299,7 @@ void serial_listener(char* memory_chunk, int *iter, int *delta_iter, char *lcv, 
 
 		// run the GA (also updates population)
 		DPRINTF("RUN GENALG");
-		run_genalg(memory_chunk, N, lcv, arr_tours);
+		run_genalg(memory_chunk, N, lcv, arr_tours, childrenTours);
 		
 		// print the best tour
 #if PRINT_BEST_TOUR_EACH_ITERATION
@@ -399,6 +400,14 @@ int main(int argc, char** argv)
 	int i; // loop counter
 	int mpi_procs; // mpi rank (for each process) and number of processes
 	char lcv = 1; // loop control variable for the while loop (run until lcv->0)
+	
+#if MPIFLAG
+	intTours = malloc(MAX_CITIES*NUM_TOP_TOURS*sizeof(int));
+	intCities = malloc(MAX_CITIES*3*sizeof(int));
+#else
+	intTours = 0;
+	intCities = 0;
+#endif
 	
 	// oh boy, where to begin:
 	// so, rather than do a bunch of mallocs inside of performEAX, or use some n^2 stack allocation (impossible)
@@ -567,8 +576,14 @@ int main(int argc, char** argv)
 		CitiesA->city[i]->tour = TOUR_A;
 		CitiesB->city[i]->tour = TOUR_B;
 	}
-	// allocate memory for Tours
+	// allocate memory for Tours and children_tours
+	DPRINTF("Allocating tours array\n");
 	Tours = malloc( sizeof(tour_t*) * MAX_POPULATION );
+	DPRINTF("Allocating children tours array and each child tour struct.\n");
+	childrenTours = malloc( sizeof(tour_t*) * MAX_PAIR_TOURS);
+	for (i=0; i < MAX_PAIR_TOURS; i++)
+		childrenTours[i] = malloc(sizeof(tour_t));
+	
 
 	// construct the distance table (on all processes)
 	construct_distTable(CitiesA,N);
@@ -595,18 +610,18 @@ int main(int argc, char** argv)
 			if (mpi_rank==0) {
 				// if you are the master AND mpi is on, start listening
 				DPRINTF("Running listener on %i...\n",mpi_rank);
-				master_listener(&iter,&delta_iter,&lcv,Tours,mpi_procs);
+				master_listener(&iter,&delta_iter,&lcv,Tours,mpi_procs, childrenTours);
 			}
 			else {
 				// if you are a slave and MPI is on, run the GA
 				DPRINTF("Running GA on %i...\n",mpi_rank);
-				run_genalg(memory_chunk, N, &lcv, Tours);
+				run_genalg(memory_chunk, N, &lcv, Tours, childrenTours);
 			}
 #endif
 		} else {
 			// otherwise, run the GA and perform the loop condition checks manually.
 
-			serial_listener(memory_chunk, &iter, &delta_iter, &lcv, Tours, N);
+			serial_listener(memory_chunk, &iter, &delta_iter, &lcv, Tours, N, childrenTours);
 
 		}
 	}
