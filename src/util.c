@@ -67,7 +67,9 @@ void dprint_tour(tour_t* tour) {
 	{
 		DPRINTF("%s%i", visited[i] != 1 ? "\033[31m" : "\033[0m", visited[i]);
 		if (i % 10 == 0)
+		{
 			DPRINTF("\033[33m%i", i / 10);
+		}
 	}
 	NORMAL_TEXT;
 #endif
@@ -126,6 +128,7 @@ void terminate_program(int ecode)
 #if BEST_TOUR_TRACKING
 	dumpBestTours();
 #endif
+	printf("Took %i seconds to complete.\n", (time(0)-startTime));
 
 	// exit the program.
 	exit(ecode);
@@ -219,7 +222,7 @@ void intToTour_t(tour_t* Cities, int* I, int nTours, tour_t** tours)
 			tours[i]->city[a] = Cities->city[I[position++]];
 		}
 		tours[i]->size = Cities->size;
-		set_tour_fitness(tours[i],nTours);
+		set_tour_fitness(tours[i], Cities->size);
 	}
 }
 

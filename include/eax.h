@@ -18,12 +18,12 @@
 // removes edge E from vertex V 
 #if PRINT_EDGE_OPERATIONS
 	#define REMOVING_PRINT(V, E) \
-		DPRINTF("\033[33mremoving\033[0m edge(v[%i]->v[%i]t%i from graph...\n", \
+		printf("\033[33mremoving\033[0m edge(v[%i]->v[%i]t%i from graph...\n", \
 						(V?V->id:-1), \
 						(V && V->edge[E]?V->edge[E]->id:-1), \
 						(V?V->tour[E]:-1))
 	#define RESTORING_PRINT(V, E) \
-		DPRINTF("\033[32mrestoring\033[0m edge(v[%i]->v[%i]t%i to graph...\n", \
+		printf("\033[32mrestoring\033[0m edge(v[%i]->v[%i]t%i to graph...\n", \
 					(V?V->id:-1), \
 					(V && V->edge[E]?V->edge[E]->id:-1), \
 					(V?V->tour[E]:-1)) 

@@ -24,13 +24,17 @@
 #define USE_HEURISTIC_ESET 0         // if true, instead of randomly choosing AB cycles for E-SETs, uses a heuristic
 ////////////////////////////////////////////////////////////
 
+////////////////////// Other Modifications /////////////////
+#define USE_DISTANCE_TABLE 1         // if true, uses a distance table to look up distances between cities, otherwise calculates it on the fly
+////////////////////////////////////////////////////////////
+
 #include "include/printcolors.h"     // for coloring the console output
 #include "include/outputcontrol.h"   // controls debug output
 
 #define DEBUG 1     // set to zero to remove a lot of debugging output and speed up the code 
 
 #define DPRINTF if (DEBUG) printf("r%io%i::", mpi_rank, outputCounter++); if (DEBUG) printf
-#define MAX_CITIES 12000
+#define MAX_CITIES 15000
 
 #define MAX_TOUR MAX_CITIES+1     // this should basically be the same as MAX_CITIES
 #define MAX_POPULATION 100
@@ -70,6 +74,9 @@ extern int mpi_rank;
 extern int randSeed; // random seed to use
 extern char* citiesFile; // cities file name
 extern tour_t** Tours; // Tours array
+extern tour_t *CitiesA;
+extern tour_t *CitiesB;
+extern time_t startTime; // time that the program started running
 #if BEST_TOUR_TRACKING
 	extern tour_t** BestTours;          // array containing the best tours
 	extern tour_t* lastBestTour;        // the previous best tour, last iteration

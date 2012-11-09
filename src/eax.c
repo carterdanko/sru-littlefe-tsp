@@ -173,21 +173,27 @@ void mergeSubTours(graph_t* T, tour_t* A, tour_t* B, edge_t* e1, edge_t* e2, edg
 	int n;
 	STRONG_TEXT;
 	for (n=0; n < tempA->size; n++)
+	{
 		DPRINTF("--> [%i]", tempA->city[n]->id);
+	}
 	DPRINTF("\n");
 	NORMAL_TEXT;
 	
 	DPRINTF("B: ");
 	STRONG_TEXT;
 	for (n=0; n < B->size; n++)
+	{
 		DPRINTF("--> [%i]", B->city[n]->id);
+	}
 	DPRINTF("\n");
 	NORMAL_TEXT;
 	
 	DPRINTF("Merged cycle: ");
 	STRONG_TEXT;
 	for (n=0; n < A->size; n++)
+	{
 		DPRINTF("--> [%i]", A->city[n]->id);
+	}
 	DPRINTF("\n");
 	NORMAL_TEXT;
 #endif
@@ -348,8 +354,8 @@ graph_t* createGraph(graph_t* R, const tour_t* const tA)
 #endif
 	
 	// at this point R should be fully populated with all of the edges in tA, so we can return what we calculated
-	//return R;
-} // mergeTours()
+	return R;
+} // createGraph()
 
 /**
  * frees all of the memory used by graph R
@@ -476,7 +482,6 @@ int generateABCycles(char* memory_chunk, const tour_t* const CitiesA, const tour
 #endif
 			//DPRINTF("Alternating tour picking new edge...\n");//TODO: debug remove
 			v1 = v2; // we need to pick a new v2
-			c[2]; // choice1 and an optional choice 2
 			c[0] = c[1] = 0; // NOTE: these are off by one indices to speed up boolean checks!
 			switch(v1->size) // TODO: this could be moved into the other switch
 			{
@@ -697,12 +702,16 @@ int generateABCycles(char* memory_chunk, const tour_t* const CitiesA, const tour
 		// print iteration array
 		DPRINTF("ITERATIONS : ");
 		for (i=0; i < CitiesA->size; i++)
+		{
 			DPRINTF("%i, ", iteration[i]);
+		}
 		DPRINTF("\n");
-		DPRINTF("Ab cycle generated: ");
+		DPRINTF("Ab cycle generated: (s%i)\n", curCycle?curCycle->size:-1);
 		STRONG_TEXT;
 		for (n=0; n < curCycle->size; n++)
-			DPRINTF("-t%1i-> [%i]", curCycle->city[n]->tour, curCycle->city[n]->id);
+		{
+			DPRINTF("-t%1i-> [%i]\n", curCycle->city[n]->tour, curCycle->city[n]->id);
+		}
 		DPRINTF("\n");
 		NORMAL_TEXT;
 #endif
@@ -742,7 +751,9 @@ int generateABCycles(char* memory_chunk, const tour_t* const CitiesA, const tour
 			DPRINTF("Ab cycle reversed: ");
 			STRONG_TEXT;
 			for (n=0; n < curCycle->size; n++)
+			{
 				DPRINTF("-t%1i-> [%i]", curCycle->city[n]->id, curCycle->city[n]->id);
+			}
 			DPRINTF("\n");
 			NORMAL_TEXT;
 #endif
@@ -872,8 +883,10 @@ int generateABCycles(char* memory_chunk, const tour_t* const CitiesA, const tour
 		//int n;
 		STRONG_TEXT;
 		for (n=0; n < curCycle->size; n++)
+		{
 			//DPRINTF("-t%1i-> [%i]", curCycle->city[n]->tour, curCycle->city[n]->id);
 			DPRINTF("-%s-> [%i]", (curCycle->city[n]->tour == TOUR_A ? "A" : "B"), curCycle->city[n]->id);
+		}
 		DPRINTF("\n");
 		NORMAL_TEXT;
 #endif
@@ -887,7 +900,7 @@ int generateABCycles(char* memory_chunk, const tour_t* const CitiesA, const tour
 		{
 			DPRINTF("%04i [id:\033[32m%04i\033[0m] -> %i edges: ", i, R->node[i]->id, R->node[i]->size);
 			for (e=0; e < R->node[i]->size; e++)
-				DPRINTF((e>0) ? ", [\033[32m%04i\033[0m:t%01i]" : "[%04i:t%01i]", R->node[i]->edge[e]->id, R->node[i]->tour[e]);
+				printf((e>0) ? ", [\033[32m%04i\033[0m:t%01i]" : "[%04i:t%01i]", R->node[i]->edge[e]->id, R->node[i]->tour[e]);
 			DPRINTF("\n");
 		}
 #endif
@@ -1269,7 +1282,9 @@ int applyESet(char* memory_chunk, const tour_t* const Cities, graph_t* T /*byref
 		DPRINTF("%04i [id:%04i] -> edges: ", i2, T->node[i2]->id);
 		int e;
 		for (e=0; e < T->node[i2]->size; e++)
+		{
 			DPRINTF((e>0) ? ", [%04i:t%01i]" : "[%04i:t%01i]", T->node[i2]->edge[e]->id, T->node[i2]->tour[e]);
+		}
 		DPRINTF("\n");
 	}
 #endif
@@ -1324,7 +1339,9 @@ int applyESet(char* memory_chunk, const tour_t* const Cities, graph_t* T /*byref
 		DPRINTF("disjointCycle %i: [%i]", iteration-1, curCycle->city[0]->id);
 		int a;
 		for (a=1; a < curCycle->size; a++)
+		{
 			DPRINTF(", [%i]", curCycle->city[a]->id);
+		}
 		DPRINTF("\n");
 #endif
 #endif
@@ -1540,13 +1557,17 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 		int n;
 		STRONG_TEXT;
 		for (n=0; n < curCycle->size; n++)
+		{
 			DPRINTF("--> [%i]", curCycle->city[n]->id);
+		}
 		DPRINTF("\n");
 		NORMAL_TEXT;
 		DPRINTF("Before merging, otherCycle: ");
 		STRONG_TEXT;
 		for (n=0; n < otherCycle->size; n++)
+		{
 			DPRINTF("--> [%i]", otherCycle->city[n]->id);
+		}
 		DPRINTF("\n");
 		NORMAL_TEXT;
 #endif
@@ -1559,7 +1580,9 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 		DPRINTF("after merging, curCycle: ");
 		STRONG_TEXT;
 		for (n=0; n < curCycle->size; n++)
+		{
 			DPRINTF("--> [%i]", curCycle->city[n]->id);
+		}
 		DPRINTF("\n");
 		NORMAL_TEXT;
 #endif
@@ -1601,7 +1624,7 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 			DPRINTF("%04i [id:%04i] -> edges: ", i2, T->node[i2]->id);
 			int e;
 			for (e=0; e < T->node[i2]->size; e++)
-				DPRINTF((e>0) ? ", [%04i:t%01i]" : "[%04i:t%01i]", T->node[i2]->edge[e]->id, T->node[i2]->tour[e]);
+				printf((e>0) ? ", [%04i:t%01i]" : "[%04i:t%01i]", T->node[i2]->edge[e]->id, T->node[i2]->tour[e]);
 			DPRINTF("\n");
 		}
 #endif
@@ -1754,13 +1777,13 @@ void performEAX(char* memory_chunk, tour_t* CitiesA, tour_t* CitiesB, tour_t* to
 #endif
 #if PRINT_CYCLE_POINTERS
 	DPRINTF("\033[35mCycles (before applyESET) : %i", cycles[0]);
-	for (i=1; i < 6; i++) DPRINTF(", %i", cycles[i]);
+	for (i=1; i < 6; i++) { DPRINTF(", %i", cycles[i]); }
 	DPRINTF("\033[0m\n");
 #endif
 	int disjointCycles = applyESet(memory_chunk, CitiesA, T, cycles, nCycles, edges);
 #if PRINT_CYCLE_POINTERS
 	DPRINTF("\033[35mCycles (after applyESET)  : %i", cycles[0]);
-	for (i=1; i < 6; i++) DPRINTF(", %i", cycles[i]);
+	for (i=1; i < 6; i++) { DPRINTF(", %i", cycles[i]); }
 	DPRINTF("\033[0m\n");
 #endif
 #if PRINT_STEPS

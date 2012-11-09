@@ -6,7 +6,7 @@
 #define OPC_H
 
 ////////////////////////////////////////////////////////////////
-#define OPC_ENABLE 1 // set to 0 to disable all of them
+#define OPC_ENABLE 0  // set to 0 to disable all of them
 #if OPC_ENABLE
 // debugging
 // globals
@@ -27,8 +27,8 @@
 #define PRINT_EDGE_OPERATIONS 0     // prints information about edge operations (REMOVE_EDGE and RESTORE_EDGE)
 // main control
 #define PRINT_TOURS_DURING_MERGING 0 // before and after doing merge operations, prints the list of tours
-#define PRINT_BEST_TOUR_EACH_ITERATION 1 // prints the best tour each iteration
-#define PRINT_ITERATION_PROGRESS 1  // prints a multiple of 10% on the same line every 10% of iterations, useful for big data sets
+#define PRINT_BEST_TOUR_EACH_ITERATION 0 // prints the best tour each iteration
+#define PRINT_ITERATION_PROGRESS 0  // prints a multiple of 10% on the same line every 10% of iterations, useful for big data sets
 // other stuff I guess?
 #define PRINT_CYCLE_POINTERS 0      // prints what the cycle pointers are at various points, used for debugging the identical cycle pointers bug
 #define PRINT_DISTANCE 0            // prints distance while generating the table, kind of cluttered, not really used
