@@ -213,17 +213,23 @@ void tour_tToInt(tour_t** tours, int nTours, int* I)
  */
 void intToTour_t(tour_t* Cities, int* I, int nTours, tour_t** tours)
 {
+	DPRINTF("OK in intToTour_t()\n");
 	int i;
 	int position = 0;
 	for (i=0; i < nTours; i++)
 	{
+		DPRINTF("i is %i \n",i);
+		DPRINTF("INT_TO_TOUR::  ");
 		int a;
 		for (a=0; a < Cities->size; a++) {
 			tours[i]->city[a] = Cities->city[I[position++]];
+			DPRINTF("%i:%i->%i  ",i,a,tours[i]->city[a]->id);
 		}
 		tours[i]->size = Cities->size;
 		set_tour_fitness(tours[i], Cities->size);
+		DPRINTF("\n");
 	}
+	DPRINTF("i is %i \n",i);
 }
 
 void dumpGraphToFile(graph_t* G, char* fn)
