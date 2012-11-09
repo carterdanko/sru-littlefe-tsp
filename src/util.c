@@ -67,7 +67,9 @@ void dprint_tour(tour_t* tour) {
 	{
 		DPRINTF("%s%i", visited[i] != 1 ? "\033[31m" : "\033[0m", visited[i]);
 		if (i % 10 == 0)
+		{
 			DPRINTF("\033[33m%i", i / 10);
+		}
 	}
 	NORMAL_TEXT;
 #endif
