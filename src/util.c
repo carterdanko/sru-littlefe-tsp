@@ -126,6 +126,7 @@ void terminate_program(int ecode)
 #if BEST_TOUR_TRACKING
 	dumpBestTours();
 #endif
+	printf("Took %i seconds to complete.\n", (time(0)-startTime));
 
 	// exit the program.
 	exit(ecode);

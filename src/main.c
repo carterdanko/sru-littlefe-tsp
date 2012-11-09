@@ -13,6 +13,7 @@ int randSeed = 0;
 char* citiesFile = 0;
 int mpi_rank = -1;
 
+time_t startTime; // time the program started running
 int* intTours;
 int* intCities;
 tour_t** tempTours;
@@ -142,12 +143,12 @@ void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours, tour_t
 		// run EAX on each pair of parents
 #if PRINT_ITERATION_PROGRESS
 		int progressMultiple = MAX_PAIR_TOURS / 10;
-		DPRINTF("Progress: \n");
+		DPRINTF("Progress (starting at %i): \n", time(0));
 #endif
 		for (i=0;i<MAX_PAIR_TOURS;i++) {
 			performEAX(memory_chunk, CitiesA, CitiesB, parentTourPop[i][0], parentTourPop[i][1], arr_children[i]);
 #if PRINT_ITERATION_PROGRESS
-			if (i % progressMultiple == 0){ DPRINTF("%i\%\n", i / progressMultiple);}
+			if (i % progressMultiple == 0){ DPRINTF("%i percent at %i\n", (i / progressMultiple) * 10, time(0));}
 		}
 		DPRINTF("...done!\n");
 #else
@@ -367,23 +368,6 @@ void load_cities(int mpi_rank, char *citiesFile, tour_t **arr_cities) {
 	DPRINTF("done! (loaded %i cities from the file)\n", (*arr_cities)->size);
 	// process the cities
 	int N = (*arr_cities)->size;
-	construct_distTable(*arr_cities,N);// compute distances as soon as we can (now)
-	// output the distance table
-#if PRINT_DISTANCE_TABLE
-	int x,y;
-	printf(" -- DISTANCE TABLE --\n");
-	printf("    ");
-	for (x=0; x < N; x++)
-		printf("  %02i ", x);
-	printf("\n");
-	for (y=0; y < N; y++)
-	{
-		printf("%02i :", y);
-		for (x=0; x < N; x++)
-			printf("%4.2f ", (y!=x)?lookup_distance(x, y):0);
-		printf("\n");
-	}
-#endif
 
 	// output the city information to the console
 	DPRINTF("\nNum Cities: %04i\n", (*arr_cities)->size);
@@ -397,6 +381,7 @@ void load_cities(int mpi_rank, char *citiesFile, tour_t **arr_cities) {
 
 int main(int argc, char** argv)
 {
+	startTime = time(0);
 	int i; // loop counter
 	int mpi_procs; // mpi rank (for each process) and number of processes
 	char lcv = 1; // loop control variable for the while loop (run until lcv->0)
@@ -586,7 +571,11 @@ int main(int argc, char** argv)
 	
 
 	// construct the distance table (on all processes)
+#if USE_DISTANCE_TABLE
 	construct_distTable(CitiesA,N);
+#else
+	DPRINTF("Not using a distance table.\n");
+#endif
 
 	// populate tours (on all processes)
 	populate_tours(N,mpi_rank,Tours,CitiesA);

@@ -32,6 +32,7 @@ float get_distance_between(int p1, int p2, tour_t* cities) {
  */
 tour_t* Cities;
 void construct_distTable(tour_t* cities, int num_cities) {
+#if USE_DISTANCE_TABLE
 	Cities = cities;
 	distTable = malloc(sizeof(*distTable) * ((num_cities * (num_cities-1)) / 2));
 	int i,j,index;
@@ -48,6 +49,7 @@ void construct_distTable(tour_t* cities, int num_cities) {
 		printf("\n");
 #endif
 	}
+#endif
 }
 
 /**
@@ -55,6 +57,7 @@ void construct_distTable(tour_t* cities, int num_cities) {
  *   This is retrieved from the distTable hashtable.
  */
 float lookup_distance(int p1, int p2) {
+#if USE_DISTANCE_TABLE
 	if (p1<p2) {
 		//DPRINTF("p1<p2 inside lookup_distance: distTable[(%i*(%i-1)/2)+%i==%i]=%f\n", p2, p2, p1, (p2*(p2-1)/2)+p1, distTable[(p2*(p2-1)/2)+p1]);
 		//float f = distTable[(p2*(p2-1)/2)+p1];
@@ -91,6 +94,9 @@ float lookup_distance(int p1, int p2) {
 		terminate_program(787);
 		return 0.0;
 	}
+#else // don't use distance table
+	return get_distance_between(p1, p2, CitiesA);
+#endif
 } // lookup_distance()
 
 /**
