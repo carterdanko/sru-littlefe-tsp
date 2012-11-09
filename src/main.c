@@ -11,6 +11,7 @@ tour_t** Tours; // all of the current tours in the population
 // global variables about the running state of the program
 int randSeed = 0;
 char* citiesFile = 0;
+char *toursFile = 0;
 int mpi_rank = -1;
 
 int intTours[MAX_CITIES*NUM_TOP_TOURS];
@@ -32,12 +33,29 @@ tour_t* lastBestTour;        // the previous best tour, last iteration
  */
 void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities) {
 	int i=0;
-	while (i<MAX_POPULATION) {
-		// the old tour generation
-		//arr_tours[i] = create_tour_nn(arr_cities->city[i%N], N, arr_cities);
-		arr_tours[i] = create_tour_rand(arr_cities);
-		set_tour_fitness(arr_tours[i], N);
-		i++;
+	int numTours=0;
+	int I[MAX_CITIES*MAX_POPULATION];
+
+	//TODO: make this work for MPI
+	// If we have MPI...
+	if (MPIFLAG) {
+
+	} // Otherwise, linear.
+	else {
+		if (toursFile) {
+			loadTours(toursFile,arr_tours,&numTours,I);
+			// TODO: handle what you have constructed in I (with int to tours)
+		}
+		while (i<MAX_POPULATION) {
+			// the old tour generation
+			//arr_tours[i] = create_tour_nn(arr_cities->city[i%N], N, arr_cities);
+			arr_tours[i] = create_tour_rand(arr_cities);
+			set_tour_fitness(arr_tours[i], N);
+			i++;
+		}
+		if (numTours>0) {
+			intToTour_t(arr_cities, I, numTours, arr_tours);
+		}
 	}
 }// populate_tours()
 
@@ -394,6 +412,39 @@ void load_cities(int mpi_rank, char *citiesFile, tour_t **arr_cities) {
 	}
 }// load_cities()
 
+/*
+ * Files consist of numTours, numCities, and the list of tours based on ID.
+ *   Assumes that the file has less tours than MAX_POPULATION
+ */
+void loadTours(const char* const fileName, tour_t** arr_tours, int *I, int *numTours) {
+	FILE* in;
+	int numCities,i,j,index;
+	
+	// open the file
+	in = fopen(fileName, "r");
+	
+	// verification
+	if (!in)
+	{
+		fprintf(stderr, "Error opening %s for input. Check filename", fileName);
+		exit(0);
+	}
+
+	// get number of tours/cities from first line
+	fscanf(in, "%i %i", numTours, &numCities); 
+	
+	printf("received %i for tours, %i for cities.\n",*numTours,numCities);
+
+	// set up the tours
+	index=0;
+	for (i=0;i<*numTours;i++) {
+		for (j=0;j<numCities;j++) {
+			fscanf(in, "%i ", &I[index++]);
+		}
+	}
+	printf("exiting loadTours()...\n");
+}
+
 int main(int argc, char** argv)
 {
 	int i; // loop counter
@@ -464,11 +515,17 @@ int main(int argc, char** argv)
 				printf(" -- optional flags --\n");
 				printf("-h, --help : this screen.\n");
 				printf("-s <random seed> : random seed to initialize srand with.\n");
+				printf("-t <tours file> : loads a file containing tours (must match your dataset).\n");
 			}
 			else if (strcmp(p, "-s") == 0)
 			{
 				// random seed
 				randSeed = atoi(argv[++i]);
+			}
+			else if (strcmp(p, "-t") == 0)
+			{
+				// set tours file
+				toursFile = argv[++i];
 			}
 			else
 			{
