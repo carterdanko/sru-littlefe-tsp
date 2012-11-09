@@ -192,6 +192,14 @@ void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours, tour_t
 			intToTour_t(CitiesA, intTours, NUM_TOP_TOURS, tempTours);
 			mergeToursToPop(arr_tours, MAX_POPULATION, tempTours, NUM_TOP_TOURS);
 			
+			// print the list
+			DPRINTF("Print tours: \n");
+			for (i=0; i < MAX_POPULATION; i++)
+			{
+				DPRINTF("tour[%i] : ", i);
+				print_tour(arr_tours[i]);
+			}
+
 			// Generate children
 			printf(">> NOW RUNNING EAX <<\n");
 			///////////////////////////////////////
@@ -219,7 +227,7 @@ void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours, tour_t
 
 #if MPIFLAG
 // This function should only run when MPI is turned on!
-void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, int mpi_procs, childrenTours) {
+void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, int mpi_procs, tour_t** childrenTours) {
 	// if you are within the constraints, perform actions
 	if ((*iter)<MAX_ITERATIONS && (*delta_iter)<MAX_DELTA) {
 		float delta_fit=0.0;
@@ -531,8 +539,11 @@ int main(int argc, char** argv)
 
 		} else {
 			// MPI Receive cities
-			DPRINTF("Island receiving citysize...\n");
+			CitiesA = malloc(sizeof(tour_t));
+			CitiesB = malloc(sizeof(tour_t));
+			DPRINTF("Island receiving citysize...CitiesA: %x ->size: %i\n", CitiesA, (CitiesA?CitiesA->size:-1));
 			MPI_Recv(&(CitiesA->size), 1, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status);
+			CitiesB->size = CitiesA->size;
 			DPRINTF("Got city size of %i!\n",CitiesA->size);
 			// receive actual array of cities as intarray
 			DPRINTF("Island waiting for cities...\n");
@@ -541,12 +552,15 @@ int main(int argc, char** argv)
 			// malloc the cities in the array
 			for (i=0;i<CitiesA->size;i++) {
 				CitiesA->city[i]=malloc(sizeof(city_t));
+				CitiesB->city[i]=malloc(sizeof(city_t));
 			}
 			// convert the int array to a city array
 			intToCity_t(intCities, CitiesA->size, CitiesA);
 			intToCity_t(intCities, CitiesB->size, CitiesB);
 			DPRINTF("Cities converted. Now printing...\n");
 			print_tour(CitiesA);
+			print_tour(CitiesB);
+			DPRINTF("Done printing!\n");
 		}
 #endif
 	} else {
@@ -555,6 +569,7 @@ int main(int argc, char** argv)
 		load_cities(mpi_rank, citiesFile, &CitiesB);
 	}
 	// process the cities
+	DPRINTF("Set up cities\n");
 	int N = CitiesA->size;
 	for (i=0; i < CitiesA->size; i++)
 	{

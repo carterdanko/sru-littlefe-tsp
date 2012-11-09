@@ -698,10 +698,16 @@ int generateABCycles(char* memory_chunk, const tour_t* const CitiesA, const tour
 		for (i=0; i < CitiesA->size; i++)
 			DPRINTF("%i, ", iteration[i]);
 		DPRINTF("\n");
-		DPRINTF("Ab cycle generated: ");
+		DPRINTF("Ab cycle generated: (s%i)\n", curCycle?curCycle->size:-1);
 		STRONG_TEXT;
 		for (n=0; n < curCycle->size; n++)
-			DPRINTF("-t%1i-> [%i]", curCycle->city[n]->tour, curCycle->city[n]->id);
+		{
+			DPRINTF("n: %i\n", n);
+			DPRINTF("curCycle: %x\n", curCycle);
+			DPRINTF("curCycle->city[n]: %x\n", curCycle->city[n]);
+			DPRINTF("curCycle->city[n]: %i %i\n", curCycle->city[n]->tour, curCycle->city[n]->id);
+			DPRINTF("-t%1i-> [%i]\n", curCycle->city[n]->tour, curCycle->city[n]->id);
+		}
 		DPRINTF("\n");
 		NORMAL_TEXT;
 #endif
