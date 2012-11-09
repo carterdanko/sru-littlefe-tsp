@@ -112,11 +112,10 @@ void MPI_init(int *mpi_rank, int *mpi_procs, int *argc, char ***argv) {
 /**
  * runs the actual algorithm, including the GA steps and the performEAX on pairs of parents
  * memory_chunk : giant chunk of memory used for sub cycles
- * N : number of cities? or tours? I have no idea
- * lcv : no clue
+ * lcv : when set to false (0), exits the main loop
  * arr_tours : array of pointers to the tours in the population
  */
-void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours, tour_t** arr_children) {
+void run_genalg(char* memory_chunk, char *lcv, tour_t** arr_tours, tour_t** arr_children) {
 	/////////////////////////////////////////////
 	// pick 100 pairs of parent tours
 	int i;
@@ -193,7 +192,7 @@ void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours, tour_t
 			mergeToursToPop(arr_tours, MAX_POPULATION, tempTours, NUM_TOP_TOURS);
 			
 			// Generate children
-			printf(">> NOW RUNNING EAX <<\n");
+			//printf(">> NOW RUNNING EAX <<\n");
 			///////////////////////////////////////
 			// run EAX on each pair of parents
 			for (i=0;i<MAX_PAIR_TOURS;i++) {
@@ -201,7 +200,7 @@ void run_genalg(char* memory_chunk, int N, char *lcv, tour_t** arr_tours, tour_t
 				mergeTourToPop(Tours, MAX_POPULATION, arr_children[i]);
 			}
 			/////////////////////////////////////////
-			printf(">> EXIT EAX <<\n");
+			//printf(">> EXIT EAX <<\n");
 
 			// MPI send (tours to master)
 			getBestTours(NUM_TOP_TOURS, arr_tours, tempTours);
@@ -255,13 +254,13 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
 			intToTour_t(CitiesA, intTours, NUM_TOP_TOURS, tempTours);
 			
 			// print temp tours
-			int a;
-			DPRINTF("Tours from island[%i]:\n", i);
-			for (a=0; a < NUM_TOP_TOURS; a++)
-			{
-				DPRINTF("tour [%i]: ", a);
-				print_tour(tempTours[a]);
-			}
+			//int a;
+			//DPRINTF("Tours from island[%i]:\n", i);
+			//for (a=0; a < NUM_TOP_TOURS; a++)
+			//{
+			//	DPRINTF("tour [%i]: ", a);
+			//	print_tour(tempTours[a]);
+			//}
 
 			// update master population (sort it)
 			mergeToursToPop(arr_tours, MAX_POPULATION, tempTours, NUM_TOP_TOURS);
@@ -301,12 +300,11 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
  * memory_chunk : that giant allocation of memory used for sub cycles
  * iter : current iteration, passed by reference
  * delta_iter : change in best fitness, passed by reference
- * lcv : I have no fucking clue, passed by reference
+ * lcv : when set to false (0), exits the main loop
  * arr_tours : array of pointers to the master list of tours
- * N : number of tours?
  * childrenTours : an array of pointers to already allocated tour structs we can use to store children inside
  */
-void serial_listener(char* memory_chunk, int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, int N, tour_t** childrenTours) {
+void serial_listener(char* memory_chunk, int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, tour_t** childrenTours) {
 	// if you are within the constraints, perform actions
 	DPRINTF("SERIAL LISTENER!");
 	if (((*iter)<MAX_ITERATIONS) && ((*delta_iter)<MAX_DELTA)) {
@@ -317,7 +315,7 @@ void serial_listener(char* memory_chunk, int *iter, int *delta_iter, char *lcv, 
 
 		// run the GA (also updates population)
 		DPRINTF("RUN GENALG");
-		run_genalg(memory_chunk, N, lcv, arr_tours, childrenTours);
+		run_genalg(memory_chunk, lcv, arr_tours, childrenTours);
 		
 		// print the best tour
 #if PRINT_BEST_TOUR_EACH_ITERATION
@@ -628,16 +626,14 @@ int main(int argc, char** argv)
 			else {
 				// if you are a slave and MPI is on, run the GA
 				DPRINTF("Running GA on %i...\n",mpi_rank);
-				run_genalg(memory_chunk, N, &lcv, Tours, childrenTours);
+				run_genalg(memory_chunk, &lcv, Tours, childrenTours);
 			}
 #endif
 		} else {
 			// otherwise, run the GA and perform the loop condition checks manually.
-
-			serial_listener(memory_chunk, &iter, &delta_iter, &lcv, Tours, N, childrenTours);
-
-		}
-	}
+			serial_listener(memory_chunk, &iter, &delta_iter, &lcv, Tours, childrenTours);
+		}// else serial execution
+	}// while lcv
 	//----------------------------------------------------
 
 	//####################################################
