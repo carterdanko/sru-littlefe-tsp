@@ -278,7 +278,7 @@ void mergeTours(graph_t* R, const tour_t* const tA, const tour_t* const tB)
 #endif
 	
 	// at this point R should be fully populated with all of the edges in tA and tB, so we can return what we calculated
-	//return R;
+	return R;
 } // mergeTours()
 
 /**
@@ -348,8 +348,8 @@ graph_t* createGraph(graph_t* R, const tour_t* const tA)
 #endif
 	
 	// at this point R should be fully populated with all of the edges in tA, so we can return what we calculated
-	//return R;
-} // mergeTours()
+	return R;
+} // createGraph()
 
 /**
  * frees all of the memory used by graph R
@@ -476,7 +476,6 @@ int generateABCycles(char* memory_chunk, const tour_t* const CitiesA, const tour
 #endif
 			//DPRINTF("Alternating tour picking new edge...\n");//TODO: debug remove
 			v1 = v2; // we need to pick a new v2
-			c[2]; // choice1 and an optional choice 2
 			c[0] = c[1] = 0; // NOTE: these are off by one indices to speed up boolean checks!
 			switch(v1->size) // TODO: this could be moved into the other switch
 			{

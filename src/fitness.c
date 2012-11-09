@@ -171,7 +171,7 @@ tour_t* roulette_select(tour_t** tours, int num_tours, tour_t* ignore_tour) {
 			continue; // don't count ignore_tour in the fitness sum
 		temp = tours[i]->fitness;
 		if (temp==0) {
-			printf("tour %i has fitness zero. hex: %x\n",i,tours[i]);
+			printf("tour %i has fitness zero. hex: %x\n",i, tours[i]);
 		}
 		temp = 1.0 / temp;
 		sum_fitness+= temp;
@@ -203,6 +203,6 @@ tour_t* roulette_select(tour_t** tours, int num_tours, tour_t* ignore_tour) {
 	NORMAL_TEXT;
 	DPRINTF("rand: %f, rand_fit: %f, sum_fitness: %f, temp: %f, ignore_tour: m(\033[31m%i\033[0m)\n", rand, rand_fit, sum_fitness, temp, ignore_tour);
 	terminate_program(543);
-	return;
+	return 0;
 }
 
