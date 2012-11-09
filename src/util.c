@@ -222,7 +222,7 @@ void intToTour_t(tour_t* Cities, int* I, int nTours, tour_t** tours)
 			tours[i]->city[a] = Cities->city[I[position++]];
 		}
 		tours[i]->size = Cities->size;
-		set_tour_fitness(tours[i],nTours);
+		set_tour_fitness(tours[i], Cities->size);
 	}
 }
 
