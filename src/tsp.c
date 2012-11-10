@@ -24,6 +24,7 @@ void load_cities(int mpi_rank, char *citiesFile, tour_t **arr_cities) {
 	int N = (*arr_cities)->size;
 
 	// output the city information to the console
+#if PRINT_CITIES
 	DPRINTF("\nNum Cities: %04i\n", (*arr_cities)->size);
 	DPRINTF("---------------------------\n");
 	int i;
@@ -31,6 +32,8 @@ void load_cities(int mpi_rank, char *citiesFile, tour_t **arr_cities) {
 	{
 		DPRINTF("City[%04i] at %04i, %04i   [id: %04i]\n", i, (*arr_cities)->city[i]->x, (*arr_cities)->city[i]->y, (*arr_cities)->city[i]->id);
 	}
+	DPRINTF("\n");
+#endif
 }// load_cities()
 
  /**

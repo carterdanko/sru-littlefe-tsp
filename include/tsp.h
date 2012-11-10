@@ -23,6 +23,13 @@
 #define CHOOSE_BEST_FROM_THREE 1     // if true, performEAX returns only the best tour from {parentA, parentB, child} instead of always the child
 #define PERFORM_2OPT_ON_CHILD 0      // if true, performs 2-opt optimization on child tour
 #define USE_HEURISTIC_ESET 0         // if true, instead of randomly choosing AB cycles for E-SETs, uses a heuristic
+#define MINIMUM_WEIGHT_FOR_ROULETTE 0 // if this is set, then this is a minimum weight for each child in the roullette wheel selection
+#define MAXIMUM_WEIGHT_FOR_ROULETTE 0 // if this is set, then this is a maximum weight for each child in the roullette wheel selection
+////////////////////////////////////////////////////////////
+
+///////////////////// TOUR GENERATION MODIFICATIONS ////////
+#define USE_NEAREST_NEIGHBOR 1       // if true, uses nearest neighbor instead of purely random initial pop
+#define USE_HYBRID_PROBABILITY 50    // if 0, only use NN or RAND, if non-zero, this/100 = probability for NN
 ////////////////////////////////////////////////////////////
 
 ////////////////////// OTHER MODIFICATIONS /////////////////
@@ -42,14 +49,15 @@
 #define MAX_CITIES 12000
 
 #define MAX_TOUR MAX_CITIES+1     // this should basically be the same as MAX_CITIES
-#define MAX_POPULATION 20
+#define MAX_POPULATION 100
 #define TABLE_SIZE (MAX_CITIES*(MAX_CITIES-1))/2 // size based on a counting argument
 #define MAX_ITERATIONS 100 // sets the maximum number of generations to iterate through in the GA
 #define DELTA 0.50 // A float threshold for the difference in the population's best fitness.
 		// When the difference is within this threshold, begin counting how frequently it occurs.
 #define MAX_DELTA 20 // set the maximum number of generations to iterate through when the difference in fitness was repetitively within DELTA.
 #define MAX_PAIR_TOURS MAX_POPULATION
-#define NUM_TOP_TOURS 5
+#define NUM_TOP_TOURS 12       // how many tours master sends to each slave
+#define SEND_TO_MASTER 2      // how many tours each slave sends to master
 
 #define ENFORCE_LOOKUP_TABLE_CORRECTNESS 0    // extra checks in the lookup table for debugging purposes
 #define DEBUG_SET_TOUR_FITNESS 0              // inserts extra lines while calculating a tour's fitness for debugging

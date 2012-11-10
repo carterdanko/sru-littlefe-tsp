@@ -18,7 +18,7 @@
 #define PRINT_CYCLES 0              // information about AB cycles, sub cycles, and other cycles
 #define PRINT_MISC 0                // everything else I was too lazy to granularize. Mostly allocations, and mergeGraph/freeGraph stuff
 // per method
-#define PRINT_STEPS 0               // prints a line in performEAX before each step, thereby identifying each step
+#define PRINT_STEPS 1               // prints a line in performEAX before each step, thereby identifying each step
 #define PRINT_GENERATE_AB_CYCLES 0  // generateABCycles() output
 #define PRINT_FIX_INTERMEDIATE 0    // fixIntermediate() output
 #define PRINT_MERGE_SUB_TOURS 0     // mergeSubTours() output
@@ -28,14 +28,16 @@
 // main control
 #define PRINT_TOURS_DURING_MERGING 0 // before and after doing merge operations, prints the list of tours
 #define PRINT_BEST_TOUR_EACH_ITERATION 1 // prints the best tour each iteration
-#define PRINT_ITERATION_PROGRESS 0  // prints a multiple of 10% on the same line every 10% of iterations, useful for big data sets
+#define PRINT_ITERATION_PROGRESS 1  // prints a multiple of 10% on the same line every 10% of iterations, useful for big data sets
 // other stuff I guess?
+#define PRINT_CITIES 0              // prints the cities loaded if set
 #define PRINT_CYCLE_POINTERS 0      // prints what the cycle pointers are at various points, used for debugging the identical cycle pointers bug
 #define PRINT_DISTANCE 0            // prints distance while generating the table, kind of cluttered, not really used
 #define PRINT_DISTANCE_TABLE  0     // prints the distance table in main
 #define PRINT_VISITED_LIST 0        // when outputting tours, shows a list of which cities were visited
 #define PRINT_ONLY_FITNESS 1        // when printing tours, only prints their fitness and the size
-#define PRINT_MPI_INFO 0            // when true, makes DPRINTF print rank number and output number
+#define PRINT_MPI_INFO 1            // when true, makes DPRINTF print rank number and output number
+#define SUBMIT_TO_SERVER 0          // when set to true, attempts to call the submission script every iteration
 
 #endif // OPC_ENABLE
 /////////////////////////////////////////////////////////////////////

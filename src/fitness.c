@@ -180,6 +180,10 @@ tour_t* roulette_select(tour_t** tours, int num_tours, tour_t* ignore_tour) {
 			printf("tour %i has fitness zero. hex: %x\n",i, tours[i]);
 		}
 		temp = 1.0 / temp;
+#if MINIMUM_WEIGHT_FOR_ROULETTE
+#endif
+#if MAXIMUM_WEIGHT_FOR_ROULETTE
+#endif
 		sum_fitness+= temp;
 	}
 

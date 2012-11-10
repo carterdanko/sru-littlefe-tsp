@@ -260,6 +260,11 @@ void dumpGraphToFile(graph_t* G, char* fn)
 	fclose(f);
 }
 
+/**
+ * max : number of tours to pull out
+ * tours : SORTEd list of tours
+ * bestTours : OUT : top max tours from tours
+ */
 void getBestTours(int max, tour_t** tours, tour_t** bestTours) {
 //	bestTours = malloc(sizeof(tour_t*)*max);
 	int i;

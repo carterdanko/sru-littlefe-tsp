@@ -68,8 +68,15 @@ void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities,
 
 	while (i<MAX_POPULATION) {
 		// the old tour generation
-		//arr_tours[i] = create_tour_nn(arr_cities->city[i%N], N, arr_cities);
+#if USE_NEAREST_NEIGHBOR
+#if USE_HYBRID_PROBABILITY
+		arr_tours[i] = ((rand() % 100) > USE_HYBRID_PROBABILITY) ? create_tour_rand(arr_cities) : create_tour_nn(arr_cities->city[i%N], N, arr_cities);
+#else
+		arr_tours[i] = create_tour_nn(arr_cities->city[i%N], N, arr_cities);
+#endif // hybrid
+#else // don't use nearest neighbor
 		arr_tours[i] = create_tour_rand(arr_cities);
+#endif // use_nearest_neighbor
 		set_tour_fitness(arr_tours[i], N);
 		i++;
 	}
@@ -123,8 +130,14 @@ void trackTours(tour_t** allTours)
 	fclose(dump);
 	
 	// submission script
+#if SUBMIT_TO_SERVER
 	sprintf(buffer, "%s %s output/iteration%03i", "scripts/submit.sh", "DATA_SET", iteration-1);
 	system(buffer);
+#else
+	OOPS_TEXT;
+	printf("SUBMISSION_TO_SERVER IS TURNED OFF, NOT SUBMITTING TO SERVER.\n");
+	NORMAL_TEXT;
+#endif
 }
 #endif // best tour tracking
 
@@ -245,10 +258,10 @@ void run_genalg(char* memory_chunk, char *lcv, tour_t** arr_tours, tour_t** arr_
 
 			// MPI send (tours to master)
 			if (*mpi_procs>1) {
-				getBestTours(NUM_TOP_TOURS, arr_tours, tempTours);
-				tour_tToInt(tempTours, NUM_TOP_TOURS, intTours);
+				getBestTours(SEND_TO_MASTER, arr_tours, tempTours);
+				tour_tToInt(tempTours, SEND_TO_MASTER, intTours);
 				DPRINTF("Island %i is sending its tours to master.\n", mpi_rank);
-				MPI_Send(intTours, CitiesA->size*NUM_TOP_TOURS, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD);
+				MPI_Send(intTours, CitiesA->size*SEND_TO_MASTER, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD);
 			}
 		} else {
 			// else, set lcv->0
@@ -298,10 +311,10 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
 		for (i=1;i<mpi_procs;i++) {
 			DPRINTF("Master waiting to receive tours from islands...\n");
 
-			MPI_Recv(intTours, CitiesA->size * NUM_TOP_TOURS, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD, &status);
-			intToTour_t(CitiesA, intTours, NUM_TOP_TOURS, tempTours);
+			MPI_Recv(intTours, CitiesA->size * SEND_TO_MASTER, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD, &status);
+			intToTour_t(CitiesA, intTours, SEND_TO_MASTER, tempTours);
 
-			mergeToursToPop(arr_tours, MAX_POPULATION, tempTours, NUM_TOP_TOURS);
+			mergeToursToPop(arr_tours, MAX_POPULATION, tempTours, SEND_TO_MASTER);
 		}
 		DPRINTF("Master has received all updates from all islands!\n");
 
@@ -452,7 +465,7 @@ int main(int argc, char** argv)
 	DPRINTF("Allocated at memory_chunk = %x\n", memory_chunk);
 	DPRINTF("memory_chunk itself is at &memory_chunk = %x\n", &memory_chunk);
 
-	//TODO: make argument handler set the number of procedures (mpi_procs) and mpi_flag.
+	//set mpi_procs to 1 incase we're not using mpi, but it really gets set in MPI_INIT
 	mpi_procs = 1;
 	
 
@@ -499,6 +512,15 @@ int main(int argc, char** argv)
 			}// else filename
 		}// for each argument
 	}// else process the arguments
+	
+	//####################################################
+	// MPI Initializations
+	//####################################################
+	// Handles MPI initializations and sets its variables.
+	printf("MPI_INIT...\n");
+	MPI_init(&mpi_rank,&mpi_procs,&argc,&argv);
+	//----------------------------------------------------
+	
 	// check to make sure we got a city file
 	if (!citiesFile)
 	{
@@ -508,25 +530,20 @@ int main(int argc, char** argv)
 	// initialize srand
 	if (randSeed)
 	{
+		randSeed += mpi_rank*3;
 		DPRINTF("Using \033[31m%i\033[0m as random seed.\n", randSeed);
 		srand(randSeed);
 	}
 	else // otherwise use a random seed
 	{
 		randSeed = time(0);
+		randSeed += mpi_rank*3;
 		DPRINTF("Picked a random seed (\033[31m%i\033[0m).\n", randSeed);
-		srand(randSeed*(mpi_rank+1));
+		srand(randSeed);
 	}
 	//----------------------------------------------------
 	
 	printf("Using '%s' for cities and '%s' for initial tours.\n", citiesFile, toursFile);
-
-	//####################################################
-	// MPI Initializations
-	//####################################################
-	// Handles MPI initializations and sets its variables.
-	MPI_init(&mpi_rank,&mpi_procs,&argc,&argv);
-	//----------------------------------------------------
 	
 	// Initialize the memory you will need for the entire program.
 	tempTours = malloc(sizeof(tour_t*)*NUM_TOP_TOURS);
