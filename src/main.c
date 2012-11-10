@@ -249,10 +249,20 @@ void run_genalg(char* memory_chunk, char *lcv, tour_t** arr_tours, tour_t** arr_
 			//printf(">> NOW RUNNING EAX <<\n");
 			///////////////////////////////////////
 			// run EAX on each pair of parents
+#if PRINT_ITERATION_PROGRESS
+			int progressMultiple = MAX_PAIR_TOURS / 10;
+			DPRINTF("Progress (starting at %i): \n", time(0));
+#endif
 			for (i=0;i<MAX_PAIR_TOURS;i++) {
 				performEAX(memory_chunk, CitiesA, CitiesB, parentTourPop[i][0], parentTourPop[i][1], arr_children[i]);
 				mergeTourToPop(Tours, MAX_POPULATION, arr_children[i]);
+#if PRINT_ITERATION_PROGRESS
+				if (i % progressMultiple == 0){ DPRINTF("%i percent at %i\n", (i / progressMultiple) * 10, time(0));}
 			}
+			DPRINTF("...doneEAX!\n");
+#else
+			}
+#endif
 			/////////////////////////////////////////
 			//printf(">> EXIT EAX <<\n");
 
@@ -627,6 +637,7 @@ int main(int argc, char** argv)
 	// construct the distance table (on all processes)
 #if USE_DISTANCE_TABLE
 	construct_distTable(CitiesA,N);
+	DPRINTF("Table constructed.\n");
 #else
 	DPRINTF("Not using a distance table.\n");
 #endif
@@ -655,6 +666,7 @@ int main(int argc, char** argv)
 		}
 	}
 	populate_tours(N,mpi_rank,Tours,CitiesA, I, &numFileTours);
+	DPRINTF("Tours Populated...\n");
 	if (I) free(I);
 	sortTours(Tours,MAX_POPULATION);
 

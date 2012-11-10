@@ -11,13 +11,18 @@
 #include "include/eax.h"
 /** Stores distances from every point to another. */
 float* distTable;// initialized in fitness.c inside construct_distTable
+edge_t** edgeTable; // a table initialized to contain all possible edges
 
 float dist(float x1, float y1, float x2, float y2)
 {
 	float x,y;
 	x = x2-x1;
 	y = y2-y1;
+#if LEAVE_SQUARED
+	return x*x+y*y;
+#else
 	return sqrt(x*x+y*y);
+#endif
 }
 
 /**
@@ -34,12 +39,36 @@ tour_t* Cities;
 void construct_distTable(tour_t* cities, int num_cities) {
 #if USE_DISTANCE_TABLE
 	Cities = cities;
+#if USE_BIG_TABLE
+	distTable = malloc(sizeof(*distTable) * (num_cities*num_cities));
+#else
 	distTable = malloc(sizeof(*distTable) * ((num_cities * (num_cities-1)) / 2));
+#endif
+#if USE_EDGE_TABLE
+	edgeTable = malloc(sizeof(edge_t*) * ((num_cities * (num_cities-1)) / 2));
+#endif
 	int i,j,index;
+	int bound1, bound2; // loop bounds
+#if USE_BIG_TABLE
+	bound1 = bound2 = num_cities;
+#else
+	bound1 = num_cities;
+#endif
 	index=0;
-	for (i=0;i<num_cities;i++) {
-		for (j=0;j<i;j++) {
+	for (i=0;i<bound1;i++) {
+#if USE_BIG_TABLE
+#else
+		bound2 = i;
+#endif
+		for (j=0;j<bound2;j++) {
 			distTable[index] = get_distance_between(i,j,cities);
+#if USE_EDGE_TABLE
+			edgeTable[index] = malloc(sizeof(edge_t));
+			edgeTable[index]->v1 = i;
+			edgeTable[index]->v2 = j;
+			edgeTable[index]->cost = distTable[index];
+			edgeTable[index]->cycle = -1;
+#endif // use edge table
 #if PRINT_DISTANCE
 			DPRINTF("(%i,%i)->%f\t",i,j,distTable[index]);
 #endif
@@ -58,6 +87,9 @@ void construct_distTable(tour_t* cities, int num_cities) {
  */
 float lookup_distance(int p1, int p2) {
 #if USE_DISTANCE_TABLE
+#if USE_BIG_TABLE
+	return distTable[p1*CitiesA->size+p2];
+#else
 	if (p1<p2) {
 		//DPRINTF("p1<p2 inside lookup_distance: distTable[(%i*(%i-1)/2)+%i==%i]=%f\n", p2, p2, p1, (p2*(p2-1)/2)+p1, distTable[(p2*(p2-1)/2)+p1]);
 		//float f = distTable[(p2*(p2-1)/2)+p1];
@@ -94,10 +126,43 @@ float lookup_distance(int p1, int p2) {
 		terminate_program(787);
 		return 0.0;
 	}
+#endif// don't use big table
 #else // don't use distance table
+#if USE_NAIVE_DISTANCE
+	int x, y, mask;
+	// dist x
+	x = CitiesA->city[p1]->x - CitiesA->city[p2]->x;
+	// absolute value
+	mask = x >> (sizeof(int)*8 - 1);
+	x = (x+mask) ^ mask;
+	// dist y
+	y = CitiesA->city[p1]->y - CitiesA->city[p2]->y;
+	// absolute value
+	mask = y >> (sizeof(int)*8 - 1);
+	y = (y+mask) ^ mask;
+	return x + y;
+#else
 	return get_distance_between(p1, p2, CitiesA);
-#endif
+#endif// use_naive_distance
+#endif// don't use distance table
 } // lookup_distance()
+
+#if USE_EDGE_TABLE
+edge_t* lookup_edge(int p1, int p2) {
+	if (p1<p2) {
+		return edgeTable[(p2*(p2-1)/2)+p1];
+	} else if (p1>p2) {
+		return edgeTable[(p1*(p1-1)/2)+p2];
+	} else {
+		ERROR_TEXT;
+		DPRINTF("WARNING IN LOOKUP_EDGE -- THIS SHOULD NEVER HAPPEN (p1[%i]==p2[%i]); terminating...\n", p1, p2);
+		NORMAL_TEXT;
+		
+		terminate_program(787);
+		return 0;
+	}
+} // lookup_edge()
+#endif
 
 /**
  * Given a tour and the number of cities, determine its fitness by
@@ -147,7 +212,7 @@ city_t* find_nearest_neighbor(city_t* city, int num_cities, tour_t* cities, char
 		if (cities_visited[i] || cities->city[i]->id == city->id) {
 			continue;
 		}
-		temp_dist = get_distance_between(cities->city[i]->id,city->id,cities);
+		temp_dist = lookup_distance(cities->city[i]->id,city->id);
 		if (  temp_dist < short_dist) {
 			// If your distance was shorter than the shortest, use this instead.
 			short_city = cities->city[i];

@@ -2,6 +2,14 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#if USE_EDGE_TABLE
+void INIT_EDGE(edge_t** E, int V1, int V2, int C)
+{
+	E = lookup_edge(V1, V2);
+	*E->cycle = C;
+}
+#else
+
 void INIT_EDGE(edge_t* E, node_t* V1, node_t* V2, int C)
 {
 	//edge_t* _E = E;
@@ -14,6 +22,7 @@ void INIT_EDGE(edge_t* E, node_t* V1, node_t* V2, int C)
 	DPRINTF("(no inline):initialized edge = {%i -> %i : i%i : c%f}\n", V1?E->v1->id:-1, V2?E->v2->id:-1, E->cycle, E->cost);
 #endif
 }
+#endif // use edge table
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1482,10 +1491,6 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 		DPRINTF("Choosing starting edges.\n");
 #endif
 		INIT_EDGE(&b1, v1, v2, CUR_CYCLE);
-		// find the first edge that doesn't belong to this cycle
-		//for (e=0; e<numEdges;e++)
-		//	if (edges[e].cycle != CUR_CYCLE)
-		//		b2 = edges[e];
 		b2 = edges[0];
 		if (!b2.v1)
 		{
@@ -1515,8 +1520,6 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 			for (e=0; e < numEdges; e++)
 			{
 				e2 = edges[e]; // e2 is the second edge to examine for removal
-				//if (e2.cycle == CUR_CYCLE)
-				//	continue;
 				// construct the four candidate edges which would be created when removing e1 and e2
 				INIT_EDGE(&e3, v1, e2.v1, 0); // one to one
 				INIT_EDGE(&e4, v2, e2.v2, 0); //   "
@@ -1606,21 +1609,6 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 		// Edge pruning (remove the edges that now belong to the main cycle)
 		for (i=0; i < numEdges; i++)
 		{
-			/*
-			edge_t* e1 = &edges[i];
-			if ((e1->v1 == b1.v1 && e1->v2 == b1.v2)||(e1->v2 == b1.v1 && e1->v1 == b1.v2))
-			{// replace b1 with b3
-				INIT_EDGE(e1, b3.v1, b3.v2, 1); // now belongs to curCycle
-			}
-			else if ((e1->v1 == b2.v1 && e1->v2 == b2.v2)||(e1->v2 == b2.v1 && e1->v1 == b2.v2))
-			{// replace b2 with b4
-				INIT_EDGE(e1, b4.v1, b4.v2, 1); // now belongs to curCycle
-			}// else replace b2
-			else if (e1->cycle == b2.cycle)
-			{
-				e1->cycle = 1;
-			}
-			//*/
 			while (i < numEdges && edges[i].cycle == b2.cycle)
 			{
 				//swap and remove

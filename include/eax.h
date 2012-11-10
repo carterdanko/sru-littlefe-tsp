@@ -66,7 +66,11 @@ typedef struct node_struct {
  * struct and the edge struct.
  */
 typedef struct edge_struct {
+#if USE_EDGE_TABLE
+	int v1, v2; // city ids
+#else
 	node_t* v1, *v2; // end points of the edge
+#endif
 	int cycle; // which sub-cycle this edge belongs to, 0 for "no" cycle (the edge was created by the merging process, but can still be considered a candidate)
 	float cost; // the "cost" of the edge, just the distance
 } edge_t;

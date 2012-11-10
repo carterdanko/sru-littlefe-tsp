@@ -37,6 +37,10 @@
 
 ////////////////////// OTHER MODIFICATIONS /////////////////
 #define USE_DISTANCE_TABLE 1         // if true, uses a distance lookup table
+#define USE_BIG_TABLE 0              // if true, uses an n^2 table (NxN) instead of the reduced triangle-table
+#define LEAVE_SQUARED 0              //TODO: DOESN'T SEEM TO WORK if true, leaves the distance squared
+#define USE_EDGE_TABLE 0             //TODO: THIS ISN'T FINISHED AND WON'T COMPILE if true, uses a huge table of edges instead of INIT_EDGEing all the time
+#define USE_NAIVE_DISTANCE 0         // if true, distance calculation is simply: (x2-x1)+(y2-y1)
 ////////////////////////////////////////////////////////////
 
 #include "include/printcolors.h"     // for coloring the console output
@@ -49,7 +53,7 @@
 #else
 	#define DPRINTF if (DEBUG) printf
 #endif
-#define MAX_CITIES 12000
+#define MAX_CITIES 20000
 
 #define MAX_TOUR MAX_CITIES+1     // maximum length of a tour, MAX_CITIES+1 because sometimes tours loop back around
 #define MAX_POPULATION 100
@@ -69,11 +73,15 @@
 /**
  * represents a city that must be visited to create a complete tour
  */
+struct edge_struct;
 typedef struct {
 	int x,y; // x and y position of the city
 	int id; // a unique number for each city in the map. It should be equal to the city's index in the cities array.
 	int tour; // keeps track of which tour this "edge" was from. An "edge"[n] is defined as: tour.city[n-1] -> tour.city[n], then tour.tour[n] == which tour that edge was from
 			  // NOTE: this field is only really relevant when dealing with cycles 
+	struct edge_struct* edge; // like tour, this is the actual "edge" that connected this to the city before it in the tour. These are changed
+	              // all the time by every iteration of the eax, so they're really only valid for the brief period during fixIntermediate
+				  // pretty much
 } city_t;
 
 /**

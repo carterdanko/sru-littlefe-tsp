@@ -29,7 +29,7 @@
 // main control
 #define PRINT_TOURS_DURING_MERGING 0 // before and after doing merge operations, prints the list of tours
 #define PRINT_BEST_TOUR_EACH_ITERATION 1 // prints the best tour each iteration
-#define PRINT_ITERATION_PROGRESS 0  // prints a multiple of 10% on the same line every 10% of iterations, useful for big data sets
+#define PRINT_ITERATION_PROGRESS 1  // prints a multiple of 10% on the same line every 10% of iterations, useful for big data sets
 // other stuff I guess?
 #define PRINT_CITIES 0              // prints the cities loaded if set
 #define PRINT_CYCLE_POINTERS 0      // prints what the cycle pointers are at various points, used for debugging the identical cycle pointers bug
