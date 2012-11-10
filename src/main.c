@@ -117,6 +117,13 @@ void trackTours(tour_t** allTours)
 		}// for each city
 		fprintf(dump, "\n");
 	}// for each tour
+	
+	// close the file
+	fclose(dump);
+	
+	// submission script
+	sprintf(buffer, "%s %s output/iteration%03i", "scripts/submit.sh", "DATA_SET", iteration-1);
+	system(buffer);
 }
 #endif // best tour tracking
 
