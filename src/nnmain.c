@@ -12,7 +12,7 @@ tour_t** Tours, **childrenTours; // all of the current tours in the population
 int randSeed = 0;
 char* citiesFile = 0;
 char *toursFile = 0;
-int mpi_rank = -1;
+int mpi_rank = 0;
 int numFileTours=0;
 
 time_t startTime; // time the program started running
