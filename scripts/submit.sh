@@ -12,7 +12,7 @@ dataSet=$1
 file=$2
 
 ######## CONFIGURATION ##################
-url="https://fedora.cis.cau.edu/tsp/submit.php"
+url="http://fedora.cis.cau.edu/tsp/submit.php"
 team="sru"
 password="password"
 
@@ -28,8 +28,9 @@ echo "Tour(condensed): $outTour..."
 
 
 ######## DO THE SUBMISSION #############
-a="team=$team&password=$password&set=$dataSet&length=$size&tour=$tour"
-wget "$url?$a" --no-check-certificate -O "out.tmp" -o /dev/null
+a="team=$team&password=$password&set=$dataSet&length=0&tour=$tour"
+#wget "$url?$a" --no-check-certificate -O "out.tmp"
+curl --data $a $url -k > out.tmp
 cat out.tmp | sed -r "s/(.+ accepted)/`printf "\033[32m"`\1`printf "\033[0m"`/g" | sed -r "s/(((error)|(Incomplete)|(Duplicates)|(Invalid)|(does not)) .+)/`printf "\033[31m"`\1`printf "\033[0m"`/g"
 rm out.tmp
 
