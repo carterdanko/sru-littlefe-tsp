@@ -21,4 +21,4 @@ aco: makefile src/fitness.c src/acomain.c src/tsp.c src/util.c $(includes)
 	cc -g src/acomain.c src/fitness.c src/tsp.c src/util.c -o acotsp -Iinclude/* -I. -lm -DMPIFLAG=0 -pg
 
 clean:
-	rm tsp genrandcity cuda mpitsp graphBefore.txt graphAfter.txt bestTours.txt nntsp *.out output/*
+	rm tsp genrandcity cuda mpitsp graphBefore.txt graphAfter.txt bestTours.txt nntsp *.out output/* acotsp
