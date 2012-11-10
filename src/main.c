@@ -119,10 +119,10 @@ void trackTours(tour_t** allTours)
 	fprintf(dump, "%i %i\n", NUM_TOP_TOURS, allTours[0]->size);
 	for (i=0; i < NUM_TOP_TOURS; i++)
 	{
-		fprintf(dump, "%i", allTours[i]->city[0]->id);
+		fprintf(dump, "%i", allTours[i]->city[0]->id+1);
 		for (a=1; a < allTours[i]->size; a++)
 		{
-			fprintf(dump, "+%i", allTours[i]->city[a]->id);
+			fprintf(dump, "+%i", allTours[i]->city[a]->id+1);
 		}// for each city
 		fprintf(dump, "\n");
 	}// for each tour
@@ -506,6 +506,7 @@ int main(int argc, char** argv)
 				printf("-h, --help : this screen.\n");
 				printf("-s <random seed> : random seed to initialize srand with.\n");
 				printf("-t <tours file> : loads a file containing tours (must match your dataset).\n");
+				printf("-d <dataSetName> : this is the \"name\" of the dataset, not the file name, but the name you pass into submission.\n");
 			}
 			else if (strcmp(p, "-d") == 0)
 			{
