@@ -96,7 +96,7 @@ void trackTours(tour_t** allTours)
 	
 	// submission script
 #if SUBMIT_TO_SERVER
-	sprintf(buffer, "%s %s output/NEAREST_NEIGHBOR%03i", "scripts/submit.sh", dataSet, iteration-1);
+	sprintf(buffer, "%s %s output/NEAREST_NEIGHBOR%03i", "python scripts/mapping.py", dataSet, iteration-1);
 	system(buffer);
 #else
 	OOPS_TEXT;

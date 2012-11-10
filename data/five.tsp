@@ -1,0 +1,12 @@
+NAME : five
+COMMENT : 5 random points
+COMMENT : (coordiantes were converted to int, values are between 0 and 65535)
+TYPE : TSP
+DIMENSION : 5
+EDGE_WEIGHT_TYPE : EUC_2D
+NODE_COORD_SECTION
+ 1 17925 32631
+ 2 20797 9124
+ 3 6821 18004
+ 4 47416 27860
+ 5 19030 16721

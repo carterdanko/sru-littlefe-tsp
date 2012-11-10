@@ -132,7 +132,7 @@ void trackTours(tour_t** allTours)
 	
 	// submission script
 #if SUBMIT_TO_SERVER
-	sprintf(buffer, "%s %s output/iteration%03i", "scripts/submit.sh", dataSet, iteration-1);
+	sprintf(buffer, "%s %s output/iteration%03i", "python scripts/mapping.py", dataSet, iteration-1);
 	system(buffer);
 #else
 	OOPS_TEXT;
@@ -506,7 +506,7 @@ int main(int argc, char** argv)
 				printf("-h, --help : this screen.\n");
 				printf("-s <random seed> : random seed to initialize srand with.\n");
 				printf("-t <tours file> : loads a file containing tours (must match your dataset).\n");
-				printf("-d <dataSetName> : this is the \"name\" of the dataset, not the file name, but the name you pass into submission.\n");
+				printf("-d <dataSetPath> : this is the path of the dataset that is passed into the conversion submission.\n");
 			}
 			else if (strcmp(p, "-d") == 0)
 			{
