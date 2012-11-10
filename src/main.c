@@ -51,6 +51,7 @@ void loadTours(const char* const fileName, int* I, int *nTours) {
 		for (j=0;j<numCities-1;j++) {
 			fscanf(in, "%i+", &I[index++]);
 		}
+		fscanf(in, "%i", &I[index++]);
 	}
 	*nTours = numFileTours;
 }
@@ -514,7 +515,7 @@ int main(int argc, char** argv)
 	{
 		randSeed = time(0);
 		DPRINTF("Picked a random seed (\033[31m%i\033[0m).\n", randSeed);
-		srand(randSeed);
+		srand(randSeed*(mpi_rank+1));
 	}
 	//----------------------------------------------------
 	
