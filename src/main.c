@@ -119,10 +119,10 @@ void trackTours(tour_t** allTours)
 	fprintf(dump, "%i %i\n", NUM_TOP_TOURS, allTours[0]->size);
 	for (i=0; i < NUM_TOP_TOURS; i++)
 	{
-		fprintf(dump, "%i", allTours[i]->city[0]->id+1);
+		fprintf(dump, "%i", allTours[i]->city[0]->id);
 		for (a=1; a < allTours[i]->size; a++)
 		{
-			fprintf(dump, "+%i", allTours[i]->city[a]->id+1);
+			fprintf(dump, "+%i", allTours[i]->city[a]->id);
 		}// for each city
 		fprintf(dump, "\n");
 	}// for each tour
