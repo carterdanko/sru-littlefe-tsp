@@ -12,6 +12,7 @@ tour_t** Tours, **childrenTours; // all of the current tours in the population
 int randSeed = 0;
 char* citiesFile = 0;
 char *toursFile = 0;
+char* dataSet = 0;
 int mpi_rank = -1;
 int numFileTours=0;
 
@@ -131,7 +132,7 @@ void trackTours(tour_t** allTours)
 	
 	// submission script
 #if SUBMIT_TO_SERVER
-	sprintf(buffer, "%s %s output/iteration%03i", "scripts/submit.sh", "DATA_SET", iteration-1);
+	sprintf(buffer, "%s %s output/iteration%03i", "scripts/submit.sh", dataSet, iteration-1);
 	system(buffer);
 #else
 	OOPS_TEXT;
@@ -506,6 +507,11 @@ int main(int argc, char** argv)
 				printf("-s <random seed> : random seed to initialize srand with.\n");
 				printf("-t <tours file> : loads a file containing tours (must match your dataset).\n");
 			}
+			else if (strcmp(p, "-d") == 0)
+			{
+				// dataSet
+				dataSet = argv[++i];
+			}
 			else if (strcmp(p, "-s") == 0)
 			{
 				// random seed
@@ -536,6 +542,18 @@ int main(int argc, char** argv)
 	{
 		printf("no city file present. halting\n");
 		terminate_program(3); // ERROR: no city file present
+	}
+	// init dataSet
+	if (!dataSet)
+	{
+		OOPS_TEXT;
+		printf("No data set name loaded.\n");
+		NORMAL_TEXT;
+		dataSet = "NO_DATA_SET";
+	}
+	else
+	{
+		printf("DatSet: '%s'\n", dataSet);
 	}
 	// initialize srand
 	if (randSeed)

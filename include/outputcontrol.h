@@ -38,7 +38,7 @@
 #define PRINT_VISITED_LIST 0        // when outputting tours, shows a list of which cities were visited
 #define PRINT_ONLY_FITNESS 1        // when printing tours, only prints their fitness and the size
 #define PRINT_MPI_INFO 1            // when true, makes DPRINTF print rank number and output number
-#define SUBMIT_TO_SERVER 0          // when set to true, attempts to call the submission script every iteration
+#define SUBMIT_TO_SERVER 1          // when set to true, attempts to call the submission script every iteration
 
 #endif // OPC_ENABLE
 /////////////////////////////////////////////////////////////////////
