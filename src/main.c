@@ -20,11 +20,6 @@ int* intTours;
 int* intCities;
 tour_t** tempTours;
 tour_t** bestTours;
-#if BEST_TOUR_TRACKING
-tour_t** BestTours;          // array containing the best tours
-int sizeBestTours; // how many best tours there are
-tour_t* lastBestTour;        // the previous best tour, last iteration
-#endif
 
 /*
  * Files consist of numTours, numCities, and the list of tours based on ID.
@@ -41,7 +36,7 @@ void loadTours(const char* const fileName, int* I, int *nTours) {
 	if (!in)
 	{
 		fprintf(stderr, "Error opening %s for input. Check filename", fileName);
-		exit(0);
+		exit(1);
 	}
 
 	// get number of tours/cities from first line
@@ -52,10 +47,9 @@ void loadTours(const char* const fileName, int* I, int *nTours) {
 	// set up the tours
 	index=0;
 	for (i=0;i<numTours;i++) {
-		for (j=0;j<numCities-1;j++) {
-			fscanf(in, "%i+", &I[index++]);
+		for (j=0;j<numCities;j++) {
+			fscanf(in, "%i ", &I[index++]);
 		}
-		fscanf(in, "%i", &I[index++]);
 	}
 	*nTours = numTours;
 }
@@ -90,49 +84,38 @@ void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities,
 #if BEST_TOUR_TRACKING
 void initBestTourTracking()
 {
-	sizeBestTours = 0;
-	lastBestTour = 0;
-	BestTours = malloc(MAX_BEST_TOURS * sizeof(tour_t*));
-	int i;
-	for (i=0; i < MAX_BEST_TOURS; i++)
-		BestTours[i] = malloc(sizeof(tour_t));
+	
 }
 
 void dumpBestTours()
 {
-	FILE* out = fopen(BTT_FILE, "w");
 	
-	// header info
-	fprintf(out, "%s\n%i\n", citiesFile, randSeed); // filename \n randSeed
-	fprintf(out, "%i\n", sizeBestTours); // number of best tours
-	
-	// each tour in the list
-	int i, k;
-	tour_t* tour;
-	for (i=0; i < sizeBestTours; i++)
-	{
-		tour = BestTours[i];
-		fprintf(out, "%i: f%f %i", i, tour->fitness, tour->city[0]->id);
-		for (k=1; k < tour->size; k++)
-			fprintf(out, ",%i", tour->city[k]->id);
-		fprintf(out, "\n");
-	}
-	
-	fprintf(out, "\n");
-	fclose(out);
 }
 
 /**
  * pass in current best tour for tracking
  */
-void trackTours(tour_t* bestTour)
+void trackTours(tour_t** allTours)
 {
-	if (bestTour != lastBestTour)
+	static int iteration = 0;
+	int i, a;
+	
+	// dump all of the current tours to disk
+	char buffer[50];
+	sprintf(buffer, "%s%03i", "output/iteration", iteration++);
+	FILE* dump = fopen(buffer, "w");
+	
+	// write it to disk
+	fprintf(dump, "%i %i\n", NUM_TOP_TOURS, allTours[0]->size);
+	for (i=0; i < NUM_TOP_TOURS; i++)
 	{
-		BestTours[sizeBestTours] = malloc(sizeOfTour(bestTour));
-		memcpy(BestTours[sizeBestTours++], bestTour, sizeOfTour(bestTour));
-		lastBestTour = bestTour;
-	}
+		fprintf(dump, "%i", allTours[i]->city[0]->id);
+		for (a=1; a < allTours[i]->size; a++)
+		{
+			fprintf(dump, "+%i", allTours[i]->city[a]->id);
+		}// for each city
+		fprintf(dump, "\n");
+	}// for each tour
 }
 #endif // best tour tracking
 
@@ -308,6 +291,10 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
 			mergeToursToPop(arr_tours, MAX_POPULATION, tempTours, NUM_TOP_TOURS);
 		}
 		DPRINTF("Master has received all updates from all islands!\n");
+		
+#if BEST_TOUR_TRACKING
+		trackTours(arr_tours);
+#endif
 
 		// Next, subtract by the new best tour's fitness
 		delta_fit-=arr_tours[0]->fitness;
@@ -367,7 +354,7 @@ void serial_listener(char* memory_chunk, int *iter, int *delta_iter, char *lcv, 
 		NORMAL_TEXT;
 #endif
 #if BEST_TOUR_TRACKING
-		trackTours(arr_tours[0]);
+		trackTours(arr_tours);
 #endif
 
 		// Next, subtract by the new best tour's fitness
@@ -442,6 +429,7 @@ int main(int argc, char** argv)
 	int i; // loop counter
 	int mpi_procs; // mpi rank (for each process) and number of processes
 	char lcv = 1; // loop control variable for the while loop (run until lcv->0)
+	citiesFile = 0;
 	
 #if MPIFLAG
 	intTours = malloc(MAX_CITIES*NUM_TOP_TOURS*sizeof(int));
@@ -553,6 +541,8 @@ int main(int argc, char** argv)
 		srand(randSeed);
 	}
 	//----------------------------------------------------
+	
+	printf("Using '%s' for cities and '%s' for initial tours.\n", citiesFile, toursFile);
 
 	//####################################################
 	// MPI Initializations
