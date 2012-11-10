@@ -23,8 +23,11 @@
 #define CHOOSE_BEST_FROM_THREE 1     // if true, performEAX returns only the best tour from {parentA, parentB, child} instead of always the child
 #define PERFORM_2OPT_ON_CHILD 0      // if true, performs 2-opt optimization on child tour
 #define USE_HEURISTIC_ESET 0         // if true, instead of randomly choosing AB cycles for E-SETs, uses a heuristic
-#define MINIMUM_WEIGHT_FOR_ROULETTE 0 // if this is set, then this is a minimum weight for each child in the roullette wheel selection
-#define MAXIMUM_WEIGHT_FOR_ROULETTE 0 // if this is set, then this is a maximum weight for each child in the roullette wheel selection
+#define CAP_ROULETTE_WHEEL 0         // if true, puts limits on roullette_wheel
+#if CAP_ROULETTE_WHEEL
+	#define RW_CAP_MIN 1.0 // this is a minimum weight for each child in the roullette wheel selection (times average)
+	#define RW_CAP_MAX 1.0 // then this is a maximum weight for each child in the roullette wheel selection (times average)
+#endif
 ////////////////////////////////////////////////////////////
 
 ///////////////////// TOUR GENERATION MODIFICATIONS ////////
@@ -48,18 +51,19 @@
 #endif
 #define MAX_CITIES 12000
 
-#define MAX_TOUR MAX_CITIES+1     // this should basically be the same as MAX_CITIES
+#define MAX_TOUR MAX_CITIES+1     // maximum length of a tour, MAX_CITIES+1 because sometimes tours loop back around
 #define MAX_POPULATION 100
 #define TABLE_SIZE (MAX_CITIES*(MAX_CITIES-1))/2 // size based on a counting argument
 #define MAX_ITERATIONS 100 // sets the maximum number of generations to iterate through in the GA
 #define DELTA 0.50 // A float threshold for the difference in the population's best fitness.
 		// When the difference is within this threshold, begin counting how frequently it occurs.
 #define MAX_DELTA 20 // set the maximum number of generations to iterate through when the difference in fitness was repetitively within DELTA.
-#define MAX_PAIR_TOURS MAX_POPULATION
-#define NUM_TOP_TOURS 12       // how many tours master sends to each slave
-#define SEND_TO_MASTER 2      // how many tours each slave sends to master
+#define MAX_PAIR_TOURS MAX_POPULATION   // how many of pairs of tours (parent pairs) to make when generating children
+#define NUM_TOP_TOURS 3       // how many tours master sends to each slave
+#define SEND_TO_MASTER 1      // how many tours each slave sends to master
 
 #define ENFORCE_LOOKUP_TABLE_CORRECTNESS 0    // extra checks in the lookup table for debugging purposes
+#define ENFORCE_NONZERO_FITNESS 0             // extra checks when using a fitness value (roullette_select, etc.)
 #define DEBUG_SET_TOUR_FITNESS 0              // inserts extra lines while calculating a tour's fitness for debugging
 
 /**

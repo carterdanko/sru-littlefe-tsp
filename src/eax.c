@@ -9,8 +9,10 @@ void INIT_EDGE(edge_t* E, node_t* V1, node_t* V2, int C)
 	E->v2 = V2;
 	E->cycle = C;
 	E->cost = lookup_distance(V1->id, V2->id);
-	// DPRINTF("(no inline):looked up distance: %f\n", lookup_distance(V1->id, V2->id));
-	// DPRINTF("(no inline):initialized edge = {%i -> %i : i%i : c%f}\n", V1?E->v1->id:-1, V2?E->v2->id:-1, E->cycle, E->cost);
+	//DPRINTF("(no inline):looked up distance: %f\n", lookup_distance(V1->id, V2->id));
+#if PRINT_EDGE_INIT
+	DPRINTF("(no inline):initialized edge = {%i -> %i : i%i : c%f}\n", V1?E->v1->id:-1, V2?E->v2->id:-1, E->cycle, E->cost);
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -459,8 +461,8 @@ int generateABCycles(char* memory_chunk, const tour_t* const CitiesA, const tour
 #if PRINT_GENERATE_AB_CYCLES
 		DPRINTF("Initializing cycle...\n");
 #endif
-		memset(visited, 0, sizeof(visited)); // reset visited nodes for this cycle
-		memset(iteration, 0, sizeof(iteration)); // reset the iteration tracking array for this cycle
+		memset(visited, 0, MAX_CITIES * sizeof(int)); // reset visited nodes for this cycle
+		memset(iteration, 0, MAX_CITIES * sizeof(int)); // reset the iteration tracking array for this cycle
 		currentIteration = 0;
 		v0 = v2; // save the starting vertex
 #if PRINT_GENERATE_AB_CYCLES
@@ -1445,10 +1447,28 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 	tour_t* curCycle; // current cycle
 	//tour_t tempCycle; // this is what current cycle is most of the time
 	
+	// edges and costs
 	edge_t e1, e2, e3, e4, e5, e6; // e1 and e2 are the two edges being examined for removal, e3-e6 are the 4 candidate edges, 2 of which to replace e1/e2
 	edge_t b1, b2, b3, b4; // our current best choices, b1&b2 get removed, b3&b4 get added
 	float bestCost; // cost of the current best edges found
 	node_t *v1, *v2; // temporary nodes
+	
+	// edge "pruning"
+	// since the only part that actually uses the edge structure is when searching for edges that
+	// don't belong to the current cycle, we can remove all of the edges that belong to the current
+	// cycle from the edges list.
+	int numEdges = Cities->size;
+	for (e=0; e < numEdges; e++)
+	{
+		while (e < numEdges && edges[e].cycle < 2)
+		{
+			// swap and remove
+			edges[e] = edges[--numEdges];
+#if PRINT_FIX_INTERMEDIATE
+			DPRINTF("removed %i and now %i\n", e, numEdges);
+#endif
+		}
+	}
 	
 	curCycle = cycles[0];
 	memcpy(tourC, curCycle, sizeOfTour(curCycle));
@@ -1463,17 +1483,10 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 #endif
 		INIT_EDGE(&b1, v1, v2, CUR_CYCLE);
 		// find the first edge that doesn't belong to this cycle
-		for (i=0; i < Cities->size; i++)
-		{
-			if (edges[i].cycle != CUR_CYCLE)
-			{
-#if PRINT_FIX_INTERMEDIATE
-				DPRINTF("in finding first edge not in this cycle: \n");
-#endif
-				b2 = edges[i];
-				break;
-			}
-		}// for find the first edge that doesn't belong to this cycle
+		//for (e=0; e<numEdges;e++)
+		//	if (edges[e].cycle != CUR_CYCLE)
+		//		b2 = edges[e];
+		b2 = edges[0];
 		if (!b2.v1)
 		{
 			ERROR_TEXT;
@@ -1499,45 +1512,44 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 			INIT_EDGE(&e1, v1, v2, CUR_CYCLE);
 			
 			// now iterate over every edge in the graph that doesn't belong to curCycle
-			for (e=0; e < Cities->size; e++)
+			for (e=0; e < numEdges; e++)
 			{
 				e2 = edges[e]; // e2 is the second edge to examine for removal
-				if (e2.cycle != CUR_CYCLE) // if this edge isn't part of the current cycle, examine it for possible removal
+				//if (e2.cycle == CUR_CYCLE)
+				//	continue;
+				// construct the four candidate edges which would be created when removing e1 and e2
+				INIT_EDGE(&e3, v1, e2.v1, 0); // one to one
+				INIT_EDGE(&e4, v2, e2.v2, 0); //   "
+				INIT_EDGE(&e5, v1, e2.v2, 0); // criss - cross
+				INIT_EDGE(&e6, v2, e2.v1, 0); //   "
+				// calculate the costs of using either set of edges
+				float costA = e3.cost + e4.cost - e1.cost - e2.cost; // cost of edges being added minus the cost of the edges being removed
+				float costB = e5.cost + e6.cost - e1.cost - e2.cost;
+				// sort costs so that costA is the cheapest
+				if (costB < costA)
 				{
-					// construct the four candidate edges which would be created when removing e1 and e2
-					INIT_EDGE(&e3, v1, e2.v1, 0); // one to one
-					INIT_EDGE(&e4, v2, e2.v2, 0); //   "
-					INIT_EDGE(&e5, v1, e2.v2, 0); // criss - cross
-					INIT_EDGE(&e6, v2, e2.v1, 0); //   "
-					// calculate the costs of using either set of edges
-					float costA = e3.cost + e4.cost - e1.cost - e2.cost; // cost of edges being added minus the cost of the edges being removed
-					float costB = e5.cost + e6.cost - e1.cost - e2.cost;
-					// sort costs so that costA is the cheapest
-					if (costB < costA)
+					// check to see if this cost is better than current best, if so replace it
+					if (costB < bestCost)
 					{
-						// check to see if this cost is better than current best, if so replace it
-						if (costB < bestCost)
-						{
-							bestCost = costB;
-							b1 = e1;
-							b2 = e2;
-							b3 = e5;
-							b4 = e6;
-						}// if costB is better than current best
-					}
-					else
+						bestCost = costB;
+						b1 = e1;
+						b2 = e2;
+						b3 = e5;
+						b4 = e6;
+					}// if costB is better than current best
+				}
+				else
+				{
+					// check to see if this cost is better than current best, if so replace it
+					if (costA < bestCost)
 					{
-						// check to see if this cost is better than current best, if so replace it
-						if (costA < bestCost)
-						{
-							bestCost = costA;
-							b1 = e1;
-							b2 = e2;
-							b3 = e3;
-							b4 = e4;
-						} // if costA is better than current best
-					}// else costA < costB
-				}// if the edge should be examined as a candidate
+						bestCost = costA;
+						b1 = e1;
+						b2 = e2;
+						b3 = e3;
+						b4 = e4;
+					} // if costA is better than current best
+				}// else costA < costB
 			}// each edge in the graph
 		}// each edge in the cycle
 		
@@ -1591,10 +1603,10 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 #if PRINT_FIX_INTERMEDIATE
 		DPRINTF("searching for b1 and b2 in edges array and replacing them with b3 and b4 respectively...\n");
 #endif
-		// fix all of the edges that used to belong to otherCycle, making them now belong to curCycle, also
-		// replace the edges we removed with the ones we added
-		for (i=0; i < Cities->size; i++)
+		// Edge pruning (remove the edges that now belong to the main cycle)
+		for (i=0; i < numEdges; i++)
 		{
+			/*
 			edge_t* e1 = &edges[i];
 			if ((e1->v1 == b1.v1 && e1->v2 == b1.v2)||(e1->v2 == b1.v1 && e1->v1 == b1.v2))
 			{// replace b1 with b3
@@ -1608,12 +1620,19 @@ int fixIntermediate(const tour_t* const Cities, graph_t* T /* byref */, tour_t**
 			{
 				e1->cycle = 1;
 			}
+			//*/
+			while (i < numEdges && edges[i].cycle == b2.cycle)
+			{
+				//swap and remove
+				edges[i] = edges[--numEdges];
+#if PRINT_FIX_INTERMEDIATE
+				DPRINTF("removed %i and now %i\n", i, numEdges);
+#endif
+			}
 		}// for searching for edges to replace
 		
 		// remove otherCycle
 		cycles[b2.cycle-1] = cycles[--nCycles];
-		
-		//TODO: sort the subCycles by size
 		
 #if PRINT_FIX_INTERMEDIATE
 #if PRINT_GRAPHS

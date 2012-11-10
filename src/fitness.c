@@ -144,7 +144,7 @@ city_t* find_nearest_neighbor(city_t* city, int num_cities, tour_t* cities, char
 	int i;
 
 	for (i=0;i<num_cities;i++) {
-		if (cities->city[i]->id == city->id || cities_visited[i]) {
+		if (cities_visited[i] || cities->city[i]->id == city->id) {
 			continue;
 		}
 		temp_dist = get_distance_between(cities->city[i]->id,city->id,cities);
@@ -171,18 +171,39 @@ tour_t* roulette_select(tour_t** tours, int num_tours, tour_t* ignore_tour) {
 	float rand,rand_fit,sum_fitness,temp;
 	sum_fitness=0.0;
 
+#if CAP_ROULETTE_WHEEL
+	float fitTotal = 0;
+	float fitAvg = -1;
+	float fitMin = -1;
+	float fitMax = -1;
+	for (i = 0; i < num_tours; i++)
+	{
+		if (tours[i] == ignore_tour)
+			continue;
+		temp = 1.0 / tours[i]->fitness;
+		fitTotal += temp;
+	}
+	fitAvg = fitTotal / (num_tours - (ignore_tour?1:0));
+	fitMin = RW_CAP_MIN * fitAvg;
+	fitMax = RW_CAP_MAX * fitAvg;
+#endif
+
 	// sum up the inverted total fitnesses
 	for (i=0;i<num_tours;i++) {
 		if (tours[i] == ignore_tour)
 			continue; // don't count ignore_tour in the fitness sum
 		temp = tours[i]->fitness;
+#if ENFORCE_NONZERO_FITNESS
 		if (temp==0) {
 			printf("tour %i has fitness zero. hex: %x\n",i, tours[i]);
 		}
-		temp = 1.0 / temp;
-#if MINIMUM_WEIGHT_FOR_ROULETTE
 #endif
-#if MAXIMUM_WEIGHT_FOR_ROULETTE
+		temp = 1.0 / temp;
+#if CAP_ROULETTE_WHEEL
+		if (temp < fitMin)
+			temp = fitMin;
+		if (temp > fitMax)
+			temp = fitMax;
 #endif
 		sum_fitness+= temp;
 	}
@@ -197,6 +218,12 @@ tour_t* roulette_select(tour_t** tours, int num_tours, tour_t* ignore_tour) {
 		if (tours[i] == ignore_tour)
 			continue; // don't check the ignore tour, it wasn't counted in the fitness sum
 		temp = 1.0 / tours[i]->fitness;
+#if CAP_ROULETTE_WHEEL
+		if (temp < fitMin)
+			temp = fitMin;
+		if (temp > fitMax)
+			temp = fitMax;
+#endif
 		if (rand_fit < temp) {
 			// If your fitness is in this tour, return it.
 			return tours[i];

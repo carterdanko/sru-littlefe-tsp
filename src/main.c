@@ -632,8 +632,9 @@ int main(int argc, char** argv)
 #endif
 
 	// first, try to load tours.
-	int *I = malloc(sizeof(int)*MAX_CITIES*MAX_POPULATION);
+	int *I = 0;
 	if (toursFile) {
+		I = malloc(sizeof(int)*MAX_CITIES*MAX_POPULATION);
 		if (MPIFLAG) {
 #if MPIFLAG
 			if (mpi_rank==0) {
@@ -654,7 +655,7 @@ int main(int argc, char** argv)
 		}
 	}
 	populate_tours(N,mpi_rank,Tours,CitiesA, I, &numFileTours);
-	free(I);
+	if (I) free(I);
 	sortTours(Tours,MAX_POPULATION);
 
 	// populate tours (on all processes)

@@ -18,17 +18,18 @@
 #define PRINT_CYCLES 0              // information about AB cycles, sub cycles, and other cycles
 #define PRINT_MISC 0                // everything else I was too lazy to granularize. Mostly allocations, and mergeGraph/freeGraph stuff
 // per method
-#define PRINT_STEPS 1               // prints a line in performEAX before each step, thereby identifying each step
+#define PRINT_STEPS 0               // prints a line in performEAX before each step, thereby identifying each step
 #define PRINT_GENERATE_AB_CYCLES 0  // generateABCycles() output
 #define PRINT_FIX_INTERMEDIATE 0    // fixIntermediate() output
 #define PRINT_MERGE_SUB_TOURS 0     // mergeSubTours() output
 #define PRINT_APPLY_ESET 0          // applyESET() output
 #define PRINT_GENERATE_ESET 0       // generateESET functions (rand and heuristic)
 #define PRINT_EDGE_OPERATIONS 0     // prints information about edge operations (REMOVE_EDGE and RESTORE_EDGE)
+#define PRINT_EDGE_INIT 0           // prints everytime an edge is init'd THIS IS A LOT (mostly in fixIntermediate)
 // main control
 #define PRINT_TOURS_DURING_MERGING 0 // before and after doing merge operations, prints the list of tours
 #define PRINT_BEST_TOUR_EACH_ITERATION 1 // prints the best tour each iteration
-#define PRINT_ITERATION_PROGRESS 1  // prints a multiple of 10% on the same line every 10% of iterations, useful for big data sets
+#define PRINT_ITERATION_PROGRESS 0  // prints a multiple of 10% on the same line every 10% of iterations, useful for big data sets
 // other stuff I guess?
 #define PRINT_CITIES 0              // prints the cities loaded if set
 #define PRINT_CYCLE_POINTERS 0      // prints what the cycle pointers are at various points, used for debugging the identical cycle pointers bug
