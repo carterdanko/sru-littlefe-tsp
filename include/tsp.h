@@ -3,7 +3,8 @@
  */
 #ifndef TSP_H // header guard
 #define TSP_H
-#define MPIFLAG 0 // this decides whether or not we are using MPI (for compiling purposes)
+//#define MPIFLAG 1 // this decides whether or not we are using MPI (for compiling purposes)
+	//now implemented with the makefiles
 
 #include <stdlib.h>
 #include <time.h>
