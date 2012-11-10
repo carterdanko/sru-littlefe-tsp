@@ -51,7 +51,6 @@ void loadTours(const char* const fileName, int* I, int *nTours) {
 		for (j=0;j<numCities-1;j++) {
 			fscanf(in, "%i+", &I[index++]);
 		}
-		fscanf(in, "%i", &I[index++]);
 	}
 	*nTours = numFileTours;
 }
@@ -219,14 +218,14 @@ void run_genalg(char* memory_chunk, char *lcv, tour_t** arr_tours, tour_t** arr_
 
 		// MPI Recv new tours from master
 		if (*mpi_procs>1) {
-			DPRINTF("Island waiting to receive tours from master...\n");
+			DPRINTF("Island %i waiting to receive tours from master...\n", mpi_rank);
 			MPI_Recv(intTours, CitiesA->size * NUM_TOP_TOURS, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status);
 		}
 
 		// if the tour is not empty...
 		if (intTours[0]!=-1) {
 			if (*mpi_procs>1) {
-				printf("OK! Island received non-empty tour.\n");
+				printf("OK! Island %i eceived non-empty tour.\n", mpi_rank);
 				// Udpate the island's population (sort it)
 				intToTour_t(CitiesA, intTours, NUM_TOP_TOURS, tempTours);
 				mergeToursToPop(arr_tours, MAX_POPULATION, tempTours, NUM_TOP_TOURS);
@@ -247,12 +246,12 @@ void run_genalg(char* memory_chunk, char *lcv, tour_t** arr_tours, tour_t** arr_
 			if (*mpi_procs>1) {
 				getBestTours(NUM_TOP_TOURS, arr_tours, tempTours);
 				tour_tToInt(tempTours, NUM_TOP_TOURS, intTours);
-				DPRINTF("Island is sending its tours to master.\n");
+				DPRINTF("Island %i is sending its tours to master.\n", mpi_rank);
 				MPI_Send(intTours, CitiesA->size*NUM_TOP_TOURS, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD);
 			}
 		} else {
 			// else, set lcv->0
-			DPRINTF("Island recognizes order and commences halt procedure.\n");
+			DPRINTF("Island %i recognizes order and commences halt procedure.\n", mpi_rank);
 			*lcv=0;
 		}
 #endif
@@ -285,6 +284,10 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
 			MPI_Send(intTours, CitiesA->size*NUM_TOP_TOURS, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD);
 
 		}
+		
+#if BEST_TOUR_TRACKING
+		trackTours(arr_tours);
+#endif
 
 		// First, grab the original best tour's fitness.
 		delta_fit=arr_tours[0]->fitness;
@@ -300,10 +303,6 @@ void master_listener(int *iter, int *delta_iter, char *lcv, tour_t** arr_tours, 
 			mergeToursToPop(arr_tours, MAX_POPULATION, tempTours, NUM_TOP_TOURS);
 		}
 		DPRINTF("Master has received all updates from all islands!\n");
-		
-#if BEST_TOUR_TRACKING
-		trackTours(arr_tours);
-#endif
 
 		// Next, subtract by the new best tour's fitness
 		delta_fit-=arr_tours[0]->fitness;
@@ -515,7 +514,7 @@ int main(int argc, char** argv)
 	{
 		randSeed = time(0);
 		DPRINTF("Picked a random seed (\033[31m%i\033[0m).\n", randSeed);
-		srand(randSeed*(mpi_rank+1));
+		srand(randSeed);
 	}
 	//----------------------------------------------------
 	
@@ -563,14 +562,14 @@ int main(int argc, char** argv)
 			// MPI Receive cities
 			CitiesA = malloc(sizeof(tour_t));
 			CitiesB = malloc(sizeof(tour_t));
-			DPRINTF("Island receiving citysize...CitiesA: %x ->size: %i\n", CitiesA, (CitiesA?CitiesA->size:-1));
+			DPRINTF("Island %i receiving citysize...CitiesA: %x ->size: %i\n", mpi_rank, CitiesA, (CitiesA?CitiesA->size:-1));
 			MPI_Recv(&(CitiesA->size), 1, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status);
 			CitiesB->size = CitiesA->size;
-			DPRINTF("Got city size of %i!\n",CitiesA->size);
+			DPRINTF("%i Got city size of %i!\n", mpi_rank, CitiesA->size);
 			// receive actual array of cities as intarray
-			DPRINTF("Island waiting for cities...\n");
+			DPRINTF("Island %i waiting for cities...\n", mpi_rank);
 			MPI_Recv(intCities, CitiesA->size*3, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status); // size of intCities has x, y, id values.
-			DPRINTF("Island got cities!\n");
+			DPRINTF("Island %i got cities!\n", mpi_rank);
 			// malloc the cities in the array
 			for (i=0;i<CitiesA->size;i++) {
 				CitiesA->city[i]=malloc(sizeof(city_t));
@@ -579,10 +578,10 @@ int main(int argc, char** argv)
 			// convert the int array to a city array
 			intToCity_t(intCities, CitiesA->size, CitiesA);
 			intToCity_t(intCities, CitiesB->size, CitiesB);
-			DPRINTF("Cities converted. Now printing...\n");
+			DPRINTF("%i Cities converted. Now printing...\n", mpi_rank);
 			print_tour(CitiesA);
 			print_tour(CitiesB);
-			DPRINTF("Done printing!\n");
+			DPRINTF("%i Done printing!\n", mpi_rank);
 		}
 #endif
 	} else {

@@ -15,6 +15,9 @@ void print_tour(tour_t* tour) {
 	memset(visited, 0, sizeof(int)*MAX_CITIES);
 	visited[tour->city[0]->id]++;
 #endif
+#if PRINT_ONLY_FITNESS
+	printf("Tour [f:\033[33m%f\033[0m s:\033[32m%i\033[0m]: [tour_print_off]\n", tour->fitness, tour->size);
+#else
 	printf("Tour [f:\033[33m%f\033[0m s:\033[32m%i\033[0m]: [%i]", tour->fitness, tour->size, tour->city[0]->id);
 	for (i=1; i < tour->size; i++)
 	{
@@ -39,6 +42,7 @@ void print_tour(tour_t* tour) {
 #endif
 		
 	printf("\n");
+#endif // print only fitness
 }
 
 void dprint_tour(tour_t* tour) {
@@ -49,6 +53,9 @@ void dprint_tour(tour_t* tour) {
 	memset(visited, 0, sizeof(int)*MAX_CITIES);
 	visited[tour->city[0]->id]++;
 #endif
+#if PRINT_ONLY_FITNESS
+	DPRINTF("(DPRINTF)Tour [f:\033[33m%f\033[0m s:\033[32m%i\033[0m]: [tour_print_off]\n", tour->fitness, tour->size);
+#else
 	DPRINTF("(DPRINTF)Tour [f:\033[33m%f\033[0m s:\033[32m%i\033[0m]: [%i]", tour->fitness, tour->size, tour->city[0]->id);
 	for (i=1; i < tour->size; i++)
 	{
@@ -75,6 +82,7 @@ void dprint_tour(tour_t* tour) {
 #endif
 
 	DPRINTF("\n");
+#endif // print only fitness
 }
 
 /*
@@ -213,23 +221,23 @@ void tour_tToInt(tour_t** tours, int nTours, int* I)
  */
 void intToTour_t(tour_t* Cities, int* I, int nTours, tour_t** tours)
 {
-	DPRINTF("OK in intToTour_t()\n");
+	//DPRINTF("OK in intToTour_t()\n");
 	int i;
 	int position = 0;
 	for (i=0; i < nTours; i++)
 	{
-		DPRINTF("i is %i \n",i);
-		DPRINTF("INT_TO_TOUR::  ");
+		//DPRINTF("i is %i \n",i);
+		//DPRINTF("INT_TO_TOUR::  ");
 		int a;
 		for (a=0; a < Cities->size; a++) {
 			tours[i]->city[a] = Cities->city[I[position++]];
-			DPRINTF("%i:%i->%i  ",i,a,tours[i]->city[a]->id);
+			//DPRINTF("%i:%i->%i  ",i,a,tours[i]->city[a]->id);
 		}
 		tours[i]->size = Cities->size;
 		set_tour_fitness(tours[i], Cities->size);
-		DPRINTF("\n");
+		//DPRINTF("\n");
 	}
-	DPRINTF("i is %i \n",i);
+	//DPRINTF("i is %i \n",i);
 }
 
 void dumpGraphToFile(graph_t* G, char* fn)

@@ -34,11 +34,15 @@
 
 #define DEBUG 1     // set to zero to remove a lot of debugging output and speed up the code 
 
-#define DPRINTF if (DEBUG) printf("r%io%i::", mpi_rank, outputCounter++); if (DEBUG) printf
+#if PRINT_MPI_INFO
+	#define DPRINTF if (DEBUG) printf("r%io%i::", mpi_rank, outputCounter++); if (DEBUG) printf
+#else
+	#define DPRINTF if (DEBUG) printf
+#endif
 #define MAX_CITIES 12000
 
 #define MAX_TOUR MAX_CITIES+1     // this should basically be the same as MAX_CITIES
-#define MAX_POPULATION 100
+#define MAX_POPULATION 20
 #define TABLE_SIZE (MAX_CITIES*(MAX_CITIES-1))/2 // size based on a counting argument
 #define MAX_ITERATIONS 100 // sets the maximum number of generations to iterate through in the GA
 #define DELTA 0.50 // A float threshold for the difference in the population's best fitness.
