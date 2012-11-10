@@ -51,6 +51,7 @@ void loadTours(const char* const fileName, int* I, int *nTours) {
 		for (j=0;j<numCities-1;j++) {
 			fscanf(in, "%i+", &I[index++]);
 		}
+		fscanf(in, "%i", &I[index++]);
 	}
 	*nTours = numFileTours;
 }
