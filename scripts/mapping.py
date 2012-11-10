@@ -61,7 +61,7 @@ read_tour(f)
 print str(tour)
 
 ######## CONFIGURATION ##################
-url="https://fedora.cis.cau.edu/tsp/submit.php"
+url="http://fedora.cis.cau.edu/tsp/submit.php"
 team="sru"
 password="password"
 
@@ -69,7 +69,7 @@ password="password"
 submit = "team="+team+"&password="+password+"&set="+filename+"&length=0&tour="
 for i in range(0,len(hashmap)-1):
 	submit += ""+str(hashmap[tour[i]][1])+"+"
-submit +=""+str(hashmap[len(hashmap)-1][1])
+submit +=""+str(hashmap[tour[len(hashmap)-1]][1])
 cmd = "curl --data \""+submit+"\" \""+url+"\" -k >out.tmp"
 print cmd
 os.system(cmd)

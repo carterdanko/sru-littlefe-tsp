@@ -23,8 +23,9 @@ tour_t** Tours, **childrenTours; // all of the current tours in the population
 // global variables about the running state of the program
 int randSeed = 0;
 char* citiesFile = 0;
-char *toursFile = 0;
+char* toursFile = 0;
 char* dataSet = 0;
+char* outputPrefix = 0;
 int mpi_rank = 0;
 int numFileTours=0;
 
@@ -76,7 +77,7 @@ void trackTours(tour_t** allTours)
 	
 	// dump all of the current tours to disk
 	char buffer[50];
-	sprintf(buffer, "%s%03i", "output/NEAREST_NEIGHBOR", iteration++);
+	sprintf(buffer, "%s%s_%03i", "output/", outputPrefix, iteration++);
 	FILE* dump = fopen(buffer, "w");
 	
 	// write it to disk
@@ -96,7 +97,7 @@ void trackTours(tour_t** allTours)
 	
 	// submission script
 #if SUBMIT_TO_SERVER
-	sprintf(buffer, "%s %s output/NEAREST_NEIGHBOR%03i", "python scripts/mapping.py", dataSet, iteration-1);
+	sprintf(buffer, "%s %s output/%s_%03i", "python scripts/mapping.py", dataSet, outputPrefix, iteration-1);
 	system(buffer);
 #else
 	OOPS_TEXT;
@@ -163,6 +164,11 @@ int main(int argc, char** argv)
 				// dataSet
 				dataSet = argv[++i];
 			}
+			else if (strcmp(p, "-o") == 0)
+			{
+				// outputPrefix
+				outputPrefix = argv[++i];
+			}
 			else if (strcmp(p, "-s") == 0)
 			{
 				// random seed
@@ -184,6 +190,18 @@ int main(int argc, char** argv)
 	{
 		printf("no city file present. halting\n");
 		terminate_program(3); // ERROR: no city file present
+	}
+	// init outputPrefix
+	if (!outputPrefix)
+	{
+		OOPS_TEXT;
+		printf("No data set name loaded.\n");
+		NORMAL_TEXT;
+		outputPrefix = "NONAME";
+	}
+	else
+	{
+		printf("outputPrefix: '%s'\n", outputPrefix);
 	}
 	// initialize srand
 	if (randSeed)
