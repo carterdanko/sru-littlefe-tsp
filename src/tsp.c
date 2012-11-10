@@ -1,5 +1,38 @@
  #include "include/tsp.h"
  
+/**
+ * loads cities from a file
+ * mpi_rank : the rank of the mpi process
+ * citiesFile : the string that is the file name
+ * arr_cities : a pointer, passed by reference (so whatever pointer was passed in will now point to the cities loaded)
+ */
+void load_cities(int mpi_rank, char *citiesFile, tour_t **arr_cities) {
+	// if master...
+	if (mpi_rank==0) {
+		// load the cities specified by the file
+		DPRINTF("Loading cities...");
+		*arr_cities = loadCities(citiesFile);
+		if (!(*arr_cities))
+		{
+			printf("Error while loading cities. refer to error log? halting.\n");
+			terminate_program(5); // ERROR: error while loading cities
+		}
+		DPRINTF("done! (loaded %i cities from the file)\n", (*arr_cities)->size);
+	}
+	DPRINTF("done! (loaded %i cities from the file)\n", (*arr_cities)->size);
+	// process the cities
+	int N = (*arr_cities)->size;
+
+	// output the city information to the console
+	DPRINTF("\nNum Cities: %04i\n", (*arr_cities)->size);
+	DPRINTF("---------------------------\n");
+	int i;
+	for (i=0; i < (*arr_cities)->size; i++)
+	{
+		DPRINTF("City[%04i] at %04i, %04i   [id: %04i]\n", i, (*arr_cities)->city[i]->x, (*arr_cities)->city[i]->y, (*arr_cities)->city[i]->id);
+	}
+}// load_cities()
+
  /**
   * loads all of the cities found in fileName
   * fileName : the name of the file to load. The format:

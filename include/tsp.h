@@ -103,6 +103,7 @@ tour_t* loadCities(const char* const fileName); // loads cities from file
 void freeCities(tour_t* cities); // frees the memory used by the structure
 tour_t* create_tour_nn(city_t* city, int num_cities, tour_t* cities); // create nearest neighbor tour based on an initial city.
 tour_t* create_tour_rand(tour_t* cities); // creates tours by randomly choosing cities
+void load_cities(int mpi_rank, char *citiesFile, tour_t **arr_cities);
 ///////////////////////////////////////////////////////////////////////////////
 
 // fitness.c

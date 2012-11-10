@@ -13,7 +13,7 @@ int randSeed = 0;
 char* citiesFile = 0;
 char *toursFile = 0;
 int mpi_rank = -1;
-int numTours=0;
+int numFileTours=0;
 
 time_t startTime; // time the program started running
 int* intTours;
@@ -22,12 +22,12 @@ tour_t** tempTours;
 tour_t** bestTours;
 
 /*
- * Files consist of numTours, numCities, and the list of tours based on ID.
+ * Files consist of numFileTours, numCities, and the list of tours based on ID.
  *   Assumes that the file has less tours than MAX_POPULATION
  */
 void loadTours(const char* const fileName, int* I, int *nTours) {
 	FILE* in;
-	int numCities,numTours,i,j,index;
+	int numCities,numFileTours,i,j,index;
 	
 	// open the file
 	in = fopen(fileName, "r");
@@ -40,18 +40,19 @@ void loadTours(const char* const fileName, int* I, int *nTours) {
 	}
 
 	// get number of tours/cities from first line
-	fscanf(in, "%i %i", &numTours, &numCities); 
+	fscanf(in, "%i %i", &numFileTours, &numCities); 
 	
-	printf("loadTours received %i for tours, %i for cities.\n",numTours,numCities);
+	printf("loadTours received %i for tours, %i for cities.\n",numFileTours,numCities);
 
 	// set up the tours
 	index=0;
-	for (i=0;i<numTours;i++) {
-		for (j=0;j<numCities;j++) {
-			fscanf(in, "%i ", &I[index++]);
+
+	for (i=0;i<numFileTours;i++) {
+		for (j=0;j<numCities-1;j++) {
+			fscanf(in, "%i+", &I[index++]);
 		}
 	}
-	*nTours = numTours;
+	*nTours = numFileTours;
 }
 
 /**
@@ -61,7 +62,7 @@ void loadTours(const char* const fileName, int* I, int *nTours) {
  * arr_tours : an array of pointers to tours (the array must be allocated, each tour should not)
  * arr_cities : the master Cities structure
  */
-void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities, int* I, int *numTours) {
+void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities, int* I, int *numFileTours) {
 	int i=0;
 
 	while (i<MAX_POPULATION) {
@@ -71,12 +72,12 @@ void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities,
 		set_tour_fitness(arr_tours[i], N);
 		i++;
 	}
-	if (*numTours>0) {
+	if (*numFileTours>0) {
 		printf("converting the tours...\n");
-		intToTour_t(arr_cities, I, *numTours, arr_tours);
+		intToTour_t(arr_cities, I, *numFileTours, arr_tours);
 	}
 
-	for (i=0;i<*numTours;i++) {
+	for (i=0;i<*numFileTours;i++) {
 		print_tour(arr_tours[i]);
 	}
 }// populate_tours()
@@ -390,38 +391,6 @@ void serial_listener(char* memory_chunk, int *iter, int *delta_iter, char *lcv, 
 	}
 }// serial_listener()
 
-/**
- * loads cities from a file
- * mpi_rank : the rank of the mpi process
- * citiesFile : the string that is the file name
- * arr_cities : a pointer, passed by reference (so whatever pointer was passed in will now point to the cities loaded)
- */
-void load_cities(int mpi_rank, char *citiesFile, tour_t **arr_cities) {
-	// if master...
-	if (mpi_rank==0) {
-		// load the cities specified by the file
-		DPRINTF("Loading cities...");
-		*arr_cities = loadCities(citiesFile);
-		if (!(*arr_cities))
-		{
-			printf("Error while loading cities. refer to error log? halting.\n");
-			terminate_program(5); // ERROR: error while loading cities
-		}
-		DPRINTF("done! (loaded %i cities from the file)\n", (*arr_cities)->size);
-	}
-	DPRINTF("done! (loaded %i cities from the file)\n", (*arr_cities)->size);
-	// process the cities
-	int N = (*arr_cities)->size;
-
-	// output the city information to the console
-	DPRINTF("\nNum Cities: %04i\n", (*arr_cities)->size);
-	DPRINTF("---------------------------\n");
-	int i;
-	for (i=0; i < (*arr_cities)->size; i++)
-	{
-		DPRINTF("City[%04i] at %04i, %04i   [id: %04i]\n", i, (*arr_cities)->city[i]->x, (*arr_cities)->city[i]->y, (*arr_cities)->city[i]->id);
-	}
-}// load_cities()
 
 int main(int argc, char** argv)
 {
@@ -643,27 +612,28 @@ int main(int argc, char** argv)
 		if (MPIFLAG) {
 #if MPIFLAG
 			if (mpi_rank==0) {
-				loadTours(toursFile,I,&numTours);
+				loadTours(toursFile,I,&numFileTours);
 				for (i=1;i<mpi_procs;i++) {
 					DPRINTF("Master sends number of inputTours to %i\n",i);
-					MPI_Send(&numTours, 1, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD);
+					MPI_Send(&numFileTours, 1, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD);
 					DPRINTF("Master sends inputTours array to %i\n",i);
-					MPI_Send(I, CitiesA->size*numTours, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD);
+					MPI_Send(I, CitiesA->size*numFileTours, MPI_INT, i, MPI_TAG, MPI_COMM_WORLD);
 				}
 			} else {
-				MPI_Recv(&numTours, 1, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status);
-				MPI_Recv(I, CitiesA->size*numTours, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status);
+				MPI_Recv(&numFileTours, 1, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status);
+				MPI_Recv(I, CitiesA->size*numFileTours, MPI_INT, 0, MPI_TAG, MPI_COMM_WORLD, &status);
 			}
 #endif
 		} else {
-			loadTours(toursFile,I,&numTours);
+			loadTours(toursFile,I,&numFileTours);
 		}
 	}
-	populate_tours(N,mpi_rank,Tours,CitiesA, I, &numTours);
+	populate_tours(N,mpi_rank,Tours,CitiesA, I, &numFileTours);
 	free(I);
+	sortTours(Tours,MAX_POPULATION);
 
 	// populate tours (on all processes)
-//	populate_tours(N,mpi_rank,Tours,CitiesA, I, numTours);
+//	populate_tours(N,mpi_rank,Tours,CitiesA, I, numFileTours);
 	//----------------------------------------------------
 
 	

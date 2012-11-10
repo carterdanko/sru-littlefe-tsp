@@ -14,5 +14,8 @@ cuda: src/fitnesscuda.cu
 mpi: makefile $(sources) $(includes)
 	mpicc -g $(sources) -o mpitsp -Iinclude/* -I. -lm
 
+nn: makefile src/fitness.c src/nnmain.c src/tsp.c src/util.c $(includes)
+	cc -g src/nnmain.c src/fitness.c src/tsp.c src/util.c -o nntsp -Iinclude/* -I. -lm
+
 clean:
-	rm tsp genrandcity cuda mpitsp graphBefore.txt graphAfter.txt bestTours.txt *.out output/*
+	rm tsp genrandcity cuda mpitsp graphBefore.txt graphAfter.txt bestTours.txt nntsp *.out output/*
