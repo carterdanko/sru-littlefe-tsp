@@ -15,4 +15,4 @@ mpi: makefile $(sources) $(includes)
 	mpicc -g $(sources) -o mpitsp -Iinclude/* -I. -lm
 
 clean:
-	rm tsp genrandcity cuda mpitsp graphBefore.txt graphAfter.txt bestTours.txt *.out
+	rm tsp genrandcity cuda mpitsp graphBefore.txt graphAfter.txt bestTours.txt *.out output/*
