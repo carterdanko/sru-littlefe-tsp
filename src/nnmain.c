@@ -24,6 +24,7 @@ tour_t** Tours, **childrenTours; // all of the current tours in the population
 int randSeed = 0;
 char* citiesFile = 0;
 char *toursFile = 0;
+char* dataSet = 0;
 int mpi_rank = 0;
 int numFileTours=0;
 
@@ -58,49 +59,50 @@ void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities)
 #if BEST_TOUR_TRACKING
 void initBestTourTracking()
 {
-	sizeBestTours = 0;
-	lastBestTour = 0;
-	BestTours = malloc(MAX_BEST_TOURS * sizeof(tour_t*));
-	int i;
-	for (i=0; i < MAX_BEST_TOURS; i++)
-		BestTours[i] = malloc(sizeof(tour_t));
+	
 }
 
 void dumpBestTours()
 {
-	FILE* out = fopen(BTT_FILE, "w");
 	
-	// header info
-	fprintf(out, "%s\n%i\n", citiesFile, randSeed); // filename \n randSeed
-	fprintf(out, "%i\n", sizeBestTours); // number of best tours
-	
-	// each tour in the list
-	int i, k;
-	tour_t* tour;
-	for (i=0; i < sizeBestTours; i++)
-	{
-		tour = BestTours[i];
-		fprintf(out, "%i: f%f %i", i, tour->fitness, tour->city[0]->id);
-		for (k=1; k < tour->size; k++)
-			fprintf(out, ",%i", tour->city[k]->id);
-		fprintf(out, "\n");
-	}
-	
-	fprintf(out, "\n");
-	fclose(out);
 }
-
 /**
  * pass in current best tour for tracking
  */
-void trackTours(tour_t* bestTour)
+void trackTours(tour_t** allTours)
 {
-	if (bestTour != lastBestTour)
+	static int iteration = 0;
+	int i, a;
+	
+	// dump all of the current tours to disk
+	char buffer[50];
+	sprintf(buffer, "%s%03i", "output/NEAREST_NEIGHBOR", iteration++);
+	FILE* dump = fopen(buffer, "w");
+	
+	// write it to disk
+	fprintf(dump, "%i %i\n", NUM_TOP_TOURS, allTours[0]->size);
+	for (i=0; i < NUM_TOP_TOURS; i++)
 	{
-		BestTours[sizeBestTours] = malloc(sizeOfTour(bestTour));
-		memcpy(BestTours[sizeBestTours++], bestTour, sizeOfTour(bestTour));
-		lastBestTour = bestTour;
-	}
+		fprintf(dump, "%i", allTours[i]->city[0]->id+1);
+		for (a=1; a < allTours[i]->size; a++)
+		{
+			fprintf(dump, "+%i", allTours[i]->city[a]->id+1);
+		}// for each city
+		fprintf(dump, "\n");
+	}// for each tour
+	
+	// close the file
+	fclose(dump);
+	
+	// submission script
+#if SUBMIT_TO_SERVER
+	sprintf(buffer, "%s %s output/NEAREST_NEIGHBOR%03i", "scripts/submit.sh", dataSet, iteration-1);
+	system(buffer);
+#else
+	OOPS_TEXT;
+	printf("SUBMISSION_TO_SERVER IS TURNED OFF, NOT SUBMITTING TO SERVER.\n");
+	NORMAL_TEXT;
+#endif
 }
 #endif // best tour tracking
 
@@ -154,6 +156,12 @@ int main(int argc, char** argv)
 				printf("-h, --help : this screen.\n");
 				printf("-s <random seed> : random seed to initialize srand with.\n");
 				printf("-t <tours file> : loads a file containing tours (must match your dataset).\n");
+				printf("-d <dataSetName> : this is the \"name\" of the dataset, not the file name, but the name you pass into submission.\n");
+			}
+			else if (strcmp(p, "-d") == 0)
+			{
+				// dataSet
+				dataSet = argv[++i];
 			}
 			else if (strcmp(p, "-s") == 0)
 			{
@@ -316,6 +324,7 @@ int main(int argc, char** argv)
 			intToTour_t(CitiesA, tempIntTour, 1, &tempTour);
 			mergeTourToPop(Tours, 1, tempTour);
 		}
+		trackTours(Tours);
 	} else {
 		// slaves send their best tour
 		tour_tToInt(&Tours[0],1,tempIntTour);
@@ -325,11 +334,8 @@ int main(int argc, char** argv)
 	//----------------------------------------------------
 
 	
-#if BEST_TOUR_TRACKING
-	initBestTourTracking();
-#endif
 	//----------------------------------------------------
-
+	
 	//####################################################
 	// Print all tours to console.
 	//####################################################
