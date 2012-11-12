@@ -59,9 +59,8 @@ password="password"
 
 
 submit = "team="+team+"&password="+password+"&set="+filename+"&length=0&tour="
-submit += "+"+str(tour[0])
-for i in range(1,citysize):
-	submit += "+"+str(tour[i])
+for i in range(0,citysize):
+	submit += ""+str(tour[i])+"+"
 cmd = "curl --data \""+submit+"\" \""+url+"\" -k >out.tmp"
 print cmd
 os.system(cmd)

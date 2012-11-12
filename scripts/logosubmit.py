@@ -3,7 +3,7 @@ import sys
 
 ## system args
 # arg1: the relative path of the data file
-# arg2: handles which type of tour to construct (1=sequential, 2=interlaced)
+# arg2: the relative path of the output file from LOGO
 ##
 
 #########################################
@@ -24,30 +24,21 @@ def read_file(file):
 	citysize = int(ln.rstrip('\n').split(": ")[1])
 
 # the var 'x' determines what type of tour you construct
-def construct_tour(x):
+def construct_tour(file2):
 	global tour,citysize
-	if x==2:
-		if citysize%2==1:
-			y=0
-			for i in range(1,citysize+1):
-				tour.append(y+1)
-				y=(y+2)%citysize
-		else:
-			for i in range(0,citysize):
-				tour.append((i*2+1)%(citysize+1)+1)
-	else:
-		for i in range(1,citysize+1):
-			tour.append(i)
+	ln = file2.readline().rstrip('\n')
+	while (ln!=''):
+		tour.append(int(ln))
+		ln = file2.readline().rstrip('\n')
 	# enddef
 
 
 ############ MAIN CALLS #################
-print 'reading in data file ', sys.argv[1]
 f = open(sys.argv[1],'r')
 read_file(f)
-print 'citysize is ', citysize
 
-construct_tour( int(sys.argv[2]) )
+f = open(sys.argv[2],'r')
+construct_tour(f)
 
 # Print out the tour
 print str(tour)
@@ -59,7 +50,7 @@ password="password"
 
 
 submit = "team="+team+"&password="+password+"&set="+filename+"&length=0&tour="
-submit += "+"+str(tour[0])
+submit += str(tour[0])
 for i in range(1,citysize):
 	submit += "+"+str(tour[i])
 cmd = "curl --data \""+submit+"\" \""+url+"\" -k >out.tmp"
