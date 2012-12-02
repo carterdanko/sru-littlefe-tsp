@@ -1,11 +1,14 @@
 import os
 import sys
 
-## system args
-# arg1: the relative path of the data file
-# arg2: the file containing your output
+# Usage: mapping.py <arg1> <arg2>
+#  arg1: the relative path of the data file
+#  arg2: the file containing your output
 #
-##
+# The purpose of this program is to map the tour IDs to their proper
+#  id since the GA program simply uses array indices for its IDs.
+# After mapping the IDs, the script also submits the tour to the server.
+# The format for submission is dependent on specific settings (see ln 68).
 
 #########################################
 # GLOBALS
@@ -14,6 +17,7 @@ tour = list()
 filename = ""
 #########################################
 
+# Read in the .tsp data file used to construct the input file for GA.
 def construct_hash(file):
 	global hashmap,filename
 	ln = file.readline()
@@ -28,19 +32,14 @@ def construct_hash(file):
 		if (len(num)>0):
 			hashmap.append( [i,int(num[0])] )
 		i+=1
-	#print 'finished constructing hash table!'
 
+# Read the output file from the GA program.
 def read_tour(file):
 	global tour
 	file.readline()
 	nums = file.readline().split("+")
 	for s in nums:
 		tour.append(int(s))
-
-# print 'your arg list: ',str(sys.argv)
-# print 'arg 1 is ', sys.argv[1]
-# cmd= 'pwd'
-# os.system(cmd)
 
 print 'reading in data file ', sys.argv[1]
 f = open(sys.argv[1],'r')
@@ -73,7 +72,6 @@ submit +=""+str(hashmap[tour[len(hashmap)-1]][1])
 cmd = "curl --data \""+submit+"\" \""+url+"\" -k >out.tmp"
 print cmd
 os.system(cmd)
-# cmd = "cat out.tmp"
 cmd = "cat out.tmp | sed -r \"s/(.+ accepted)/`printf \"\\033[32m\"`\\1`printf \"\\033[0m\"`/g\" | sed -r \"s/(((error)|(Incomplete)|(Duplicates)|(Invalid)|(does not)) .+)/`printf \"\\033[31m\"`\\1`printf \"\\033[0m\"`/g\""
 os.system(cmd)
 cmd = "rm out.tmp"

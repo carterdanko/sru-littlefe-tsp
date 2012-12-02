@@ -1,6 +1,7 @@
-/**
- * contains types and what not that will be used throughout the entirety of the TSP algorithm
- */
+////////////////////////////////////////////////////////////////////////////////
+//	DESC:	contains types and what not that will be used throughout the
+//			entirety of the TSP algorithm.
+////////////////////////////////////////////////////////////////////////////////
 #ifndef TSP_H // header guard
 #define TSP_H
 //#define MPIFLAG 1 // this decides whether or not we are using MPI (for compiling purposes)
@@ -12,14 +13,15 @@
 #include <string.h>
 #include <unistd.h>
 
-//////////////////////// MPI STUFF /////////////////////////
+//// MPI STUFF /////////////////////////////////////////////////////////////////
 #if MPIFLAG
 #include <mpi.h>
 #define MPI_TAG 2
 #endif
-////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
-////////////////////// GA MODIFICATIONS ////////////////////
+
+//// GA MODIFICATIONS //////////////////////////////////////////////////////////
 #define CHOOSE_BEST_FROM_THREE 1     // if true, performEAX returns only the best tour from {parentA, parentB, child} instead of always the child
 #define PERFORM_2OPT_ON_CHILD 0      // if true, performs 2-opt optimization on child tour
 #define USE_HEURISTIC_ESET 0         // if true, instead of randomly choosing AB cycles for E-SETs, uses a heuristic
@@ -28,20 +30,22 @@
 	#define RW_CAP_MIN 1.0 // this is a minimum weight for each child in the roullette wheel selection (times average)
 	#define RW_CAP_MAX 1.0 // then this is a maximum weight for each child in the roullette wheel selection (times average)
 #endif
-////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
-///////////////////// TOUR GENERATION MODIFICATIONS ////////
+
+//// TOUR GENERATION MODIFICATIONS /////////////////////////////////////////////
 #define USE_NEAREST_NEIGHBOR 1       // if true, uses nearest neighbor instead of purely random initial pop
 #define USE_HYBRID_PROBABILITY 50    // if 0, only use NN or RAND, if non-zero, this/100 = probability for NN
-////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
-////////////////////// OTHER MODIFICATIONS /////////////////
+
+//// OTHER MODIFICATIONS ///////////////////////////////////////////////////////
 #define USE_DISTANCE_TABLE 1         // if true, uses a distance lookup table
 #define USE_BIG_TABLE 0              // if true, uses an n^2 table (NxN) instead of the reduced triangle-table
 #define LEAVE_SQUARED 0              //TODO: DOESN'T SEEM TO WORK if true, leaves the distance squared
 #define USE_EDGE_TABLE 0             //TODO: THIS ISN'T FINISHED AND WON'T COMPILE if true, uses a huge table of edges instead of INIT_EDGEing all the time
 #define USE_NAIVE_DISTANCE 0         // if true, distance calculation is simply: (x2-x1)+(y2-y1)
-////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 #include "include/printcolors.h"     // for coloring the console output
 #include "include/outputcontrol.h"   // controls debug output
@@ -104,7 +108,7 @@ extern time_t startTime; // time the program started running
 #if BEST_TOUR_TRACKING
 	void dumpBestTours();      // a function in main.c that dumps the best tours
 #endif // best tour tracking
-///////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 
 // util.c
@@ -121,7 +125,7 @@ void sortTours(tour_t** tours, int numTours); // sorts an array of tours by asce
 void merge_swap(tour_t** elem1, tour_t** elem2); // swaps two tours by reference (that is, after this executes, elem1 == (previous value of elem2) and elem2 == (previous elem1)
 void terminate_program(int ecode); // terminates the program. ecode 0 is normal successful termination, anything else indicates an error (abnormal termination)
 void getBestTours(int max, tour_t** tours, tour_t** bestTours);
-///////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 // tsp.c
 tour_t* loadCities(const char* const fileName); // loads cities from file
@@ -129,7 +133,7 @@ void freeCities(tour_t* cities); // frees the memory used by the structure
 tour_t* create_tour_nn(city_t* city, int num_cities, tour_t* cities); // create nearest neighbor tour based on an initial city.
 tour_t* create_tour_rand(tour_t* cities); // creates tours by randomly choosing cities
 void load_cities(int mpi_rank, char *citiesFile, tour_t **arr_cities);
-///////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 // fitness.c
 tour_t* roulette_select(tour_t** tours, int num_tours, tour_t* ignore_tour);  // selects a random tour weighted by its fitness.
@@ -137,6 +141,40 @@ city_t* find_nearest_neighbor(city_t* city, int num_cities, tour_t* cities, char
 void set_tour_fitness(tour_t* tour, int num_cities); // compute and set a tour's fitness.
 float lookup_distance(int p1, int p2); // distance between two points; retrieved in constant time.
 void construct_distTable(tour_t* cities, int num_cities); // constructs distTable variable.
-///////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+
+//// MEMORY CHUNK DESCRIPTION //////////////////////////////////////////////////
+	// oh boy, where to begin:
+	// so, rather than do a bunch of mallocs inside of performEAX, or use some n^2 stack allocation (impossible)
+	// we're going to allocate a giant chunk of memory on the heap that if necessary could fit the worst-case
+	// storage required for the sub-cycles in the graph (a graph completely partitioned into sub-cycles of length 4)
+	// and keep re-using that memory for the sub-cycles.
+	// memory_chunk points to the beginning of this chunk of memory.
+	// figure A:
+	// [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
+	// /\            /\                                                /\
+	// |              |                                                 |
+	// |              |                                                  \ cycles[2] ------------------------
+	// |               \- cycles[1] --------------------------------------------------------|
+	// |
+	// |\- cycles[0] ------------------------------------------|
+	// |
+	//  \- memory_chunk
+	//////////////////////////////////////////////////////////////////////
+	// since the end of each tour_t stuct is the array of pointers to cities in the tour,
+	// and if a sub-cycle is only of, say, length 5, then the remaining MAX_CITIES-5 cells
+	// in the array are going to be useless memory. What this structure allows is for other
+	// cycles to overlap into that unused section of cycles[0]'s memory, starting at the
+	// first unused cell in their cities array.
+	// Since the worst case is all sub-cycles of length 4, we know the maximum number of these
+	// cycles to be MAX_CITIES/4, so we allocate space to hold that many tour_ts, anything other
+	// than that will be smaller than that much memory, so we're in the clear.
+	// this allows us to fit all of the subcycles into memory of O(N) where N is the number of cities.
+	// I think this also assumes that a float is smaller or equal in size to an integer. (hopefully that's true!)
+	// it also assumes that the C compiler doesn't do anything weird like pad memory between structs (hopefully it doesn't!)
+	// it also assumes that Programmo, the god of programming, is with us and we can actually finish this code before the conference (hopefully he is!)
+////////////////////////////////////////////////////////////////////////////////
+
 
 #endif // header guard

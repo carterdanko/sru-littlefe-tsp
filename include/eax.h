@@ -1,21 +1,24 @@
-/**
- * contains types and such used exclusively by the Edge Assembly Crossover part of the algorithm
- */
+////////////////////////////////////////////////////////////////////////////////
+//	DESC:	contains types and such used exclusively by the Edge Assembly
+//			Crossover part of the algorithm
+////////////////////////////////////////////////////////////////////////////////
 #ifndef EAX_H // header guard
 #define EAX_H
 
 #include "include/tsp.h"
 
-// constants
+
+//// CONSTANTS /////////////////////////////////////////////////////////////////
 #define MAX_SUB_TOURS MAX_CITIES/4  // maximum number of sub-tours in an intermediate tour
 #define MAX_EDGES 4       // there can only be 4 maximum edges, two from each parent tour
 #define PANIC_EXIT MAX_CITIES+3  // some choosing algorithms are implemented by randomly choosing items that haven't been chosen yet, choosing again when encountering one that was already chosen. If this many iterations of that occur, we exit the loop to prevent hanging, print an error message, and halt execution
 #define MAX_ABCYCLES MAX_CITIES/4 // only for allocation purposes, no boundary checking assurances
 #define TOUR_A 0
 #define TOUR_B 1 // this is for code clarity
+////////////////////////////////////////////////////////////////////////////////
 
-// inlines
-// removes edge E from vertex V 
+
+//// INLINE FUNCTIONS //////////////////////////////////////////////////////////
 #if PRINT_EDGE_OPERATIONS
 	#define REMOVING_PRINT(V, E) \
 		printf("\033[33mremoving\033[0m edge(v[%i]->v[%i]t%i from graph...\n", \
@@ -31,12 +34,15 @@
 	#define REMOVING_PRINT(V, E)
 	#define RESTORING_PRINT(V, E)
 #endif
+
+// removes edge E from vertex V 
 #define REMOVE_EDGE(V,E) do { \
 				REMOVING_PRINT(V, E); \
                 node_t* _tv; int _tt; _tv=V->edge[--V->size]; _tt=V->tour[V->size]; \
                 V->edge[V->size] = V->edge[E]; V->tour[V->size] = V->tour[E]; \
 			  	V->edge[E] = _tv; V->tour[E] = _tt; \
 			} while(0) 
+
 // restore a previously removed edge back to vertex V
 #define RESTORE_EDGE(V,E) do { \
 				RESTORING_PRINT(V, E); \
@@ -44,11 +50,10 @@
                 V->edge[V->size] = V->edge[E]; V->tour[V->size++] = V->tour[E]; \
 			  	V->edge[E] = _tv; V->tour[E] = _tt; \
             } while(0) 
-// initializes an edge
-/*
-//TODO: inline init_edge was here, so put it back?
-//*/
+////////////////////////////////////////////////////////////////////////////////
 
+
+//// STRUCTS ///////////////////////////////////////////////////////////////////
 /**
  * a node in a graph
  */
@@ -87,5 +92,7 @@ typedef struct {
 
 // performs the entire EAX algorithm, returning a new valid tour created from the two parent tours
 void performEAX(char* memory_chunk, tour_t* CitiesA, tour_t* CitiesB, tour_t* tourA, tour_t* tourB, tour_t* tourC);
+////////////////////////////////////////////////////////////////////////////////
+
 
 #endif // header guard

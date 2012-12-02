@@ -8,8 +8,9 @@ tsp: makefile $(sources) $(includes)
 genrandcity: src/genrandcity.c
 	cc -g src/genrandcity.c -o genrandcity
 
-cuda: src/fitnesscuda.cu
-	nvcc -g src/fitnesscuda.cu -o cuda -Iinclude/* -I. -lm
+#cuda is no longer implemented. This is for reference only
+#cuda: src/fitnesscuda.cu
+#	nvcc -g src/fitnesscuda.cu -o cuda -Iinclude/* -I. -lm
 
 mpi: makefile $(sources) $(includes)
 	mpicc -g $(sources) -o mpitsp -Iinclude/* -I. -lm -DMPIFLAG=1

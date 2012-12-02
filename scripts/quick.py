@@ -1,10 +1,12 @@
 import os
 import sys
 
-## system args
+# Usage: quick.py <arg1> <arg2>
 # arg1: the relative path of the data file
 # arg2: handles which type of tour to construct (1=sequential, 2=interlaced)
-##
+#
+# The purpose of this script is to quickly submit tours to the server.
+# The format for submission is dependent on specific settings (see ln 63).
 
 #########################################
 # GLOBALS
@@ -38,7 +40,6 @@ def construct_tour(x):
 	else:
 		for i in range(1,citysize+1):
 			tour.append(i)
-	# enddef
 
 
 ############ MAIN CALLS #################
@@ -65,7 +66,6 @@ for i in range(1,citysize):
 cmd = "curl --data \""+submit+"\" \""+url+"\" -k >out.tmp"
 print cmd
 os.system(cmd)
-# cmd = "cat out.tmp"
 cmd = "cat out.tmp | sed -r \"s/(.+ accepted)/`printf \"\\033[32m\"`\\1`printf \"\\033[0m\"`/g\" | sed -r \"s/(((error)|(Incomplete)|(Duplicates)|(Invalid)|(does not)) .+)/`printf \"\\033[31m\"`\\1`printf \"\\033[0m\"`/g\""
 os.system(cmd)
 cmd = "rm out.tmp"

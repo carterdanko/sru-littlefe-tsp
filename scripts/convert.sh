@@ -1,4 +1,12 @@
 #!/bin/bash
+
+# Usage: 
+#  convert.sh <relative path of .tsp file to convert> <relative path for new 
+#   input file>
+#
+# The purpose of this script is to convert a .tsp library file to the input
+# file type that is used by our program.
+
 tspData=$1
 data=$2
 
