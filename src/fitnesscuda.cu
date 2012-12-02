@@ -1,15 +1,18 @@
-/** Author: Mike Tasota
- *  Date:   18 September 2012
- *  Descr:  Pretending like this was never accidentally lost the first time
- *          and that I didn't have to rewrite this code again. OK? So, this
- *          is the original file I wrote, because I only wrote this once.
- */
+////////////////////////////////////////////////////////////////////////////////
+//	DESC:	Should match everything with "fitness.c" with the exception
+//			of the generation of the distance table, which is done
+//			using CUDA.
+//
+//	NOTE:	This file does not function in the project anymore. Rather,
+//			it should be used as reference for anyone interested in
+//			implementing CUDA for distance table generation.
+////////////////////////////////////////////////////////////////////////////////
+
 #include <stdio.h>
 #include <math.h>
 #include "include/fitness.h"
 #include "include/tsp.h"
 #include "util.c"
-//~~!
 #include "tsp.c"
 
 #define DEBUG 1
@@ -214,6 +217,7 @@ tour_t* roulette_select(tour_t tours[], int num_tours) {
 	return;
 }
 
+// a test function
 int main() {
 	// init the cities
 	int num_cities = 5;

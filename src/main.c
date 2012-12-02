@@ -77,7 +77,8 @@ void loadTours(const char* const fileName, int* I, int *nTours)
  *
  * N : size of each tour.
  * mpi_rank : rank of the mpi process
- * arr_tours : an array of pointers to tours (the array must be allocated, each tour should not)
+ * arr_tours : an array of pointers to tours
+ *		(the array must be allocated, each tour should not)
  * arr_cities : the master Cities structure
  */
 void populate_tours(int N, int mpi_rank, tour_t** arr_tours, tour_t* arr_cities,
@@ -541,9 +542,9 @@ int main(int argc, char** argv)
 	//set mpi_procs to 1 incase we're not using mpi, but it really gets set in MPI_INIT
 	mpi_procs = 1;
 
-	//####################################################
+	//#########################################################################
 	// Argument Handler
-	//####################################################
+	//#########################################################################
 	// check number of parameters
 	if (argc < 2)
 	{
@@ -599,9 +600,9 @@ int main(int argc, char** argv)
 		}// for each argument
 	}// else process the arguments
 	
-	//####################################################
+	//#########################################################################
 	// MPI Initializations
-	//####################################################
+	//#########################################################################
 	// Handles MPI initializations and sets its variables.
 	printf("MPI_INIT...\n");
 	MPI_init(&mpi_rank,&mpi_procs,&argc,&argv);
@@ -661,9 +662,9 @@ int main(int argc, char** argv)
 	}
 	bestTours = malloc(sizeof(tour_t*)*NUM_TOP_TOURS);
 	
-	//####################################################
+	//#########################################################################
 	// Load Cities, Initialize Tables, Create Init tours
-	//####################################################
+	//#########################################################################
 	// load the cities
 	int *intCities = malloc(MAX_CITIES * sizeof(int) * 3);
 	if (MPIFLAG==1)
@@ -793,9 +794,9 @@ int main(int argc, char** argv)
 	initBestTourTracking();
 #endif
 
-	//####################################################
+	//#########################################################################
 	// Run Genetic Algorithm (Enter "The Islands")
-	//####################################################
+	//#########################################################################
 	int iter=0; // the number of iterations performed.
 	int delta_iter=0; /*	the number of iterations performed with fitness
 						consecutively within DELTA. */
@@ -829,8 +830,8 @@ int main(int argc, char** argv)
 		}// else serial execution
 	}// while lcv
 
-	//####################################################
+	//#########################################################################
 	// Free Memory, Terminate Program
-	//####################################################
+	//#########################################################################
 	terminate_program(0);
 }

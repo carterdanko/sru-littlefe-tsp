@@ -4,8 +4,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #ifndef TSP_H // header guard
 #define TSP_H
-//#define MPIFLAG 1 // this decides whether or not we are using MPI (for compiling purposes)
-	//now implemented with the makefiles
 
 #include <stdlib.h>
 #include <time.h>
@@ -22,35 +20,46 @@
 
 
 //// GA MODIFICATIONS //////////////////////////////////////////////////////////
-#define CHOOSE_BEST_FROM_THREE 1     // if true, performEAX returns only the best tour from {parentA, parentB, child} instead of always the child
-#define PERFORM_2OPT_ON_CHILD 0      // if true, performs 2-opt optimization on child tour
-#define USE_HEURISTIC_ESET 0         // if true, instead of randomly choosing AB cycles for E-SETs, uses a heuristic
-#define CAP_ROULETTE_WHEEL 0         // if true, puts limits on roullette_wheel
+#define CHOOSE_BEST_FROM_THREE 1   /* if true, performEAX returns only the best
+                                   tour from {parentA, parentB, child} instead
+                                   of always the child. */
+#define PERFORM_2OPT_ON_CHILD 0    /* if true, performs 2-opt optimization on
+                                   child tour. */
+#define USE_HEURISTIC_ESET 0       /* if true, instead of randomly choosing AB
+                                   cycles for E-SETs, uses a heuristic. */
+#define CAP_ROULETTE_WHEEL 0       // if true, puts limits on roullette_wheel
 #if CAP_ROULETTE_WHEEL
-	#define RW_CAP_MIN 1.0 // this is a minimum weight for each child in the roullette wheel selection (times average)
-	#define RW_CAP_MAX 1.0 // then this is a maximum weight for each child in the roullette wheel selection (times average)
+	#define RW_CAP_MIN 1.0        /* this is a minimum weight for each child in
+                                   the roullette wheel selection */
+	#define RW_CAP_MAX 1.0        /* then this is a maximum weight for each
+                                   child in the roullette wheel selection */
 #endif
 ////////////////////////////////////////////////////////////////////////////////
 
 
 //// TOUR GENERATION MODIFICATIONS /////////////////////////////////////////////
-#define USE_NEAREST_NEIGHBOR 1       // if true, uses nearest neighbor instead of purely random initial pop
-#define USE_HYBRID_PROBABILITY 50    // if 0, only use NN or RAND, if non-zero, this/100 = probability for NN
+#define USE_NEAREST_NEIGHBOR 1     /* if true, uses nearest neighbor instead
+                                   of purely random initial pop */
+#define USE_HYBRID_PROBABILITY 50  /* if 0, only use NN or RAND, if non-zero,
+                                   this/100 = probability for NN */
 ////////////////////////////////////////////////////////////////////////////////
 
 
 //// OTHER MODIFICATIONS ///////////////////////////////////////////////////////
-#define USE_DISTANCE_TABLE 1         // if true, uses a distance lookup table
-#define USE_BIG_TABLE 0              // if true, uses an n^2 table (NxN) instead of the reduced triangle-table
-#define LEAVE_SQUARED 0              //TODO: DOESN'T SEEM TO WORK if true, leaves the distance squared
-#define USE_EDGE_TABLE 0             //TODO: THIS ISN'T FINISHED AND WON'T COMPILE if true, uses a huge table of edges instead of INIT_EDGEing all the time
-#define USE_NAIVE_DISTANCE 0         // if true, distance calculation is simply: (x2-x1)+(y2-y1)
+#define USE_DISTANCE_TABLE 1  // if true, uses a distance lookup table
+#define USE_BIG_TABLE 0       /* if true, uses an n^2 table (NxN) instead of the
+                              reduced triangle-table */
+#define LEAVE_SQUARED 0       // if true, leaves the distance squared
+#define USE_EDGE_TABLE 0      //TODO: THIS ISN'T FINISHED AND WON'T COMPILE IF 1
+#define USE_NAIVE_DISTANCE 0  /* if true, distance calculation is simply:
+                              (x2-x1)+(y2-y1) */
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "include/printcolors.h"     // for coloring the console output
 #include "include/outputcontrol.h"   // controls debug output
 
-#define DEBUG 1     // set to zero to remove a lot of debugging output and speed up the code 
+#define DEBUG 1     /*   set to zero to remove a lot of debugging output and
+                         speed up the code */
 
 #if PRINT_MPI_INFO
 	#define DPRINTF if (DEBUG) printf("r%io%i::", mpi_rank, outputCounter++); if (DEBUG) printf
@@ -59,33 +68,58 @@
 #endif
 #define MAX_CITIES 20000
 
-#define MAX_TOUR MAX_CITIES+1     // maximum length of a tour, MAX_CITIES+1 because sometimes tours loop back around
+#define MAX_TOUR MAX_CITIES+1                /* maximum length of a tour,
+                                             MAX_CITIES+1 because sometimes
+                                             tours loop back around */
 #define MAX_POPULATION 100
 #define TABLE_SIZE (MAX_CITIES*(MAX_CITIES-1))/2 // size based on a counting argument
-#define MAX_ITERATIONS 100 // sets the maximum number of generations to iterate through in the GA
-#define DELTA 0.50 // A float threshold for the difference in the population's best fitness.
-		// When the difference is within this threshold, begin counting how frequently it occurs.
-#define MAX_DELTA 20 // set the maximum number of generations to iterate through when the difference in fitness was repetitively within DELTA.
-#define MAX_PAIR_TOURS MAX_POPULATION   // how many of pairs of tours (parent pairs) to make when generating children
-#define NUM_TOP_TOURS 3       // how many tours master sends to each slave
-#define SEND_TO_MASTER 1      // how many tours each slave sends to master
+#define MAX_ITERATIONS 100                   /* sets the maximum number of
+                                             generations to iterate through in
+                                             the GA */
+#define DELTA 0.50                           /* A float threshold for the
+                                             difference in the population's
+                                             best fitness. When the difference
+                                             is within this threshold, begin
+                                             counting how frequently it occurs. */
+#define MAX_DELTA 20                         /* set the maximum number of
+                                             generations to iterate through when
+                                             the difference in fitness was
+                                             repetitively within DELTA. */
+#define MAX_PAIR_TOURS MAX_POPULATION        /* how many of pairs of tours
+                                             (parent pairs) to make when
+                                             generating children */
+#define NUM_TOP_TOURS 3                      /* how many tours master sends to
+                                             each slave */
+#define SEND_TO_MASTER 1                     /* how many tours each slave sends
+                                             to master */
 
-#define ENFORCE_LOOKUP_TABLE_CORRECTNESS 0    // extra checks in the lookup table for debugging purposes
-#define ENFORCE_NONZERO_FITNESS 0             // extra checks when using a fitness value (roullette_select, etc.)
-#define DEBUG_SET_TOUR_FITNESS 0              // inserts extra lines while calculating a tour's fitness for debugging
+#define ENFORCE_LOOKUP_TABLE_CORRECTNESS 0   /* extra checks in the lookup table
+                                             for debugging purposes */
+#define ENFORCE_NONZERO_FITNESS 0            /* extra checks when using a
+                                             fitness value (roullette_select,
+                                             etc.) */
+#define DEBUG_SET_TOUR_FITNESS 0             /* inserts extra lines while
+                                             calculating a tour's fitness for
+                                             debugging */
 
 /**
  * represents a city that must be visited to create a complete tour
  */
 struct edge_struct;
 typedef struct {
-	int x,y; // x and y position of the city
-	int id; // a unique number for each city in the map. It should be equal to the city's index in the cities array.
-	int tour; // keeps track of which tour this "edge" was from. An "edge"[n] is defined as: tour.city[n-1] -> tour.city[n], then tour.tour[n] == which tour that edge was from
-			  // NOTE: this field is only really relevant when dealing with cycles 
-	struct edge_struct* edge; // like tour, this is the actual "edge" that connected this to the city before it in the tour. These are changed
-	              // all the time by every iteration of the eax, so they're really only valid for the brief period during fixIntermediate
-				  // pretty much
+     int x,y; // x and y position of the city
+     int id; /*     a unique number for each city in the map. It should be
+                    equal to the city's index in the cities array. */
+     int tour; /*   keeps track of which tour this "edge" was from. An "edge"[n]
+                    is defined as: tour.city[n-1] -> tour.city[n], then
+                    tour.tour[n] == which tour that edge was from */
+     // NOTE: this field is only really relevant when dealing with cycles 
+     struct edge_struct* edge;     /* like tour, this is the actual "edge" that
+                                   connected this to the city before it in the
+                                   tour. These are changed all the time by every
+                                   iteration of the eax, so they're really only
+                                   valid for the brief period during
+                                   fixIntermediate */
 } city_t;
 
 /**
@@ -93,7 +127,6 @@ typedef struct {
  */
 typedef struct {
 	int size; // size of the tour
-	// ~~!
 	float fitness; // the fitness of the entire tour.
 	city_t* city[MAX_TOUR]; // a pointer to each city in the tour
 } tour_t;
@@ -106,7 +139,7 @@ extern tour_t** Tours; // Tours array
 extern tour_t *CitiesA, *CitiesB;
 extern time_t startTime; // time the program started running
 #if BEST_TOUR_TRACKING
-	void dumpBestTours();      // a function in main.c that dumps the best tours
+	void dumpBestTours(); // a function in main.c that dumps the best tours
 #endif // best tour tracking
 ////////////////////////////////////////////////////////////////////////////////
 

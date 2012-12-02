@@ -1,18 +1,20 @@
-/** Author: Mike Tasota
- *  Date:   18 September 2012
- *  Descr:  Pretending like this was never accidentally lost the first time
- *          and that I didn't have to rewrite this code again. OK? So, this
- *          is the original file I wrote, because I only wrote this once.
- */
+////////////////////////////////////////////////////////////////////////////////
+//	DESC:	Contains functions that involve the manipulation of a tour's
+//			fitness.
+////////////////////////////////////////////////////////////////////////////////
 
 #include <stdio.h>
 #include <math.h>
 #include "include/tsp.h"
 #include "include/eax.h"
+
 /** Stores distances from every point to another. */
 float* distTable;// initialized in fitness.c inside construct_distTable
 edge_t** edgeTable; // a table initialized to contain all possible edges
 
+/**
+ * DESC: Computes the euclidean distance from (x1,y1) to (x2,y2).
+ */
 float dist(float x1, float y1, float x2, float y2)
 {
 	float x,y;
@@ -26,17 +28,20 @@ float dist(float x1, float y1, float x2, float y2)
 }
 
 /**
- * Using The Pythagorean's Theorem, calculate the distance from p1 to p2.
+ * DESC: Using The Pythagorean's Theorem, calculate the distance from p1 to p2.
  */
-float get_distance_between(int p1, int p2, tour_t* cities) {
-	return dist(cities->city[p1]->x, cities->city[p1]->y, cities->city[p2]->x, cities->city[p2]->y);
+float get_distance_between(int p1, int p2, tour_t* cities)
+{
+	return dist(cities->city[p1]->x, cities->city[p1]->y, cities->city[p2]->x,
+		cities->city[p2]->y);
 }
 
 /**
- *  Constructs the distTable.
+ * DESC: Constructs the distTable.
  */
 tour_t* Cities;
-void construct_distTable(tour_t* cities, int num_cities) {
+void construct_distTable(tour_t* cities, int num_cities)
+{
 #if USE_DISTANCE_TABLE
 	Cities = cities;
 #if USE_BIG_TABLE
@@ -55,12 +60,14 @@ void construct_distTable(tour_t* cities, int num_cities) {
 	bound1 = num_cities;
 #endif
 	index=0;
-	for (i=0;i<bound1;i++) {
+	for (i=0;i<bound1;i++)
+	{
 #if USE_BIG_TABLE
 #else
 		bound2 = i;
 #endif
-		for (j=0;j<bound2;j++) {
+		for (j=0;j<bound2;j++)
+		{
 			distTable[index] = get_distance_between(i,j,cities);
 #if USE_EDGE_TABLE
 			edgeTable[index] = malloc(sizeof(edge_t));
@@ -82,18 +89,17 @@ void construct_distTable(tour_t* cities, int num_cities) {
 }
 
 /**
- * Returns the distance traveled from a point p1 to another point p2.
+ * DESC: Returns the distance traveled from a point p1 to another point p2.
  *   This is retrieved from the distTable hashtable.
  */
-float lookup_distance(int p1, int p2) {
+float lookup_distance(int p1, int p2)
+{
 #if USE_DISTANCE_TABLE
 #if USE_BIG_TABLE
 	return distTable[p1*CitiesA->size+p2];
 #else
-	if (p1<p2) {
-		//DPRINTF("p1<p2 inside lookup_distance: distTable[(%i*(%i-1)/2)+%i==%i]=%f\n", p2, p2, p1, (p2*(p2-1)/2)+p1, distTable[(p2*(p2-1)/2)+p1]);
-		//float f = distTable[(p2*(p2-1)/2)+p1];
-		//DPRINTF("f=%f\n", f);
+	if (p1<p2)
+	{
 #if ENFORCE_LOOKUP_TABLE_CORRECTNESS
 		if (distTable[(p2*(p2-1)/2)+p1] != get_distance_between(p1, p2, Cities))
 		{
@@ -104,10 +110,9 @@ float lookup_distance(int p1, int p2) {
 		}
 #endif
 		return distTable[(p2*(p2-1)/2)+p1];
-	} else if (p1>p2) {
-		//DPRINTF("p1>p2 inside lookup_distance: distTable[(%i*(%i-1)/2)+%i==%i]=%f\n", p1, p1, p2, (p1*(p1-1)/2)+p2, distTable[(p1*(p1-1)/2)+p2]);
-		//float f = distTable[(p1*(p1-1)/2)+p2];
-		//DPRINTF("f=%f\n", f);
+	}
+	else if (p1>p2)
+	{
 #if ENFORCE_LOOKUP_TABLE_CORRECTNESS
 		if (distTable[(p1*(p1-1)/2)+p2] != get_distance_between(p1, p2, Cities))
 		{
@@ -118,11 +123,12 @@ float lookup_distance(int p1, int p2) {
 		}
 #endif
 		return distTable[(p1*(p1-1)/2)+p2];
-	} else {
+	}
+	else
+	{
 		ERROR_TEXT;
 		DPRINTF("WARNING -- THIS SHOULD NEVER HAPPEN (p1[%i]==p2[%i]); terminating...\n", p1, p2);
 		NORMAL_TEXT;
-		
 		terminate_program(787);
 		return 0.0;
 	}
@@ -148,12 +154,18 @@ float lookup_distance(int p1, int p2) {
 } // lookup_distance()
 
 #if USE_EDGE_TABLE
-edge_t* lookup_edge(int p1, int p2) {
-	if (p1<p2) {
+edge_t* lookup_edge(int p1, int p2)
+{
+	if (p1<p2)
+	{
 		return edgeTable[(p2*(p2-1)/2)+p1];
-	} else if (p1>p2) {
+	}
+	else if (p1>p2)
+	{
 		return edgeTable[(p1*(p1-1)/2)+p2];
-	} else {
+	}
+	else
+	{
 		ERROR_TEXT;
 		DPRINTF("WARNING IN LOOKUP_EDGE -- THIS SHOULD NEVER HAPPEN (p1[%i]==p2[%i]); terminating...\n", p1, p2);
 		NORMAL_TEXT;
@@ -165,10 +177,11 @@ edge_t* lookup_edge(int p1, int p2) {
 #endif
 
 /**
- * Given a tour and the number of cities, determine its fitness by
- * computing the distance required to traverse the route.
+ * DESC: Given a tour and the number of cities, determine its fitness by
+ *	computing the distance required to traverse the route.
  */
-void set_tour_fitness(tour_t* tour, int num_cities) {
+void set_tour_fitness(tour_t* tour, int num_cities)
+{
 	int i;
 	tour->fitness=0.0;
 #if DEBUG_SET_TOUR_FITNESS
@@ -178,43 +191,57 @@ void set_tour_fitness(tour_t* tour, int num_cities) {
 	for (i=0; i < num_cities-1; i++) 
 	{
 #if DEBUG_SET_TOUR_FITNESS
-		float lookup = lookup_distance(tour->city[i]->id, tour->city[i+1]->id);
-		float calc = dist(tour->city[i]->x, tour->city[i]->y, tour->city[i+1]->x, tour->city[i+1]->y);
+		float lookup = lookup_distance(tour->city[i]->id,
+			tour->city[i+1]->id);
+		float calc = dist(tour->city[i]->x, tour->city[i]->y,
+			tour->city[i+1]->x, tour->city[i+1]->y);
 		tour->fitness+=lookup;
-		DPRINTF("[%i]->[%i] : lookup: %f  calc: %f   total: %f\n", tour->city[i]->id, tour->city[i+1]->id, lookup, calc, tour->fitness);
+		DPRINTF("[%i]->[%i] : lookup: %f  calc: %f   total: %f\n",
+			tour->city[i]->id, tour->city[i+1]->id, lookup, calc,
+			tour->fitness);
 #else
 		tour->fitness+=lookup_distance(tour->city[i]->id,tour->city[i+1]->id);
 #endif
 	}
 	// and, we count arr[n] --> arr[0]
 #if DEBUG_SET_TOUR_FITNESS
-	float lookup = lookup_distance(tour->city[num_cities-1]->id, tour->city[0]->id);
-	float calc = dist(tour->city[num_cities-1]->x, tour->city[num_cities-1]->y, tour->city[0]->x, tour->city[0]->y);
+	float lookup = lookup_distance(tour->city[num_cities-1]->id,
+		tour->city[0]->id);
+	float calc = dist(tour->city[num_cities-1]->x, tour->city[num_cities-1]->y,
+		tour->city[0]->x, tour->city[0]->y);
 	tour->fitness+=lookup;
-	DPRINTF("[%i]->[%i] : lookup: %f  calc: %f   total: %f\n", tour->city[num_cities-1]->id, tour->city[0]->id, lookup, calc, tour->fitness);
+	DPRINTF("[%i]->[%i] : lookup: %f  calc: %f   total: %f\n",
+		tour->city[num_cities-1]->id, tour->city[0]->id, lookup, calc,
+		tour->fitness);
 #else
-	tour->fitness+=lookup_distance(tour->city[num_cities-1]->id, tour->city[0]->id);
+	tour->fitness+=lookup_distance(tour->city[num_cities-1]->id,
+		tour->city[0]->id);
 #endif
 }
 
 /**
- * Given a city, find its nearest neighbor. The array cities_visited denotes the id of cities
- *  which are available (0) and unavaiable/already visited (1).
+ * DESC: Given a city, find its nearest neighbor. The array cities_visited
+ *	denotes the id of cities which are available (0) and unavaiable/already
+ *	visited (1).
  */
-city_t* find_nearest_neighbor(city_t* city, int num_cities, tour_t* cities, char* cities_visited) {
+city_t* find_nearest_neighbor(city_t* city, int num_cities, tour_t* cities,
+ char* cities_visited)
+{
 	city_t* short_city;
 	short_city=malloc( sizeof(city_t) );
 	float temp_dist,short_dist;
 	short_dist=10000000.0; // some big value //TODO: replace with float max?
 	int i;
 
-	for (i=0;i<num_cities;i++) {
-		if (cities_visited[i] || cities->city[i]->id == city->id) {
+	for (i=0;i<num_cities;i++)
+	{
+		if (cities_visited[i] || cities->city[i]->id == city->id)
 			continue;
-		}
 		temp_dist = lookup_distance(cities->city[i]->id,city->id);
-		if (  temp_dist < short_dist) {
-			// If your distance was shorter than the shortest, use this instead.
+		if (  temp_dist < short_dist)
+		{
+			// If your distance was shorter than the shortest,
+			// use this instead.
 			short_city = cities->city[i];
 			short_dist = temp_dist;
 		}
@@ -223,15 +250,18 @@ city_t* find_nearest_neighbor(city_t* city, int num_cities, tour_t* cities, char
 }
 
 /**
- * Given an array of yours and the number of tours in the array, randomly
- * choose one of the tours. The choice is weighted based on the fitness
- * of the function, inversely. In other words, for fitness F1 for tour T1,
- * your probability of receiving tour T1 is (1/F1) / sum( 1/Fi ).
+ * DESC: Given an array of yours and the number of tours in the array, randomly
+ *	choose one of the tours. The choice is weighted based on the fitness
+ *	of the function, inversely. In other words, for fitness F1 for tour T1,
+ *	your probability of receiving tour T1 is (1/F1) / sum( 1/Fi ).
+ *
  * tours : the array of tours to choose from
  * num_tours : the number of tours to choose from
- * ignore_tour [optional] : a tour to ignore for choosing, set to null (0) to not ignore any tours
+ * ignore_tour [optional] : a tour to ignore for choosing, set to null (0)
+ *	to not ignore any tours
  */
-tour_t* roulette_select(tour_t** tours, int num_tours, tour_t* ignore_tour) {
+tour_t* roulette_select(tour_t** tours, int num_tours, tour_t* ignore_tour)
+{
 	int i;
 	float rand,rand_fit,sum_fitness,temp;
 	sum_fitness=0.0;
@@ -254,7 +284,8 @@ tour_t* roulette_select(tour_t** tours, int num_tours, tour_t* ignore_tour) {
 #endif
 
 	// sum up the inverted total fitnesses
-	for (i=0;i<num_tours;i++) {
+	for (i=0;i<num_tours;i++)
+	{
 		if (tours[i] == ignore_tour)
 			continue; // don't count ignore_tour in the fitness sum
 		temp = tours[i]->fitness;
@@ -279,7 +310,8 @@ tour_t* roulette_select(tour_t** tours, int num_tours, tour_t* ignore_tour) {
 	// some random point between 0 and top fitness
 	rand_fit = sum_fitness * rand;
 
-	for (i=0;i<num_tours;i++) {
+	for (i=0;i<num_tours;i++)
+	{
 		if (tours[i] == ignore_tour)
 			continue; // don't check the ignore tour, it wasn't counted in the fitness sum
 		temp = 1.0 / tours[i]->fitness;
@@ -293,10 +325,8 @@ tour_t* roulette_select(tour_t** tours, int num_tours, tour_t* ignore_tour) {
 			// If your fitness is in this tour, return it.
 			return tours[i];
 		} 
-		else {
-			// Otherwise, subtract this tour's fitness from sum_fitness and try again.
-			rand_fit-=temp;
-		}
+		// Otherwise, subtract this tour's fitness from sum_fitness and try again.
+		else rand_fit-=temp;
 	}
 	
 	// never executes.

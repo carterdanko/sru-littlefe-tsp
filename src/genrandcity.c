@@ -1,7 +1,7 @@
-/**
- * this program creates random city files
- */
- 
+////////////////////////////////////////////////////////////////////////////////
+//	DESC:	Creates random city files to be used by the GA program.
+////////////////////////////////////////////////////////////////////////////////
+
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
@@ -37,12 +37,10 @@ int main(int argc, char** argv)
 			}
 			else if (strcmp(p, "-n") == 0)
 			{
-				//TODO: num cities
 				numCities = atoi(argv[++i]);
 			}
 			else if (strcmp(p, "-d") == 0)
 			{
-				//TODO: max dist
 				maxDist = atoi(argv[++i]);
 			}
 			else
@@ -62,7 +60,7 @@ int main(int argc, char** argv)
 	memset(tracking, 0, sizeof(*tracking));
 	
 	// generate the file
-	printf("saving %i cities maximally %i distance away to '%s'.\n", numCities, maxDist, fn); // TODO: DEBUG remove
+	printf("saving %i cities maximally %i distance away to '%s'.\n", numCities, maxDist, fn);
 	FILE* F = fopen(fn, "w");
 	printf("writing");
 	fprintf(F, "%i\n", numCities);
@@ -80,4 +78,4 @@ int main(int argc, char** argv)
 	}
 	printf("done!\n");
 	fclose(F);
-}// int main()
+}
