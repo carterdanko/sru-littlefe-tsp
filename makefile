@@ -18,8 +18,5 @@ mpi: makefile $(sources) $(includes)
 nn: makefile src/fitness.c src/nnmain.c src/tsp.c src/util.c $(includes)
 	mpicc -g src/nnmain.c src/fitness.c src/tsp.c src/util.c -o nntsp -Iinclude/* -I. -lm -DMPIFLAG=1
 	
-aco: makefile src/fitness.c src/acomain.c src/tsp.c src/util.c $(includes)
-	cc -g src/acomain.c src/fitness.c src/tsp.c src/util.c -o acotsp -Iinclude/* -I. -lm -DMPIFLAG=0 -pg
-
 clean:
-	rm tsp genrandcity cuda mpitsp graphBefore.txt graphAfter.txt bestTours.txt nntsp *.out output/* acotsp
+	rm tsp genrandcity cuda mpitsp graphBefore.txt graphAfter.txt bestTours.txt nntsp *.out output/*
